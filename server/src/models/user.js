@@ -15,6 +15,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'role_id', // Tên cột trong bảng User
         as: 'role' // Alias để truy cập liên kết từ User tới Role
       });
+      User.hasMany(models.userSocial, {
+        foreignKey: 'user_id',
+        as: 'socialsAccount'
+      });
     }
   }
   User.init({
