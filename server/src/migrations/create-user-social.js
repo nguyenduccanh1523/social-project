@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,  // URL tài khoản xã hội là bắt buộc
       },
       user_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: 'Users',  // Tên bảng Users

@@ -8,7 +8,7 @@ module.exports = {
       id: {
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         defaultValue: uuidv4,
       },
       userName: {
@@ -53,7 +53,7 @@ module.exports = {
         allowNull: true,   // Address là tùy chọn
       },
       role_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         references: {
           model: 'Roles',   // Tên bảng cha
           key: 'id'         // Khóa ngoại ở bảng Users

@@ -15,9 +15,39 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'role_id', // Tên cột trong bảng User
         as: 'role' // Alias để truy cập liên kết từ User tới Role
       });
+      // Một User có nhiều tài khoản xã hội
       User.hasMany(models.userSocial, {
         foreignKey: 'user_id',
         as: 'socialsAccount'
+      });
+
+      // Một User có thể là admin của nhiều Group
+      User.hasMany(models.Group, {
+        foreignKey: 'admin_id',
+        as: 'adminGroups'
+      });  
+      // Một User có thể tham gia nhiều Group thông qua GroupMember (Many-to-Many)
+      User.belongsToMany(models.Group, {
+        through: models.group_members,
+        foreignKey: 'user_id',
+        otherKey: 'group_id',
+        as: 'groups'
+      });
+      // Mối quan hệ giữa User và group_requests (một User có thể gửi nhiều yêu cầu tham gia nhóm)
+      User.hasMany(models.group_request, {
+        foreignKey: 'user_request',
+        as: 'groupRequests'
+      });
+      // Mối quan hệ giữa User và group_invitations: Một User có thể gửi nhiều lời mời (invited_by)
+      User.hasMany(models.group_invitation, {
+        foreignKey: 'invited_by',
+        as: 'sentInvitations'
+      });
+
+      // Mối quan hệ giữa User và group_invitations: Một User có thể nhận nhiều lời mời (invited_to)
+      User.hasMany(models.group_invitation, {
+        foreignKey: 'invited_to',
+        as: 'receivedInvitations'
       });
     }
   }
@@ -43,7 +73,7 @@ module.exports = (sequelize, DataTypes) => {
     relationship: DataTypes.STRING,
     address: DataTypes.STRING,
     role_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false
     },
   }, {
