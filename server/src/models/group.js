@@ -36,6 +36,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'group_id',
         as: 'groupInvitations'
       });
+      Group.hasMany(models.Post, {
+        foreignKey: 'group_id',
+        as: 'posts'
+      });
     }
   }
   Group.init({

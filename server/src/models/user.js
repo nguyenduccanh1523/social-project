@@ -20,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'user_id',
         as: 'socialsAccount'
       });
-
       // Một User có thể là admin của nhiều Group
       User.hasMany(models.Group, {
         foreignKey: 'admin_id',
@@ -43,11 +42,15 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'invited_by',
         as: 'sentInvitations'
       });
-
       // Mối quan hệ giữa User và group_invitations: Một User có thể nhận nhiều lời mời (invited_to)
       User.hasMany(models.group_invitation, {
         foreignKey: 'invited_to',
         as: 'receivedInvitations'
+      });
+      // Mối quan hệ giữa User và Post: Một User có thể tạo nhiều Post
+      User.hasMany(models.Post, {
+        foreignKey: 'user_id',
+        as: 'posts'
       });
     }
   }
