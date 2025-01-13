@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('post_medias', {
+    await queryInterface.createTable('post_tags', {
       post_id: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -13,15 +13,15 @@ module.exports = {
         onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Posts
         onDelete: 'CASCADE',  // Xóa khi xóa bài viết
       },
-      media_id: {
+      tag_id: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'Medias',  // Tên bảng Medias
-          key: 'id',        // Cột khóa chính trong bảng Medias
+          model: 'Tags',  // Tên bảng Tags
+          key: 'id',      // Cột khóa chính trong bảng Tags
         },
-        onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Medias
-        onDelete: 'CASCADE',  // Xóa khi xóa media
+        onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Tags
+        onDelete: 'CASCADE',  // Xóa khi xóa thẻ
       },
       created_at: {
         type: Sequelize.DATE,
@@ -37,13 +37,13 @@ module.exports = {
       },
     });
 
-    // Tạo chỉ mục duy nhất cho cặp (post_id, media_id)
-    await queryInterface.addIndex('post_medias', ['post_id', 'media_id'], {
-      unique: true,  // Đảm bảo mỗi (post_id, media_id) là duy nhất
+    // Tạo chỉ mục duy nhất cho cặp (post_id, tag_id)
+    await queryInterface.addIndex('post_tags', ['post_id', 'tag_id'], {
+      unique: true,  // Đảm bảo mỗi (post_id, tag_id) là duy nhất
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('post_medias');
+    await queryInterface.dropTable('post_tags');
   }
 };

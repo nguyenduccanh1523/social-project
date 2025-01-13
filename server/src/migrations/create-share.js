@@ -2,7 +2,13 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('post_medias', {
+    await queryInterface.createTable('Shares', {
+      id: {
+        allowNull: false,
+        primaryKey: true,
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,  // Tự động tăng giá trị ID
+      },
       post_id: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -13,15 +19,15 @@ module.exports = {
         onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Posts
         onDelete: 'CASCADE',  // Xóa khi xóa bài viết
       },
-      media_id: {
+      user_id: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
-          model: 'Medias',  // Tên bảng Medias
-          key: 'id',        // Cột khóa chính trong bảng Medias
+          model: 'Users',  // Tên bảng Users
+          key: 'id',       // Cột khóa chính trong bảng Users
         },
-        onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Medias
-        onDelete: 'CASCADE',  // Xóa khi xóa media
+        onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Users
+        onDelete: 'CASCADE',  // Xóa khi xóa người dùng
       },
       created_at: {
         type: Sequelize.DATE,
@@ -36,14 +42,9 @@ module.exports = {
         allowNull: true,  // Trường này có thể là null
       },
     });
-
-    // Tạo chỉ mục duy nhất cho cặp (post_id, media_id)
-    await queryInterface.addIndex('post_medias', ['post_id', 'media_id'], {
-      unique: true,  // Đảm bảo mỗi (post_id, media_id) là duy nhất
-    });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('post_medias');
+    await queryInterface.dropTable('Shares');
   }
 };

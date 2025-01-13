@@ -52,6 +52,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'user_id',
         as: 'posts'
       });
+      // Mối quan hệ giữa User và Share: Một User có thể chia sẻ nhiều bài viết
+      User.hasMany(models.Share, {
+        foreignKey: 'user_id',
+        as: 'shares'
+      });
     }
   }
   User.init({

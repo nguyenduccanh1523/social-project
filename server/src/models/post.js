@@ -26,6 +26,18 @@ module.exports = (sequelize, DataTypes) => {
         otherKey: 'media_id',
         as: 'medias'
       });
+      // Mối quan hệ giữa Post và Tag: Một Post có thể có nhiều Tag thông qua bảng post_tags
+      Post.belongsToMany(models.Tag, {
+        through: models.post_tags,  // Bảng trung gian giữa Post và Tag
+        foreignKey: 'post_id',
+        otherKey: 'tag_id',
+        as: 'tags'  // Alias để truy cập các thẻ của bài viết
+      });
+      // Mối quan hệ giữa Post và Share: Một Post có thể được chia sẻ nhiều lần
+      Post.hasMany(models.Share, {
+        foreignKey: 'post_id',
+        as: 'shares'
+      });
     }
   }
 
