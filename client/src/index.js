@@ -12,13 +12,13 @@ import { Provider } from 'react-redux';
 //reducer
 import {store} from './store'
 
-//import { IndexRouters } from './router';
+import { IndexRouters } from './router';
 import { SimpleRouter } from './router/simple-router';
 //import { ChatRouter } from './router/chat-router';
 
 const router = createBrowserRouter([
 
-  //...IndexRouters,
+  ...IndexRouters,
   ...SimpleRouter,
   //...ChatRouter
 ], { basename: process.env.PUBLIC_URL })
