@@ -11,6 +11,7 @@ import SignUp from "../views/dashboard/auth/sign-up";
 import Error404 from "../views/dashboard/errors/error404";
 import Error500 from "../views/dashboard/errors/error500";
 
+import Homepage from "../views/dashboard/app/home";
 //extrpages
 // import Maintenance from "../views/dashboard/extrapages/maintenance";
 // import ComingSoon from "../views/dashboard/extrapages/comingsoon";
@@ -29,11 +30,15 @@ export const SimpleRouter = [
 //     element: <Recoverpw />,
 //   },
   {
-    path: "auth/sign-in",
+    path: "/",
+    element: <Homepage />,
+  },
+  {
+    path: "/sign-in",
     element: <SignIn />,
   },
   {
-    path: "auth/sign-up",
+    path: "/sign-up",
     element: <SignUp />,
   },
   {
