@@ -1387,7 +1387,7 @@ const Header = () => {
                       <div className="d-flex align-items-center iq-sub-card">
                         <span className="material-symbols-outlined">login</span>
                         <div className="ms-3">
-                          <Link to="/auth/sign-in" className="mb-0 h6">
+                          <Link to="/sign-in" className="mb-0 h6">
                             Sign out
                           </Link>
                         </div>
