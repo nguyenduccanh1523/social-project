@@ -12,10 +12,16 @@ import { Provider } from 'react-redux';
 //reducer
 import {store} from './store'
 
+import {PersistGate} from 'redux-persist/integration/react'
+import { BrowserRouter } from 'react-router-dom';
+import reduxStore from './redux';
+
 import { IndexRouters } from './router';
 import { SimpleRouter } from './router/simple-router';
 //import { ChatRouter } from './router/chat-router';
 
+
+const { persistor } = reduxStore()
 const router = createBrowserRouter([
 
   ...IndexRouters,
