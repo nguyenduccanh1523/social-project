@@ -1,6 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col, Container, Form, Button, Image } from "react-bootstrap";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import * as actions from "../../../actions/actions";
+import Swal from "sweetalert2";
+
 
 //swiper
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -15,16 +18,21 @@ import logo from "../../../assets/images/logo-full.png";
 import login1 from "../../../assets/images/login/1.png";
 import login2 from "../../../assets/images/login/2.png";
 import login3 from "../../../assets/images/login/3.png";
+import { useDispatch, useSelector } from "react-redux";
 
 // install Swiper modules
 SwiperCore.use([Navigation, Autoplay]);
 
 const SignIn = () => {
   //let history = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -37,6 +45,28 @@ const SignIn = () => {
       [id]: value,
     });
   };
+
+  const { isLoggedIn, msg, update } = useSelector((state) => state.auth || {});
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/");
+    }
+  }, [isLoggedIn, navigate]);
+
+  useEffect(() => {
+    // Show error message if there's any
+    if (msg) {
+      Swal.fire("Oops!", msg, "error");
+    }
+  }, [msg]);
+
+  // Show success alert
+  useEffect(() => {
+    if (isLoggedIn) {
+      Swal.fire("Success!", "You have successfully logged in!", "success");
+    }
+  }, [isLoggedIn]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -52,11 +82,15 @@ const SignIn = () => {
       newErrors.password = "Password is required";
       valid = false;
     }
+
     setErrors(newErrors);
 
     if (valid) {
-      // Handle form submission
-      console.log("Form data submitted:", formData);
+      const payload = {
+        identifier: formData.email,
+        password: formData.password,
+      };
+      dispatch(actions.login(payload)); // Chỉ gọi hành động login
     }
   };
 
