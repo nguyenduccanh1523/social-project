@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Row, Col, Container, Form, Button, Image } from "react-bootstrap";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import * as actions from "../../../actions/actions";
+import Loader from "../../../components/loading/loader";
 import Swal from "sweetalert2";
-
+import Overlay from "./style";
 
 //swiper
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -25,6 +26,12 @@ SwiperCore.use([Navigation, Autoplay]);
 
 const SignIn = () => {
   //let history = useNavigate();
+  const { isLoggedIn, msg, update, loading } = useSelector(
+    (state) => state.root.auth || {}
+  )
+  //const [loading, setLoading] = useState(false);
+  //console.log('loading: ', loading)
+
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -46,27 +53,25 @@ const SignIn = () => {
     });
   };
 
-  const { isLoggedIn, msg, update } = useSelector((state) => state.auth || {});
 
   useEffect(() => {
     if (isLoggedIn) {
-      navigate("/");
+      const token = localStorage.getItem("token");
+  
+      if (token) {
+        console.log("Token found in localStorage:", token); // Debug token
+        navigate("/"); // Chuyển hướng về trang chính
+        Swal.fire("Success!", "You have successfully logged in!", "success");
+      }
     }
   }, [isLoggedIn, navigate]);
 
   useEffect(() => {
-    // Show error message if there's any
-    if (msg) {
-      Swal.fire("Oops!", msg, "error");
+    if (msg && !isLoggedIn) {
+      //setLoading(false); // Dừng loader khi có lỗi
+      Swal.fire("Error", msg, "error"); // Hiển thị thông báo lỗi
     }
-  }, [msg]);
-
-  // Show success alert
-  useEffect(() => {
-    if (isLoggedIn) {
-      Swal.fire("Success!", "You have successfully logged in!", "success");
-    }
-  }, [isLoggedIn]);
+  }, [msg, isLoggedIn]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -90,12 +95,18 @@ const SignIn = () => {
         identifier: formData.email,
         password: formData.password,
       };
-      dispatch(actions.login(payload)); // Chỉ gọi hành động login
+      //setLoading(true); // Hiển thị loader
+      dispatch(actions.login(payload))
     }
   };
 
   return (
     <>
+      {loading && (
+        <Overlay>
+          <Loader />
+        </Overlay>
+      )}
       <section className="sign-in-page">
         <div id="container-inside">
           <div id="circle-small"></div>

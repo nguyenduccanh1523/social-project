@@ -24,9 +24,16 @@ export const register = (payload) => async (dispatch) => {
 };
 export const login = (payload) => async (dispatch) => {
   try {
+    dispatch({
+      type: actionTypes.LOGIN_REQUEST,
+    });
     const response = await apiLogin(payload);
     //console.log('response: ', response)
     if (response?.data?.jwt) {
+      const token = response.data.jwt;
+
+      // Lưu token vào localStorage
+      localStorage.setItem("token", token);
       dispatch({
         type: actionTypes.LOGIN_SUCCESS,
         data: response?.data?.jwt,
@@ -50,6 +57,13 @@ export const login = (payload) => async (dispatch) => {
   }
 };
 
-export const logout = () => ({
-  type: actionTypes.LOGOUT,
-});
+export const logout = () => (dispatch) => {
+  // Xóa token và refreshToken khỏi localStorage
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+
+  // Gửi action để cập nhật state (đăng xuất)
+  dispatch({
+    type: actionTypes.LOGOUT,
+  });
+};

@@ -10,7 +10,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import { Provider } from "react-redux";
 //reducer
-import { store } from "./store";
+//import { store1 } from "./store";
 
 import { PersistGate } from "redux-persist/integration/react";
 import { BrowserRouter } from "react-router-dom";
@@ -20,7 +20,7 @@ import { IndexRouters } from "./router";
 import { SimpleRouter } from "./router/simple-router";
 //import { ChatRouter } from './router/chat-router';
 
-const { persistor } = reduxStore();
+const { store, persistor } = reduxStore();
 const router = createBrowserRouter(
   [
     ...IndexRouters,
@@ -32,28 +32,13 @@ const router = createBrowserRouter(
 ReactDOM.createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        {/* <BrowserRouter> */}
+        <PersistGate loading={null} persistor={persistor}>
+          {/* <BrowserRouter> */}
           <App>
             <RouterProvider router={router}></RouterProvider>
           </App>
-        {/* </BrowserRouter> */}
-      </PersistGate>
-    </Provider>
+          {/* </BrowserRouter> */}
+        </PersistGate>
+      </Provider>
   </StrictMode>
 );
-// ReactDOM.render(
-//   <React.StrictMode>
-//     <BrowserRouter basename={process.env.PUBLIC_URL}>
-//     <Provider store={store}>
-//             <App />
-//         </Provider>
-//     </BrowserRouter>
-//   </React.StrictMode>,
-//   document.getElementById('root')
-// );
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-// reportWebVitals();
