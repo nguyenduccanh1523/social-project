@@ -5,6 +5,8 @@ import autoMergeLevel2 from "redux-persist/es/stateReconciler/autoMergeLevel2";
 import { persistReducer } from "redux-persist";
 import  userReducer  from "./userReducer";
 import userSocialsReducer from "./userSocialReducer";
+import friendReducer from "./friendReducer";
+
 
 
 const commonConfig = {
@@ -21,7 +23,8 @@ const authConfig = {
 const rootReducer = combineReducers({
     auth: persistReducer(authConfig, authReducer),
     user: userReducer,
-    userSocials: userSocialsReducer
+    userSocials: userSocialsReducer,
+    friend: friendReducer
 })
 
 export default rootReducer
