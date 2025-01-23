@@ -49,35 +49,44 @@ export const fetchFriendAccepted = (documentId) => async (dispatch) => {
   }
 };
 
-// Action xác nhận bạn bè
 export const confirmFriend = (friendId) => async (dispatch) => {
   try {
-    const response = await apiUpdateFriendStatus(friendId, "accepted"); // Gửi API để cập nhật trạng thái
-    dispatch({
-      type: actionTypes.UPDATE_FRIEND_STATUS_SUCCESS,
-      payload: response.data, // Dữ liệu trả về từ API
+    const response = await apiUpdateFriendStatus({
+      friendId,
+      status_type: "accepted",
     });
+    dispatch({
+      type: actionTypes.CONFIRM_FRIEND_SUCCESS,
+      payload: friendId,
+      updatedFriend: response?.data?.data, // Thêm dữ liệu bạn bè đã accepted
+    });
+
   } catch (error) {
     dispatch({
-      type: actionTypes.UPDATE_FRIEND_STATUS_FAILURE,
-      payload: error.response?.data?.message || "Failed to confirm friend",
+      type: actionTypes.CONFIRM_FRIEND_FAILURE,
+      payload: error.response?.data?.message || "Failed to accept friend request",
     });
   }
 };
 
-// Action xóa bạn bè
 export const deleteFriend = (friendId) => async (dispatch) => {
   try {
-    const response = await apiUpdateFriendStatus(friendId, "cancel"); // Gửi API để xóa bạn bè
-    dispatch({
-      type: actionTypes.UPDATE_FRIEND_STATUS_SUCCESS,
-      payload: response.data, // Dữ liệu trả về từ API
+    await apiUpdateFriendStatus({
+      friendId,
+      status_type: "cancel",
     });
+
+    dispatch({
+      type: actionTypes.REJECTED_FRIEND_SUCCESS,
+      payload: friendId,
+    });
+
   } catch (error) {
     dispatch({
-      type: actionTypes.UPDATE_FRIEND_STATUS_FAILURE,
-      payload: error.response?.data?.message || "Failed to delete friend",
+      type: actionTypes.REJECTED_FRIEND_FAILURE,
+      payload: error.response?.data?.message || "Failed to reject friend request",
     });
+
   }
 };
 

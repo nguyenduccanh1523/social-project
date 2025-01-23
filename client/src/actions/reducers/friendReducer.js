@@ -44,24 +44,24 @@ const friendReducer = (state = initialState, action) => {
         loading: false,
         recentFriends: action.payload, // Dữ liệu từ FRIEND_BY_DATE
       };
-    case actionTypes.UPDATE_FRIEND_STATUS_SUCCESS:
-      // Cập nhật lại trạng thái bạn bè khi nhấn Confirm hoặc Delete
+    // Cập nhật trong reducer sau khi xử lý confirm/reject
+    case actionTypes.CONFIRM_FRIEND_SUCCESS:
       return {
         ...state,
-        loading: false,
-        acceptedFriends: state.pendingFriends.filter(
-          (friend) => friend.id !== action.payload.id
+        pendingFriends: state?.pendingFriends?.filter(
+          (friend) => friend?.documentId !== action.payload
         ),
-        pendingFriends: state.pendingFriends.filter(
-          (friend) => friend.id !== action.payload.id
-        ),
+        acceptedFriends: [...state?.acceptedFriends, action?.updatedFriend], // Thêm bạn đã accepted vào danh sách
       };
-    case actionTypes.UPDATE_FRIEND_STATUS_FAILURE:
+
+    case actionTypes.REJECTED_FRIEND_SUCCESS:
       return {
         ...state,
-        loading: false,
-        error: action.payload,
+        pendingFriends: state?.pendingFriends?.filter(
+          (friend) => friend?.documentId !== action.payload
+        ),
       };
+
     case actionTypes.FRIEND_ACCEPTED_FAILURE:
     case actionTypes.FRIEND_BY_DATE_FAILURE:
       return {

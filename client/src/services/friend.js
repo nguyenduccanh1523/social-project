@@ -13,25 +13,23 @@ export const apiGetFriendAccepted = ({ documentId }) =>
     }
 });
 
-export const apiUpdateFriendStatus = (friendId, statusType) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        // Thực hiện PUT request với axios
-        const response = await axiosConfig({
-          method: "PUT",
-          url: `/friends/${friendId}?populate=*`,
+export const apiUpdateFriendStatus = ({ friendId, status_type }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "put",
+        url: `/friends/${friendId}?populate=*`, // Sử dụng `friendId` chính xác trong URL
+        data: {
           data: {
-            data: {
-              status_type: statusType, // Truyền status_type mà bạn muốn cập nhật
-            },
+            status_type,
           },
-        });
-        resolve(response);
-      } catch (error) {
-        reject(error);
-      }
-    });
-};
+        },
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
 
 
 export const apiGetFriendsByDate = (documentId, daysAgo = 7) =>
