@@ -9,9 +9,19 @@ import {
   Modal,
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
+import Swal from "sweetalert2";
+import "react-toastify/ReactToastify.css";
+import { toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import { Badge } from "antd";
 
 import * as actions from "../../../actions/actions";
-import { fetchUserProfile } from "../../../actions/actions";
+import {
+  fetchUserProfile,
+  fetchFriendRequest,
+  confirmFriend,
+  deleteFriend,
+} from "../../../actions/actions";
 
 //image
 import user1 from "../../../assets/images/user/1.jpg";
@@ -45,17 +55,21 @@ const Header = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const { isLoggedIn } = useSelector((state) => state.root.auth);
-  const { loading, profile, error } = useSelector((state) => state.root.user || {});
-  //console.log("profile", profile);
+  const { profile } = useSelector((state) => state.root.user || {});
+  const { pendingFriends } = useSelector((state) => state.root.friend || {});
+
+  const document = profile?.documentId;
+  useEffect(() => {
+    if (document) {
+      dispatch(fetchFriendRequest(document));
+    }
+  }, [document, dispatch]);
 
   useEffect(() => {
     if (isLoggedIn) {
       dispatch(fetchUserProfile());
     }
   }, [isLoggedIn, dispatch]);
-
-
-
 
   return (
     <>
@@ -956,7 +970,9 @@ const Header = () => {
                   as={CustomToggle}
                   variant="d-flex align-items-center"
                 >
-                  <span className="material-symbols-outlined">group</span>
+                  <Badge count={pendingFriends?.length} size="small">
+                    <span style={{color: 'lightseagreen'}} className="material-symbols-outlined">group</span>
+                  </Badge>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="sub-drop sub-drop-large">
                   <Card className="shadow-none m-0">
@@ -964,135 +980,160 @@ const Header = () => {
                       <div className="header-title">
                         <h5 className="mb-0 text-white">Friend Request</h5>
                       </div>
-                      <small className="badge  bg-light text-dark ">4</small>
+                      <small className="badge  bg-light text-dark ">
+                        {pendingFriends?.length}
+                      </small>
                     </Card.Header>
-                    <Card.Body className="p-0">
-                      <div className="iq-friend-request">
-                        <div className="iq-sub-card iq-sub-card-big d-flex align-items-center justify-content-between">
-                          <div className="d-flex align-items-center">
-                            <Image
-                              className="avatar-40 rounded"
-                              src={user1}
-                              alt=""
-                              loading="lazy"
-                            />
-                            <div className="ms-3">
-                              <h6 className="mb-0 ">Jaques Amole</h6>
-                              <p className="mb-0">40 friends</p>
+                    <Card.Body
+                      className="p-0"
+                      style={{ maxHeight: "300px", overflowY: "auto" }}
+                    >
+                      {pendingFriends && pendingFriends?.length > 0 ? (
+                        pendingFriends.map((friend, index) => {
+                          const friendData =
+                            friend?.user_id?.documentId === document
+                              ? friend?.friend_id
+                              : friend?.user_id;
+
+                          const handleConfirm = async (friendId) => {
+                            try {
+                              await dispatch(confirmFriend(friendId)); // Gọi API để cập nhật trạng thái thành "accepted"
+
+                              // Tự động xóa bạn bè khỏi danh sách pending trong Redux
+                              dispatch(fetchFriendRequest(document));
+
+                              // Hiển thị thông báo thành công
+                              toast.success(
+                                "Friend request accepted successfully!",
+                                {
+                                  position: "top-right",
+                                  autoClose: 3000,
+                                  hideProgressBar: false,
+                                  closeOnClick: true,
+                                  pauseOnHover: true,
+                                  draggable: true,
+                                  progress: undefined,
+                                }
+                              );
+                            } catch (error) {
+                              // Hiển thị thông báo lỗi
+                              toast.error("Failed to accept friend request.", {
+                                position: "top-right",
+                                autoClose: 3000,
+                                hideProgressBar: false,
+                                closeOnClick: true,
+                                pauseOnHover: true,
+                                draggable: true,
+                                progress: undefined,
+                              });
+                              console.error("Error confirming friend:", error);
+                            }
+                          };
+
+                          const handleReject = async (friendId) => {
+                            Swal.fire({
+                              title: "Are you sure?",
+                              text: "Do you really want to reject this friend request?",
+                              icon: "warning",
+                              showCancelButton: true,
+                              confirmButtonColor: "#d33",
+                              cancelButtonColor: "#3085d6",
+                              confirmButtonText: "Yes, reject it!",
+                              cancelButtonText: "No, cancel",
+                            }).then(async (result) => {
+                              if (result.isConfirmed) {
+                                try {
+                                  // Gọi API hoặc action để từ chối bạn bè
+                                  await dispatch(deleteFriend(friendId));
+                                  await dispatch(fetchFriendRequest(document)); // Làm mới danh sách
+
+                                  Swal.fire(
+                                    "Rejected!",
+                                    "Friend request has been rejected.",
+                                    "success"
+                                  );
+                                } catch (error) {
+                                  Swal.fire(
+                                    "Error!",
+                                    "Failed to reject the friend request.",
+                                    "error"
+                                  );
+                                  console.error(
+                                    "Error rejecting friend:",
+                                    error
+                                  );
+                                }
+                              }
+                            });
+                          };
+                          return (
+                            <div
+                              className="iq-friend-request"
+                              key={`pending-${friend?.documentId || index}`}
+                            >
+                              <div className="iq-sub-card iq-sub-card-big d-flex align-items-center justify-content-between ">
+                                {/* Avatar và thông tin bạn bè */}
+                                <div className="d-flex align-items-center">
+                                  <Image
+                                    className="avatar-50 rounded"
+                                    src={
+                                      friendData?.profile_picture ||
+                                      "default-profile.png"
+                                    } // Avatar hoặc ảnh mặc định
+                                    alt={`${
+                                      friendData?.username || "User"
+                                    }'s profile`}
+                                    loading="lazy"
+                                  />
+                                  <div className="ms-3">
+                                    <h6 className="mb-0">
+                                      {friendData?.username}
+                                    </h6>
+                                    <p className="mb-0">
+                                      {friend?.friendCount || 0} friends
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {/* Nút Confirm và Delete Request */}
+                                <div className="d-flex align-items-center">
+                                  <Link
+                                    to="#"
+                                    onClick={() =>
+                                      handleConfirm(friend?.documentId)
+                                    }
+                                    className="me-3 btn btn-primary rounded"
+                                  >
+                                    Confirm
+                                  </Link>
+                                  <Link
+                                    to="#"
+                                    onClick={() =>
+                                      handleReject(friend?.documentId)
+                                    }
+                                    className="me-3 btn btn-warning rounded"
+                                  >
+                                    Rejected
+                                  </Link>
+                                </div>
+                              </div>
                             </div>
-                          </div>
-                          <div className="d-flex align-items-center">
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-primary rounded"
-                            >
-                              Confirm
-                            </Link>
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-secondary rounded"
-                            >
-                              Delete Request
-                            </Link>
-                          </div>
+                          );
+                        })
+                      ) : (
+                        <div className="text-center w-100">
+                          <p>No Friend Requests</p>
                         </div>
-                      </div>
-                      <div className="iq-friend-request">
-                        <div className="iq-sub-card iq-sub-card-big d-flex align-items-center justify-content-between">
-                          <div className="d-flex align-items-center">
-                            <Image
-                              className="avatar-40 rounded"
-                              src={user2}
-                              alt=""
-                              loading="lazy"
-                            />
-                            <div className="ms-3">
-                              <h6 className="mb-0 ">Lucy Tania</h6>
-                              <p className="mb-0">12 friends</p>
-                            </div>
-                          </div>
-                          <div className="d-flex align-items-center">
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-primary rounded"
-                            >
-                              Confirm
-                            </Link>
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-secondary rounded"
-                            >
-                              Delete Request
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="iq-friend-request">
-                        <div className="iq-sub-card iq-sub-card-big d-flex align-items-center justify-content-between">
-                          <div className="d-flex align-items-center">
-                            <Image
-                              className="avatar-40 rounded"
-                              src={user3}
-                              alt=""
-                              loading="lazy"
-                            />
-                            <div className=" ms-3">
-                              <h6 className="mb-0 ">Manny Petty</h6>
-                              <p className="mb-0">3 friends</p>
-                            </div>
-                          </div>
-                          <div className="d-flex align-items-center">
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-primary rounded"
-                            >
-                              Confirm
-                            </Link>
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-secondary rounded"
-                            >
-                              Delete Request
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="iq-friend-request">
-                        <div className="iq-sub-card iq-sub-card-big d-flex align-items-center justify-content-between">
-                          <div className="d-flex align-items-center">
-                            <Image
-                              className="avatar-40 rounded"
-                              src={user4}
-                              alt=""
-                              loading="lazy"
-                            />
-                            <div className="ms-3">
-                              <h6 className="mb-0 ">Marsha Mello</h6>
-                              <p className="mb-0">15 friends</p>
-                            </div>
-                          </div>
-                          <div className="d-flex align-items-center">
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-primary rounded"
-                            >
-                              Confirm
-                            </Link>
-                            <Link
-                              to="#"
-                              className="me-3 btn btn-secondary rounded"
-                            >
-                              Delete Request
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <Link to="#" className=" btn text-primary">
-                          View More Request
-                        </Link>
-                      </div>
+                      )}
                     </Card.Body>
+                    <div className="text-center">
+                      <Link
+                        to="/user-profile#pill-closefriends"
+                        className=" btn text-primary"
+                      >
+                        View More Request
+                      </Link>
+                    </div>
                   </Card>
                 </Dropdown.Menu>
               </Dropdown>
@@ -1462,6 +1503,8 @@ const Header = () => {
           </Container>
         </Nav>
       </div>
+
+      <ToastContainer />
     </>
   );
 };

@@ -16,6 +16,9 @@ import CustomToggle from "../../../components/dropdowns";
 import ShareOffcanvas from "../../../components/share-offcanvas";
 import { Link } from "react-router-dom";
 import ReactFsLightbox from "fslightbox-react";
+import Swal from "sweetalert2";
+import "react-toastify/ReactToastify.css";
+import { toast } from "react-toastify"
 
 // images
 import img1 from "../../../assets/images/page-img/profile-bg1.jpg";
@@ -98,6 +101,7 @@ const UserProfile = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const dispatch = useDispatch();
+  const toastId = "confirm-toast";
 
   const { isLoggedIn } = useSelector((state) => state.root.auth);
   const { profile } = useSelector((state) => state.root.user || {});
@@ -120,26 +124,61 @@ const UserProfile = () => {
     }
   }, [document, dispatch]);
 
-  // Hàm xử lý Confirm (chấp nhận bạn bè)
   const handleConfirm = async (friendId) => {
     try {
       await dispatch(confirmFriend(friendId)); // Gọi API để cập nhật trạng thái thành "accepted"
+  
       // Tự động xóa bạn bè khỏi danh sách pending trong Redux
       dispatch(fetchFriendRequest(document));
+  
+      // Hiển thị thông báo thành công
+      toast.success("Friend request accepted successfully!", {
+        toastId,
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (error) {
+      // Hiển thị thông báo lỗi
+      toast.error("Failed to accept friend request.", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       console.error("Error confirming friend:", error);
     }
   };
 
-  // Hàm xử lý Reject (từ chối bạn bè)
   const handleReject = async (friendId) => {
-    try {
-      await dispatch(deleteFriend(friendId)); // Gọi API để cập nhật trạng thái thành "cancel"
-      // Tự động xóa bạn bè khỏi danh sách pending trong Redux
-      dispatch(fetchFriendRequest(document));
-    } catch (error) {
-      console.error("Error rejecting friend:", error);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to reject this friend request?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, reject it!",
+      cancelButtonText: "No, cancel",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          // Gọi API hoặc action để từ chối bạn bè
+          await dispatch(deleteFriend(friendId));
+          await dispatch(fetchFriendRequest(document)); // Làm mới danh sách
+  
+          Swal.fire("Rejected!", "Friend request has been rejected.", "success");
+        } catch (error) {
+          Swal.fire("Error!", "Failed to reject the friend request.", "error");
+          console.error("Error rejecting friend:", error);
+        }
+      }
+    });
   };
 
   useEffect(() => {
@@ -5351,6 +5390,8 @@ const UserProfile = () => {
           </Tab.Container>
         </Row>
       </Container>
+
+      
     </>
   );
 };
