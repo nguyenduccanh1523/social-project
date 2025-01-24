@@ -170,6 +170,7 @@ const UserProfile = () => {
           // Gọi API hoặc action để từ chối bạn bè
           await dispatch(deleteFriend(friendId));
           await dispatch(fetchFriendRequest(document)); // Làm mới danh sách
+          await dispatch(fetchFriendSent(document)); // Làm mới danh sách
 
           Swal.fire(
             "Rejected!",
@@ -3021,6 +3022,11 @@ const UserProfile = () => {
 
                                                 <Link
                                                   to="#"
+                                                  onClick={() =>
+                                                    handleReject(
+                                                      friend?.documentId
+                                                    )
+                                                  }
                                                   className="me-3 btn btn-danger rounded"
                                                 >
                                                   Cancel
