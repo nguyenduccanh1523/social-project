@@ -18,7 +18,7 @@ import { Link } from "react-router-dom";
 import ReactFsLightbox from "fslightbox-react";
 import Swal from "sweetalert2";
 import "react-toastify/ReactToastify.css";
-import { toast } from "react-toastify"
+import { toast } from "react-toastify";
 
 // images
 import img1 from "../../../assets/images/page-img/profile-bg1.jpg";
@@ -111,7 +111,6 @@ const UserProfile = () => {
   const { pendingFriends } = useSelector((state) => state.root.friend || {});
   const { sentFriends } = useSelector((state) => state.root.friend || {});
 
-
   const document = profile?.documentId;
 
   useEffect(() => {
@@ -127,10 +126,10 @@ const UserProfile = () => {
   const handleConfirm = async (friendId) => {
     try {
       await dispatch(confirmFriend(friendId)); // Gọi API để cập nhật trạng thái thành "accepted"
-  
+
       // Tự động xóa bạn bè khỏi danh sách pending trong Redux
       dispatch(fetchFriendRequest(document));
-  
+
       // Hiển thị thông báo thành công
       toast.success("Friend request accepted successfully!", {
         toastId,
@@ -171,8 +170,12 @@ const UserProfile = () => {
           // Gọi API hoặc action để từ chối bạn bè
           await dispatch(deleteFriend(friendId));
           await dispatch(fetchFriendRequest(document)); // Làm mới danh sách
-  
-          Swal.fire("Rejected!", "Friend request has been rejected.", "success");
+
+          Swal.fire(
+            "Rejected!",
+            "Friend request has been rejected.",
+            "success"
+          );
         } catch (error) {
           Swal.fire("Error!", "Failed to reject the friend request.", "error");
           console.error("Error rejecting friend:", error);
@@ -2997,10 +3000,25 @@ const UserProfile = () => {
                                               <div className="d-flex align-items-center">
                                                 <Link
                                                   to="#"
-                                                  className="me-3 btn btn-primary rounded"
+                                                  className="d-flex align-items-center justify-content-center me-3 btn btn-primary rounded"
+                                                  style={{
+                                                    minWidth: "80px",
+                                                    height: "40px",
+                                                  }}
                                                 >
-                                                  Sent
+                                                  <i
+                                                    className="material-symbols-outlined me-1"
+                                                    style={{ fontSize: "18px" }}
+                                                  >
+                                                    done
+                                                  </i>
+                                                  <span
+                                                    style={{ fontSize: "14px" }}
+                                                  >
+                                                    Sent
+                                                  </span>
                                                 </Link>
+
                                                 <Link
                                                   to="#"
                                                   className="me-3 btn btn-danger rounded"
@@ -5390,8 +5408,6 @@ const UserProfile = () => {
           </Tab.Container>
         </Row>
       </Container>
-
-      
     </>
   );
 };
