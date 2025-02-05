@@ -19,7 +19,7 @@ import Footer from '../../components/partials/FooterStyle/footer'
 // import ShareOffcanvas from '../../components/share-offcanvas'
 
 //settingoffCanvas
-//import SettingOffCanvas from '../../components/setting/SettingOffCanvas'
+import SettingOffCanvas from '../../components/setting/SettingOffCanvas'
 import { Outlet } from 'react-router-dom'
 
 const Default = () => {
@@ -35,7 +35,7 @@ const Default = () => {
                 </div>
                 <RightSidebar />
             <Footer />
-            {/* <SettingOffCanvas/> */}
+            <SettingOffCanvas/>
         </>
     )
 }

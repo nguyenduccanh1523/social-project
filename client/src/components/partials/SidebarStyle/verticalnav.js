@@ -60,147 +60,8 @@ const VerticalNav = React.memo(() => {
                             </i>
                         </OverlayTrigger>
                         <span className="item-name">Profiles</span>
-                        <i className="right-icon material-symbols-outlined">chevron_right</i>
+                        {/* <i className="right-icon material-symbols-outlined">chevron_right</i> */}
                     </CustomToggle>
-                    <Accordion.Collapse eventKey="profile-menu" >
-                        <ul className="sub-nav">
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboard/app/profile' ? 'active' : ''} nav-link`} to="/dashboard/app/profile">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> P </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile </span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboards/profiles/profile1' ? 'active' : ''} nav-link`} to="/dashboards/profiles/profile1">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile 1</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> P1 </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile 1</span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboards/profiles/profile2' ? 'active' : ''} nav-link`} to="/dashboards/profiles/profile2">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile 2</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> P2 </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile 2</span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboards/profiles/profile3' ? 'active' : ''} nav-link`} to="/dashboards/profiles/profile3">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile 3</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> P3 </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile 3</span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboards/app/profile-images' ? 'active' : ''} nav-link`} to="/dashboards/app/profile-images">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile Image</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> PI </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile Image</span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboards/app/profile-videos' ? 'active' : ''} nav-link`} to="/dashboards/app/profile-videos">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile Video</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> PV </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile Video</span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboards/app/profile-events' ? 'active' : ''} nav-link`} to="/dashboards/app/profile-events">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile Events</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> PE </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile Events</span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboard/app/profile-badges' ? 'active' : ''} nav-link`} to="/dashboard/app/profile-badges">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile Badges</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> PB </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile Badges</span>
-                                </Link>
-                            </Nav.Item>
-                            <Nav.Item as="li">
-                                <Link className={`${location.pathname === '/dashboard/app/profile-forum' ? 'active' : ''} nav-link`} to="/dashboard/app/profile-forum">
-                                    <i className="icon">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
-                                            <g>
-                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
-                                            </g>
-                                        </svg>
-                                    </i>
-                                    <OverlayTrigger placement="right" overlay={<Tooltip>Profile Forum</Tooltip>}>
-                                     <i className="sidenav-mini-icon"> PF </i>
-                                    </OverlayTrigger>
-                                    <span className="item-name"> Profile Forum</span>
-                                </Link>
-                            </Nav.Item>
-                        </ul>
-                    </Accordion.Collapse>
                 </Accordion.Item>
                 <Accordion.Item as="li" eventKey="friends-menu" bsPrefix="nav-item">
                     <CustomToggle eventKey="friends-menu" onClick={(activeKey) => setActiveMenu(activeKey)}>
@@ -269,7 +130,7 @@ const VerticalNav = React.memo(() => {
                     </Accordion.Collapse>
                 </Accordion.Item>
                 <Nav.Item as="li">
-                    <Link className={`${location.pathname === '/dashboards/app/groups' ? 'active' : ''} nav-link `} aria-current="page" to="/dashboards/app/groups">
+                    <Link className={`${location.pathname === '/groups' ? 'active' : ''} nav-link `} aria-current="page" to="/groups">
                         <OverlayTrigger placement="right" overlay={<Tooltip>Group</Tooltip>}>
                         <i className="icon material-symbols-outlined">
                             groups

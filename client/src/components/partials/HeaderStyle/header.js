@@ -971,7 +971,7 @@ const Header = () => {
                   variant="d-flex align-items-center"
                 >
                   <Badge count={pendingFriends?.length} size="small">
-                    <span style={{color: 'lightseagreen'}} className="material-symbols-outlined">group</span>
+                    <span style={{color: 'rgb(80, 154, 208)'}} className="material-symbols-outlined">group</span>
                   </Badge>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="sub-drop sub-drop-large">
