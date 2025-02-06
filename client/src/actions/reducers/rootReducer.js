@@ -6,6 +6,7 @@ import { persistReducer } from "redux-persist";
 import  userReducer  from "./userReducer";
 import userSocialsReducer from "./userSocialReducer";
 import friendReducer from "./friendReducer";
+import groupReducer from "./groupReducer";
 
 
 
@@ -24,7 +25,8 @@ const rootReducer = combineReducers({
     auth: persistReducer(authConfig, authReducer),
     user: userReducer,
     userSocials: userSocialsReducer,
-    friend: friendReducer
+    friend: friendReducer,
+    group: groupReducer
 })
 
 export default rootReducer
