@@ -9,7 +9,7 @@ instance.interceptors.request.use(
   (config) => {
     // Attach token from localStorage
     const token = localStorage.getItem("token");
-    console.log("Bearer Token: ", token); // Debug token
+    //console.log("Bearer Token: ", token); // Debug token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

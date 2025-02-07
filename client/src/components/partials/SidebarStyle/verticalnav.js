@@ -129,16 +129,57 @@ const VerticalNav = React.memo(() => {
                         </ul>
                     </Accordion.Collapse>
                 </Accordion.Item>
-                <Nav.Item as="li">
-                    <Link className={`${location.pathname === '/groups' ? 'active' : ''} nav-link `} aria-current="page" to="/groups">
-                        <OverlayTrigger placement="right" overlay={<Tooltip>Group</Tooltip>}>
+                <Accordion.Item as="li" eventKey="groups-menu" bsPrefix="nav-item">
+                    <CustomToggle eventKey="groups-menu" onClick={(activeKey) => setActiveMenu(activeKey)}>
+                        
+                        <OverlayTrigger placement="right" overlay={<Tooltip>Group</Tooltip>}>  
                         <i className="icon material-symbols-outlined">
                             groups
                         </i>
                         </OverlayTrigger>
                         <span className="item-name">Group</span>
-                    </Link>
-                </Nav.Item>
+                        <i className="right-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </i>
+                    </CustomToggle>
+                    <Accordion.Collapse eventKey="groups-menu" >
+                        <ul className="sub-nav">
+                            <Nav.Item as="li">
+                                <Link className={`${location.pathname === '/groups' ? 'active' : ''} nav-link`} to="/groups">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
+                                            <g>
+                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
+                                            </g>
+                                        </svg>
+                                    </i>
+                                    <OverlayTrigger placement="right" overlay={<Tooltip>All Groups</Tooltip>}>  
+                                      <i className="sidenav-mini-icon"> AL </i>
+                                    </OverlayTrigger>
+                                    <span className="item-name">All Groups</span>
+                                </Link>
+                            </Nav.Item>
+                            <Nav.Item as="li">
+                                <Link className={`${location.pathname === '/my-groups' ? 'active' : ''} nav-link`} to="/my-groups">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" viewBox="0 0 24 24" fill="currentColor">
+                                            <g>
+                                                <circle cx="12" cy="12" r="8" fill="currentColor"></circle>
+                                            </g>
+                                        </svg>
+                                    </i>
+                                    <OverlayTrigger placement="right" overlay={<Tooltip>My Groups</Tooltip>}>  
+                                        <i className="sidenav-mini-icon"> MG </i>
+                                    </OverlayTrigger>
+                                    <span className="item-name">My Groups</span>
+                                </Link>
+                            </Nav.Item>
+                        </ul>
+                    </Accordion.Collapse>
+                </Accordion.Item>
                 <Nav.Item as="li">
                     <Link className={`${location.pathname === '/dashboard/app/notification' ? 'active' : ''} nav-link `} aria-current="page"  to="/dashboard/app/notification">
                         <OverlayTrigger placement="right" overlay={<Tooltip>Notification</Tooltip>}>
