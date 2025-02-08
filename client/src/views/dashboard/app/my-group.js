@@ -92,7 +92,10 @@ const MyGroups = () => {
                       </div>
                       <div className="group-info pt-3 pb-3">
                         <h4>
-                          <Link to={`/dashboards/app/group-detail/${groupId}`}>
+                          <Link
+                            to={`/group-detail/${groupId}`}
+                            state={{ oldData: groupDetailsAvailable }}
+                          >
                             {groupName}
                           </Link>
                         </h4>

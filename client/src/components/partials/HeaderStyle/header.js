@@ -58,12 +58,12 @@ const Header = () => {
   const { profile } = useSelector((state) => state.root.user || {});
   const { pendingFriends } = useSelector((state) => state.root.friend || {});
 
-  const document = profile?.documentId;
+  const document1 = profile?.documentId;
   useEffect(() => {
-    if (document) {
-      dispatch(fetchFriendRequest(document));
+    if (document1) {
+      dispatch(fetchFriendRequest(document1));
     }
-  }, [document, dispatch]);
+  }, [document1, dispatch]);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -106,8 +106,7 @@ const Header = () => {
                   Talk C
                 </h3>
               </Link>
-              <Link
-                to="#"
+              <div
                 className="sidebar-toggle"
                 data-toggle="sidebar"
                 data-active="true"
@@ -116,7 +115,7 @@ const Header = () => {
                 <div className="icon material-symbols-outlined iq-burger-menu">
                   menu
                 </div>
-              </Link>
+              </div>
             </div>
 
             <div className="iq-search-bar device-search  position-relative">

@@ -4,6 +4,7 @@ import TermsofService from "../views/dashboard/extrapages/terms-of-service";
 import UserProfile from "../views/dashboard/app/user-profile";
 import Groups from "../views/dashboard/app/groups";
 import MyGroups from "../views/dashboard/app/my-group";
+import GroupDetail from "../views/dashboard/app/group-detail";
 
 export const DefaultRouter = [
   {
@@ -29,5 +30,9 @@ export const DefaultRouter = [
   {
     path:"/my-groups",
     element:<MyGroups/>
+  },
+  {
+    path:"/group-detail/:id",
+    element:<GroupDetail/>
   }
 ];
