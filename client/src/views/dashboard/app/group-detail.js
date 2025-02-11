@@ -50,21 +50,30 @@ import { useDispatch, useSelector } from "react-redux";
 const GroupDetail = () => {
   const dispatch = useDispatch();
   const [show, setShow] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const location = useLocation();
   const { oldData } = location?.state || {};
   const { members } = useSelector((state) => state.root.group || {});
 
+  console.log("oldData: ", oldData?.admin_id);
+
   useEffect(() => {
     dispatch(fetchGroupMembers(oldData?.documentId)); // Truyền đúng giá trị groupId
   }, [oldData, dispatch]);
+
+
 
   // Lấy thành viên của nhóm hiện tại từ Redux
   const groupMembers = members[oldData?.documentId]?.data || [];
   // Đảm bảo groupMembers là mảng trước khi gọi .slice()
   const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
 
+
+  const handleSeeAllClick = () => {
+    setShowAll(!showAll); // Toggle visibility when "See All" is clicked
+  };
   return (
     <>
       <ProfileHeader img={header} title="Groups" />
@@ -1171,48 +1180,57 @@ const GroupDetail = () => {
             </Col>
             <Col lg="4">
               <Card>
-                <Card.Header className="card-header d-flex justify-content-between">
+                <div className="card-header d-flex justify-content-between">
                   <div className="header-title">
-                    <h4 className="card-title">Groups</h4>
+                    <h4 className="card-title">Members</h4>
                   </div>
-                </Card.Header>
+                </div>
                 <Card.Body>
-                  <ul className="list-inline p-0 m-0">
-                    <li className="mb-3 pb-3 border-bottom">
-                      <div className="iq-search-bar members-search p-0">
-                        <form action="#" className="searchbox w-auto">
-                          <input
-                            type="text"
-                            className="text search-input bg-grey"
-                            placeholder="Type here to search..."
-                          />
-                          <Link className="search-link" to="#">
-                            <i className="ri-search-line"></i>
-                          </Link>
-                        </form>
-                      </div>
-                    </li>
-                    <li className="mb-3 d-flex align-items-center">
-                      <div className="avatar-40 rounded-circle bg-gray d-flex align-items-center justify-content-center me-3">
-                        <i className="material-symbols-outlined">credit_card</i>
-                      </div>
-                      <h6 className="mb-0">Your Feed</h6>
-                    </li>
-                    <li className="mb-3 d-flex align-items-center">
-                      <div className="avatar-40 rounded-circle bg-gray d-flex align-items-center justify-content-center me-3">
-                        <i className="material-symbols-outlined">explore</i>
-                      </div>
-                      <h6 className="mb-0">Discover</h6>
-                    </li>
-                    <li>
-                      <button
-                        type="submit"
-                        className="btn btn-primary d-block w-100"
+                  <ul className="media-story list-inline m-0 p-0">
+                    {oldData?.admin_id && (
+                      <li
+                        className="d-flex mb-4 align-items-center"
+                        key="admin"
                       >
-                        <i className="ri-add-line pe-2"></i>Create New Group
-                      </button>
-                    </li>
+                        <img
+                          className="rounded-circle img-fluid"
+                          src={oldData?.admin_id?.profile_picture || user1} // Use default image if no profile picture
+                          alt="profile-img"
+                        />
+                        <div className="stories-data ms-3">
+                          <h5>{oldData?.admin_id?.username || "Admin"}</h5>
+                          <p className="mb-0">Admin</p>
+                        </div>
+                      </li>
+                    )}
+
+                    {validGroupMembers
+                      .filter(
+                        (member) =>
+                          member?.users_id?.documentId !==
+                          oldData?.admin_id?.documentId
+                      ) // Exclude admin from members
+                      .slice(0, 8) // Change slice to show 8 members instead of 6
+                      .map((member, index) => (
+                        <li
+                          className="d-flex mb-4 align-items-center"
+                          key={index}
+                        >
+                          <img
+                            className="rounded-circle img-fluid"
+                            src={member?.users_id?.profile_picture || user1} // Use user1 as fallback
+                            alt="profile-img"
+                          />
+                          <div className="stories-data ms-3">
+                            <h5>{member?.users_id?.username || "Anonymous"}</h5>
+                            <p className="mb-0">Joined recently</p>
+                          </div>
+                        </li>
+                      ))}
                   </ul>
+                  <Link to="#" className="btn btn-primary d-block mt-3">
+                    See All
+                  </Link>
                 </Card.Body>
               </Card>
               <Card>
