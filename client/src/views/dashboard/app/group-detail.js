@@ -43,6 +43,11 @@ import icon4 from "../../../assets/images/icon/04.png";
 import icon5 from "../../../assets/images/icon/05.png";
 import icon6 from "../../../assets/images/icon/06.png";
 import icon7 from "../../../assets/images/icon/07.png";
+import img15 from "../../../assets/images/page-img/profile-bg4.jpg";
+import img16 from "../../../assets/images/page-img/profile-bg5.jpg";
+import img12 from "../../../assets/images/page-img/profile-bg6.jpg";
+import img13 from "../../../assets/images/page-img/profile-bg7.jpg";
+import img14 from "../../../assets/images/page-img/profile-bg9.jpg";
 
 import { fetchGroupMembers } from "../../../actions/actions";
 import { useDispatch, useSelector } from "react-redux";
@@ -50,30 +55,31 @@ import { useDispatch, useSelector } from "react-redux";
 const GroupDetail = () => {
   const dispatch = useDispatch();
   const [show, setShow] = useState(false);
-  const [showAll, setShowAll] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const location = useLocation();
   const { oldData } = location?.state || {};
   const { members } = useSelector((state) => state.root.group || {});
+  const images = [img12, img13, img14, img15, img16];
 
-  console.log("oldData: ", oldData?.admin_id);
+  //console.log("oldData: ", oldData?.admin_id);
 
   useEffect(() => {
     dispatch(fetchGroupMembers(oldData?.documentId)); // Truyền đúng giá trị groupId
   }, [oldData, dispatch]);
 
-
+  const [showAll, setShowAll] = useState(false);
 
   // Lấy thành viên của nhóm hiện tại từ Redux
   const groupMembers = members[oldData?.documentId]?.data || [];
   // Đảm bảo groupMembers là mảng trước khi gọi .slice()
   const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
 
-
   const handleSeeAllClick = () => {
+    console.log("oldData: ", oldData?.admin_id);
     setShowAll(!showAll); // Toggle visibility when "See All" is clicked
   };
+
   return (
     <>
       <ProfileHeader img={header} title="Groups" />
@@ -126,375 +132,270 @@ const GroupDetail = () => {
                 </div>
               </div>
             </Col>
-            <Col lg="8">
-              <Card id="post-modal-data">
-                <Card.Header className="d-flex justify-content-between">
-                  <div className="header-title">
-                    <h4 className="card-title">Create Post</h4>
-                  </div>
-                </Card.Header>
-                <Card.Body>
-                  <div className="d-flex align-items-center">
-                    <div className="user-img">
-                      <img
-                        src={user9}
-                        alt="userimg"
-                        className="avatar-60 rounded-circle"
-                      />
-                    </div>
-                    <form
-                      className="post-text ms-3 w-100 "
-                      onClick={handleShow}
-                    >
-                      <input
-                        type="text"
-                        className="form-control rounded"
-                        placeholder="Write something here..."
-                        style={{ border: "none" }}
-                      />
-                    </form>
-                  </div>
-                  <hr />
-                  <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap">
-                    <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
-                      <img src={small1} alt="icon" className="img-fluid me-2" />{" "}
-                      Photo/Video
-                    </li>
-                    <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
-                      <img src={small2} alt="icon" className="img-fluid me-2" />{" "}
-                      Tag Friend
-                    </li>
-                    <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3">
-                      <img src={small3} alt="icon" className="img-fluid me-2" />{" "}
-                      Feeling/Activity
-                    </li>
-                    <li>
-                      <Button variant="soft-primary">
-                        <div className="card-header-toolbar d-flex align-items-center">
-                          <Dropdown>
-                            <Dropdown.Toggle as="div" className="lh-1">
-                              <span className="material-symbols-outlined">
-                                more_horiz
-                              </span>
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                              <Dropdown.Item onClick={handleShow} href="#">
-                                Check in
-                              </Dropdown.Item>
-                              <Dropdown.Item onClick={handleShow} href="#">
-                                Live Video
-                              </Dropdown.Item>
-                              <Dropdown.Item onClick={handleShow} href="#">
-                                Gif
-                              </Dropdown.Item>
-                              <Dropdown.Item onClick={handleShow} href="#">
-                                Watch Party
-                              </Dropdown.Item>
-                              <Dropdown.Item onClick={handleShow} href="#">
-                                Play with Friend
-                              </Dropdown.Item>
-                            </Dropdown.Menu>
-                          </Dropdown>
-                        </div>
-                      </Button>
-                    </li>
-                  </ul>
-                </Card.Body>
-                <Modal show={show} onHide={handleClose} size="lg">
-                  <Modal.Header
-                    className="d-flex justify-content-between"
-                    closeButton
-                  >
-                    <h5 className="modal-title" id="post-modalLabel">
-                      Create Post
-                    </h5>
-                  </Modal.Header>
-                  <Modal.Body>
-                    <div className="d-flex align-items-center">
-                      <div className="user-img">
-                        <img
-                          src={img5}
-                          alt="userimg"
-                          className="avatar-60 rounded-circle img-fluid"
-                        />
+            {!showAll ? (
+              <>
+                <Col lg="8">
+                  <Card id="post-modal-data">
+                    <Card.Header className="d-flex justify-content-between">
+                      <div className="header-title">
+                        <h4 className="card-title">Create Post</h4>
                       </div>
-                      <Form className="post-text ms-3 w-100" action="">
-                        <Form.Control
-                          type="text"
-                          className="rounded"
-                          placeholder="Write something here..."
-                          style={{ border: "none" }}
-                        />
-                      </Form>
-                    </div>
-                    <hr />
-                    <ul className="d-flex flex-wrap align-items-center list-inline m-0 p-0">
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
+                    </Card.Header>
+                    <Card.Body>
+                      <div className="d-flex align-items-center">
+                        <div className="user-img">
+                          <img
+                            src={user9}
+                            alt="userimg"
+                            className="avatar-60 rounded-circle"
+                          />
+                        </div>
+                        <form
+                          className="post-text ms-3 w-100 "
+                          onClick={handleShow}
+                        >
+                          <input
+                            type="text"
+                            className="form-control rounded"
+                            placeholder="Write something here..."
+                            style={{ border: "none" }}
+                          />
+                        </form>
+                      </div>
+                      <hr />
+                      <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap">
+                        <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
                           <img
                             src={small1}
                             alt="icon"
-                            className="img-fluid"
+                            className="img-fluid me-2"
                           />{" "}
                           Photo/Video
-                        </div>
-                      </Col>
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
+                        </li>
+                        <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
                           <img
                             src={small2}
                             alt="icon"
-                            className="img-fluid"
+                            className="img-fluid me-2"
                           />{" "}
                           Tag Friend
-                        </div>
-                      </Col>
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
+                        </li>
+                        <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3">
                           <img
                             src={small3}
                             alt="icon"
-                            className="img-fluid"
+                            className="img-fluid me-2"
                           />{" "}
                           Feeling/Activity
-                        </div>
-                      </Col>
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
-                          <img
-                            src={small4}
-                            alt="icon"
-                            className="img-fluid"
-                          />{" "}
-                          Check in
-                        </div>
-                      </Col>
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
-                          <img
-                            src={small5}
-                            alt="icon"
-                            className="img-fluid"
-                          />{" "}
-                          Live Video
-                        </div>
-                      </Col>
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
-                          <img
-                            src={small6}
-                            alt="icon"
-                            className="img-fluid"
-                          />{" "}
-                          Gif
-                        </div>
-                      </Col>
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
-                          <img
-                            src={small7}
-                            alt="icon"
-                            className="img-fluid"
-                          />{" "}
-                          Watch Party
-                        </div>
-                      </Col>
-                      <Col md="6" as="li" className="mb-3">
-                        <div className="bg-soft-primary rounded p-2 pointer me-3">
-                          <Link to="#"></Link>
-                          <img
-                            src={small8}
-                            alt="icon"
-                            className="img-fluid"
-                          />{" "}
-                          Play with Friends
-                        </div>
-                      </Col>
-                    </ul>
-                    <hr />
-                    <div className="other-option">
-                      <div className="d-flex align-items-center justify-content-between">
+                        </li>
+                        <li>
+                          <Button variant="soft-primary">
+                            <div className="card-header-toolbar d-flex align-items-center">
+                              <Dropdown>
+                                <Dropdown.Toggle as="div" className="lh-1">
+                                  <span className="material-symbols-outlined">
+                                    more_horiz
+                                  </span>
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                  <Dropdown.Item onClick={handleShow} href="#">
+                                    Check in
+                                  </Dropdown.Item>
+                                  <Dropdown.Item onClick={handleShow} href="#">
+                                    Live Video
+                                  </Dropdown.Item>
+                                  <Dropdown.Item onClick={handleShow} href="#">
+                                    Gif
+                                  </Dropdown.Item>
+                                  <Dropdown.Item onClick={handleShow} href="#">
+                                    Watch Party
+                                  </Dropdown.Item>
+                                  <Dropdown.Item onClick={handleShow} href="#">
+                                    Play with Friend
+                                  </Dropdown.Item>
+                                </Dropdown.Menu>
+                              </Dropdown>
+                            </div>
+                          </Button>
+                        </li>
+                      </ul>
+                    </Card.Body>
+                    <Modal show={show} onHide={handleClose} size="lg">
+                      <Modal.Header
+                        className="d-flex justify-content-between"
+                        closeButton
+                      >
+                        <h5 className="modal-title" id="post-modalLabel">
+                          Create Post
+                        </h5>
+                      </Modal.Header>
+                      <Modal.Body>
                         <div className="d-flex align-items-center">
-                          <div className="user-img me-3">
+                          <div className="user-img">
                             <img
-                              src={user9}
+                              src={img5}
                               alt="userimg"
                               className="avatar-60 rounded-circle img-fluid"
                             />
                           </div>
-                          <h6>Your Story</h6>
+                          <Form className="post-text ms-3 w-100" action="">
+                            <Form.Control
+                              type="text"
+                              className="rounded"
+                              placeholder="Write something here..."
+                              style={{ border: "none" }}
+                            />
+                          </Form>
                         </div>
-                        <div className="card-post-toolbar">
-                          <Dropdown>
-                            <Dropdown.Toggle>
-                              <span>Friend</span>
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu className="m-0 p-0">
-                              <Dropdown.Item className="p-3" href="#">
-                                <div className="d-flex align-items-top">
-                                  <i className="ri-save-line h4"></i>
-                                  <div className="data ms-2">
-                                    <h6>Public</h6>
-                                    <p className="mb-0">
-                                      Anyone on or off Facebook
-                                    </p>
-                                  </div>
-                                </div>
-                              </Dropdown.Item>
-                              <Dropdown.Item className="p-3" href="#">
-                                <div className="d-flex align-items-top">
-                                  <i className="ri-close-circle-line h4"></i>
-                                  <div className="data ms-2">
-                                    <h6>Friends</h6>
-                                    <p className="mb-0">
-                                      Your Friend on facebook
-                                    </p>
-                                  </div>
-                                </div>
-                              </Dropdown.Item>
-                              <Dropdown.Item className="p-3" href="#">
-                                <div className="d-flex align-items-top">
-                                  <i className="ri-user-unfollow-line h4"></i>
-                                  <div className="data ms-2">
-                                    <h6>Friends except</h6>
-                                    <p className="mb-0">
-                                      Don't show to some friends
-                                    </p>
-                                  </div>
-                                </div>
-                              </Dropdown.Item>
-                              <Dropdown.Item className="p-3" href="#">
-                                <div className="d-flex align-items-top">
-                                  <i className="ri-notification-line h4"></i>
-                                  <div className="data ms-2">
-                                    <h6>Only Me</h6>
-                                    <p className="mb-0">Only me</p>
-                                  </div>
-                                </div>
-                              </Dropdown.Item>
-                            </Dropdown.Menu>
-                          </Dropdown>
-                        </div>
-                      </div>
-                    </div>
-                    <Button variant="primary" className="d-block w-100 mt-3">
-                      Post
-                    </Button>
-                  </Modal.Body>
-                </Modal>
-              </Card>
-              <Card>
-                <Card.Body>
-                  <div className="post-item">
-                    <div className="user-post-data py-3">
-                      <div className="d-flex justify-content-between">
-                        <div className=" me-3">
-                          <img
-                            className="rounded-circle img-fluid"
-                            src={img6}
-                            alt=""
-                          />
-                        </div>
-                        <div className="w-100">
-                          <div className="d-flex justify-content-between">
-                            <div>
-                              <h5 className="mb-0 d-inline-block">
-                                <Link to="#">Paige Turner</Link>
-                              </h5>
-                              <p className="mb-0">8 hour ago</p>
+                        <hr />
+                        <ul className="d-flex flex-wrap align-items-center list-inline m-0 p-0">
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small1}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Photo/Video
+                            </div>
+                          </Col>
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small2}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Tag Friend
+                            </div>
+                          </Col>
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small3}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Feeling/Activity
+                            </div>
+                          </Col>
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small4}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Check in
+                            </div>
+                          </Col>
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small5}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Live Video
+                            </div>
+                          </Col>
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small6}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Gif
+                            </div>
+                          </Col>
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small7}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Watch Party
+                            </div>
+                          </Col>
+                          <Col md="6" as="li" className="mb-3">
+                            <div className="bg-soft-primary rounded p-2 pointer me-3">
+                              <Link to="#"></Link>
+                              <img
+                                src={small8}
+                                alt="icon"
+                                className="img-fluid"
+                              />{" "}
+                              Play with Friends
+                            </div>
+                          </Col>
+                        </ul>
+                        <hr />
+                        <div className="other-option">
+                          <div className="d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center">
+                              <div className="user-img me-3">
+                                <img
+                                  src={user9}
+                                  alt="userimg"
+                                  className="avatar-60 rounded-circle img-fluid"
+                                />
+                              </div>
+                              <h6>Your Story</h6>
                             </div>
                             <div className="card-post-toolbar">
                               <Dropdown>
-                                <Dropdown.Toggle variant="bg-transparent">
-                                  <span className="material-symbols-outlined">
-                                    more_horiz
-                                  </span>
+                                <Dropdown.Toggle>
+                                  <span>Friend</span>
                                 </Dropdown.Toggle>
-                                <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
+                                <Dropdown.Menu className="m-0 p-0">
+                                  <Dropdown.Item className="p-3" href="#">
                                     <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        save
-                                      </i>
+                                      <i className="ri-save-line h4"></i>
                                       <div className="data ms-2">
-                                        <h6>Save Post</h6>
+                                        <h6>Public</h6>
                                         <p className="mb-0">
-                                          Add this to your saved items
+                                          Anyone on or off Facebook
                                         </p>
                                       </div>
                                     </div>
                                   </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
+                                  <Dropdown.Item className="p-3" href="#">
                                     <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        edit
-                                      </i>
+                                      <i className="ri-close-circle-line h4"></i>
                                       <div className="data ms-2">
-                                        <h6>Edit Post</h6>
+                                        <h6>Friends</h6>
                                         <p className="mb-0">
-                                          Update your post and saved items
+                                          Your Friend on facebook
                                         </p>
                                       </div>
                                     </div>
                                   </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
+                                  <Dropdown.Item className="p-3" href="#">
                                     <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        cancel
-                                      </i>
+                                      <i className="ri-user-unfollow-line h4"></i>
                                       <div className="data ms-2">
-                                        <h6>Hide From Timeline</h6>
+                                        <h6>Friends except</h6>
                                         <p className="mb-0">
-                                          See fewer posts like this.
+                                          Don't show to some friends
                                         </p>
                                       </div>
                                     </div>
                                   </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
+                                  <Dropdown.Item className="p-3" href="#">
                                     <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        delete
-                                      </i>
+                                      <i className="ri-notification-line h4"></i>
                                       <div className="data ms-2">
-                                        <h6>Delete</h6>
-                                        <p className="mb-0">
-                                          Remove thids Post on Timeline
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
-                                    <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        notifications
-                                      </i>
-                                      <div className="data ms-2">
-                                        <h6>Notifications</h6>
-                                        <p className="mb-0">
-                                          Turn on notifications for this post
-                                        </p>
+                                        <h6>Only Me</h6>
+                                        <p className="mb-0">Only me</p>
                                       </div>
                                     </div>
                                   </Dropdown.Item>
@@ -503,792 +404,977 @@ const GroupDetail = () => {
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="user-post">
-                      <Link to="">
-                        <img
-                          className="img-fluid w-100"
-                          src={img7}
-                          alt="postimage"
-                        />
-                      </Link>
-                    </div>
-                    <div className="comment-area mt-3">
-                      <div className="d-flex justify-content-between align-items-center flex-wrap">
-                        <div className="like-block position-relative d-flex align-items-center">
-                          <div className="d-flex align-items-center">
-                            <div className="like-data">
-                              <Dropdown>
-                                <Dropdown.Toggle as={CustomToggle}>
-                                  <img
-                                    src={icon1}
-                                    className="img-fluid"
-                                    alt=""
-                                  />
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="py-2 show">
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Like</Tooltip>}
-                                    className="ms-2 me-2"
-                                  >
-                                    <img
-                                      src={icon1}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Love</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon2}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Happy</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon3}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>HaHa</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon4}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Think</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon5}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Sade</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon6}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Lovely</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon7}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                </Dropdown.Menu>
-                              </Dropdown>
-                            </div>
-                            <div className="total-like-block ms-2 me-3">
-                              <Dropdown>
-                                <Dropdown.Toggle as={CustomToggle}>
-                                  140 Likes
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="dropdown-menu">
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Max Emum
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Bill Yerds
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Hap E. Birthday
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Tara Misu
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Midge Itz
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Sal Vidge
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Other
-                                  </Dropdown.Item>
-                                </Dropdown.Menu>
-                              </Dropdown>
-                            </div>
-                          </div>
-                          <div className="total-comment-block">
-                            <Dropdown>
-                              <Dropdown.Toggle as={CustomToggle}>
-                                20 Comment
-                              </Dropdown.Toggle>
-                              <Dropdown.Menu className="dropdown-menu">
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Max Emum
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Bill Yerds
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Hap E. Birthday
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Tara Misu
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Midge Itz
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Sal Vidge
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Other
-                                </Dropdown.Item>
-                              </Dropdown.Menu>
-                            </Dropdown>
-                          </div>
-                        </div>
-                        <ShareOffcanvas />
-                      </div>
-                      <hr />
-                      <ul className="post-comments p-0 m-0">
-                        <li className="mb-2">
-                          <div className="d-flex">
-                            <div className="user-img">
-                              <img
-                                src={img10}
-                                alt="userimg"
-                                className="avatar-35 rounded-circle img-fluid"
-                              />
-                            </div>
-                            <div className="comment-data-block ms-3">
-                              <h6>Monty Carlo</h6>
-                              <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                              <div className="d-flex flex-wrap align-items-center comment-activity">
-                                <Link to="">like</Link>
-                                <Link to="">reply</Link>
-                                <Link to="">translate</Link>
-                                <span> 5 min </span>
-                              </div>
-                            </div>
-                          </div>
-                        </li>
-                        <li>
-                          <div className="d-flex">
-                            <div className="user-img">
-                              <img
-                                src={img11}
-                                alt="userimg"
-                                className="avatar-35 rounded-circle img-fluid"
-                              />
-                            </div>
-                            <div className="comment-data-block ms-3">
-                              <h6>Paul Molive</h6>
-                              <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                              <div className="d-flex flex-wrap align-items-center comment-activity">
-                                <Link to="">like</Link>
-                                <Link to="">reply</Link>
-                                <Link to="">translate</Link>
-                                <span> 5 min </span>
-                              </div>
-                            </div>
-                          </div>
-                        </li>
-                      </ul>
-                      <form
-                        className="comment-text d-flex align-items-center mt-3"
-                        action=""
-                      >
-                        <input
-                          type="text"
-                          className="form-control rounded"
-                          placeholder="Enter Your Comment"
-                        />
-                        <div className="comment-attagement d-flex">
-                          <Link to="">
-                            <i className="ri-link me-3"></i>
-                          </Link>
-                          <Link to="">
-                            <i className="ri-user-smile-line me-3"></i>
-                          </Link>
-                          <Link to="">
-                            <i className="ri-camera-line me-3"></i>
-                          </Link>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                  <div className="post-item">
-                    <div className="user-post-data py-3">
-                      <div className="d-flex justify-content-between">
-                        <div className="media-support-user-img me-3">
-                          <img
-                            className="rounded-circle img-fluid"
-                            src={img8}
-                            alt=""
-                          />
-                        </div>
-                        <div className="w-100">
-                          <div className="d-flex justify-content-between">
-                            <div>
-                              <h5 className="mb-0 d-inline-block me-1">
-                                <Link to="#">Pete Sariya</Link>
-                              </h5>
-                              <p className=" mb-0 d-inline-block">
-                                Update his Status
-                              </p>
-                              <p className="mb-0">7 hour ago</p>
-                            </div>
-                            <div className="card-post-toolbar">
-                              <Dropdown>
-                                <Dropdown.Toggle variant="bg-transparent">
-                                  <span className="material-symbols-outlined">
-                                    more_horiz
-                                  </span>
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
-                                    <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        save
-                                      </i>
-                                      <div className="data ms-2">
-                                        <h6>Save Post</h6>
-                                        <p className="mb-0">
-                                          Add this to your saved items
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
-                                    <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        edit
-                                      </i>
-                                      <div className="data ms-2">
-                                        <h6>Edit Post</h6>
-                                        <p className="mb-0">
-                                          Update your post and saved items
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
-                                    <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        cancel
-                                      </i>
-                                      <div className="data ms-2">
-                                        <h6>Hide From Timeline</h6>
-                                        <p className="mb-0">
-                                          See fewer posts like this.
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
-                                    <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        delete
-                                      </i>
-                                      <div className="data ms-2">
-                                        <h6>Delete</h6>
-                                        <p className="mb-0">
-                                          Remove thids Post on Timeline
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item p-3"
-                                    to="#"
-                                  >
-                                    <div className="d-flex align-items-top">
-                                      <i className="material-symbols-outlined">
-                                        notifications
-                                      </i>
-                                      <div className="data ms-2">
-                                        <h6>Notifications</h6>
-                                        <p className="mb-0">
-                                          Turn on notifications for this post
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </Dropdown.Item>
-                                </Dropdown.Menu>
-                              </Dropdown>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="user-post">
-                      <Link to="">
-                        <img
-                          src={img9}
-                          alt="postimage"
-                          className="img-fluid w-100"
-                        />
-                      </Link>
-                    </div>
-                    <div className="comment-area mt-3">
-                      <div className="d-flex justify-content-between align-items-center flex-wrap">
-                        <div className="like-block position-relative d-flex align-items-center">
-                          <div className="d-flex align-items-center">
-                            <div className="like-data">
-                              <Dropdown>
-                                <Dropdown.Toggle as={CustomToggle}>
-                                  <img
-                                    src={icon1}
-                                    className="img-fluid"
-                                    alt=""
-                                  />
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="py-2 show">
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Like</Tooltip>}
-                                    className="ms-2 me-2"
-                                  >
-                                    <img
-                                      src={icon1}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Love</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon2}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Happy</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon3}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>HaHa</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon4}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Think</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon5}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Sade</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon6}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                  <OverlayTrigger
-                                    placement="top"
-                                    overlay={<Tooltip>Lovely</Tooltip>}
-                                    className="me-2"
-                                  >
-                                    <img
-                                      src={icon7}
-                                      className="img-fluid me-2"
-                                      alt=""
-                                    />
-                                  </OverlayTrigger>
-                                </Dropdown.Menu>
-                              </Dropdown>
-                            </div>
-                            <div className="total-like-block ms-2 me-3">
-                              <Dropdown>
-                                <Dropdown.Toggle as={CustomToggle}>
-                                  140 Likes
-                                </Dropdown.Toggle>
-                                <Dropdown.Menu className="dropdown-menu">
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Max Emum
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Bill Yerds
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Hap E. Birthday
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Tara Misu
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Midge Itz
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Sal Vidge
-                                  </Dropdown.Item>
-                                  <Dropdown.Item
-                                    className="dropdown-item"
-                                    href="#"
-                                  >
-                                    Other
-                                  </Dropdown.Item>
-                                </Dropdown.Menu>
-                              </Dropdown>
-                            </div>
-                          </div>
-                          <div className="total-comment-block">
-                            <Dropdown>
-                              <Dropdown.Toggle as={CustomToggle}>
-                                20 Comment
-                              </Dropdown.Toggle>
-                              <Dropdown.Menu className="dropdown-menu">
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Max Emum
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Bill Yerds
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Hap E. Birthday
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Tara Misu
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Midge Itz
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Sal Vidge
-                                </Dropdown.Item>
-                                <Dropdown.Item
-                                  className="dropdown-item"
-                                  href="#"
-                                >
-                                  Other
-                                </Dropdown.Item>
-                              </Dropdown.Menu>
-                            </Dropdown>
-                          </div>
-                        </div>
-                        <ShareOffcanvas />
-                      </div>
-                      <hr />
-                      <ul className="post-comments p-0 m-0">
-                        <li className="mb-2">
-                          <div className="d-flex ">
-                            <div className="user-img">
-                              <img
-                                src={img10}
-                                alt="userimg"
-                                className="avatar-35 rounded-circle img-fluid"
-                              />
-                            </div>
-                            <div className="comment-data-block ms-3">
-                              <h6>Monty Carlo</h6>
-                              <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                              <div className="d-flex flex-wrap align-items-center comment-activity">
-                                <Link to="">like</Link>
-                                <Link to="">reply</Link>
-                                <Link to="">translate</Link>
-                                <span> 5 min </span>
-                              </div>
-                            </div>
-                          </div>
-                        </li>
-                        <li>
-                          <div className="d-flex ">
-                            <div className="user-img">
-                              <img
-                                src={img11}
-                                alt="userimg"
-                                className="avatar-35 rounded-circle img-fluid"
-                              />
-                            </div>
-                            <div className="comment-data-block ms-3">
-                              <h6>Paul Molive</h6>
-                              <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                              <div className="d-flex flex-wrap align-items-center comment-activity">
-                                <Link to="">like</Link>
-                                <Link to="">reply</Link>
-                                <Link to="">translate</Link>
-                                <span> 5 min </span>
-                              </div>
-                            </div>
-                          </div>
-                        </li>
-                      </ul>
-                      <form
-                        className="comment-text d-flex align-items-center mt-3"
-                        action=""
-                      >
-                        <input
-                          type="text"
-                          className="form-control rounded"
-                          placeholder="Enter Your Comment"
-                        />
-                        <div className="comment-attagement d-flex">
-                          <Link to="">
-                            <i className="ri-link me-3"></i>
-                          </Link>
-                          <Link to="">
-                            <i className="ri-user-smile-line me-3"></i>
-                          </Link>
-                          <Link to="">
-                            <i className="ri-camera-line me-3"></i>
-                          </Link>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col lg="4">
-              <Card>
-                <div className="card-header d-flex justify-content-between">
-                  <div className="header-title">
-                    <h4 className="card-title">Members</h4>
-                  </div>
-                </div>
-                <Card.Body>
-                  <ul className="media-story list-inline m-0 p-0">
-                    {oldData?.admin_id && (
-                      <li
-                        className="d-flex mb-4 align-items-center"
-                        key="admin"
-                      >
-                        <img
-                          className="rounded-circle img-fluid"
-                          src={oldData?.admin_id?.profile_picture || user1} // Use default image if no profile picture
-                          alt="profile-img"
-                        />
-                        <div className="stories-data ms-3">
-                          <h5>{oldData?.admin_id?.username || "Admin"}</h5>
-                          <p className="mb-0">Admin</p>
-                        </div>
-                      </li>
-                    )}
-
-                    {validGroupMembers
-                      .filter(
-                        (member) =>
-                          member?.users_id?.documentId !==
-                          oldData?.admin_id?.documentId
-                      ) // Exclude admin from members
-                      .slice(0, 8) // Change slice to show 8 members instead of 6
-                      .map((member, index) => (
-                        <li
-                          className="d-flex mb-4 align-items-center"
-                          key={index}
+                        <Button
+                          variant="primary"
+                          className="d-block w-100 mt-3"
                         >
-                          <img
-                            className="rounded-circle img-fluid"
-                            src={member?.users_id?.profile_picture || user1} // Use user1 as fallback
-                            alt="profile-img"
-                          />
-                          <div className="stories-data ms-3">
-                            <h5>{member?.users_id?.username || "Anonymous"}</h5>
-                            <p className="mb-0">Joined recently</p>
+                          Post
+                        </Button>
+                      </Modal.Body>
+                    </Modal>
+                  </Card>
+                  <Card>
+                    <Card.Body>
+                      <div className="post-item">
+                        <div className="user-post-data py-3">
+                          <div className="d-flex justify-content-between">
+                            <div className=" me-3">
+                              <img
+                                className="rounded-circle img-fluid"
+                                src={img6}
+                                alt=""
+                              />
+                            </div>
+                            <div className="w-100">
+                              <div className="d-flex justify-content-between">
+                                <div>
+                                  <h5 className="mb-0 d-inline-block">
+                                    <Link to="#">Paige Turner</Link>
+                                  </h5>
+                                  <p className="mb-0">8 hour ago</p>
+                                </div>
+                                <div className="card-post-toolbar">
+                                  <Dropdown>
+                                    <Dropdown.Toggle variant="bg-transparent">
+                                      <span className="material-symbols-outlined">
+                                        more_horiz
+                                      </span>
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="dropdown-menu m-0 p-0">
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            save
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Save Post</h6>
+                                            <p className="mb-0">
+                                              Add this to your saved items
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            edit
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Edit Post</h6>
+                                            <p className="mb-0">
+                                              Update your post and saved items
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            cancel
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Hide From Timeline</h6>
+                                            <p className="mb-0">
+                                              See fewer posts like this.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            delete
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Delete</h6>
+                                            <p className="mb-0">
+                                              Remove thids Post on Timeline
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            notifications
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Notifications</h6>
+                                            <p className="mb-0">
+                                              Turn on notifications for this
+                                              post
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                  </Dropdown>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="user-post">
+                          <Link to="">
+                            <img
+                              className="img-fluid w-100"
+                              src={img7}
+                              alt="postimage"
+                            />
+                          </Link>
+                        </div>
+                        <div className="comment-area mt-3">
+                          <div className="d-flex justify-content-between align-items-center flex-wrap">
+                            <div className="like-block position-relative d-flex align-items-center">
+                              <div className="d-flex align-items-center">
+                                <div className="like-data">
+                                  <Dropdown>
+                                    <Dropdown.Toggle as={CustomToggle}>
+                                      <img
+                                        src={icon1}
+                                        className="img-fluid"
+                                        alt=""
+                                      />
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="py-2 show">
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Like</Tooltip>}
+                                        className="ms-2 me-2"
+                                      >
+                                        <img
+                                          src={icon1}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Love</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon2}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Happy</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon3}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>HaHa</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon4}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Think</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon5}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Sade</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon6}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Lovely</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon7}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                    </Dropdown.Menu>
+                                  </Dropdown>
+                                </div>
+                                <div className="total-like-block ms-2 me-3">
+                                  <Dropdown>
+                                    <Dropdown.Toggle as={CustomToggle}>
+                                      140 Likes
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="dropdown-menu">
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Max Emum
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Bill Yerds
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Hap E. Birthday
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Tara Misu
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Midge Itz
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Sal Vidge
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Other
+                                      </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                  </Dropdown>
+                                </div>
+                              </div>
+                              <div className="total-comment-block">
+                                <Dropdown>
+                                  <Dropdown.Toggle as={CustomToggle}>
+                                    20 Comment
+                                  </Dropdown.Toggle>
+                                  <Dropdown.Menu className="dropdown-menu">
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Max Emum
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Bill Yerds
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Hap E. Birthday
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Tara Misu
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Midge Itz
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Sal Vidge
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Other
+                                    </Dropdown.Item>
+                                  </Dropdown.Menu>
+                                </Dropdown>
+                              </div>
+                            </div>
+                            <ShareOffcanvas />
+                          </div>
+                          <hr />
+                          <ul className="post-comments p-0 m-0">
+                            <li className="mb-2">
+                              <div className="d-flex">
+                                <div className="user-img">
+                                  <img
+                                    src={img10}
+                                    alt="userimg"
+                                    className="avatar-35 rounded-circle img-fluid"
+                                  />
+                                </div>
+                                <div className="comment-data-block ms-3">
+                                  <h6>Monty Carlo</h6>
+                                  <p className="mb-0">
+                                    Lorem ipsum dolor sit amet
+                                  </p>
+                                  <div className="d-flex flex-wrap align-items-center comment-activity">
+                                    <Link to="">like</Link>
+                                    <Link to="">reply</Link>
+                                    <Link to="">translate</Link>
+                                    <span> 5 min </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                            <li>
+                              <div className="d-flex">
+                                <div className="user-img">
+                                  <img
+                                    src={img11}
+                                    alt="userimg"
+                                    className="avatar-35 rounded-circle img-fluid"
+                                  />
+                                </div>
+                                <div className="comment-data-block ms-3">
+                                  <h6>Paul Molive</h6>
+                                  <p className="mb-0">
+                                    Lorem ipsum dolor sit amet
+                                  </p>
+                                  <div className="d-flex flex-wrap align-items-center comment-activity">
+                                    <Link to="">like</Link>
+                                    <Link to="">reply</Link>
+                                    <Link to="">translate</Link>
+                                    <span> 5 min </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                          </ul>
+                          <form
+                            className="comment-text d-flex align-items-center mt-3"
+                            action=""
+                          >
+                            <input
+                              type="text"
+                              className="form-control rounded"
+                              placeholder="Enter Your Comment"
+                            />
+                            <div className="comment-attagement d-flex">
+                              <Link to="">
+                                <i className="ri-link me-3"></i>
+                              </Link>
+                              <Link to="">
+                                <i className="ri-user-smile-line me-3"></i>
+                              </Link>
+                              <Link to="">
+                                <i className="ri-camera-line me-3"></i>
+                              </Link>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                      <div className="post-item">
+                        <div className="user-post-data py-3">
+                          <div className="d-flex justify-content-between">
+                            <div className="media-support-user-img me-3">
+                              <img
+                                className="rounded-circle img-fluid"
+                                src={img8}
+                                alt=""
+                              />
+                            </div>
+                            <div className="w-100">
+                              <div className="d-flex justify-content-between">
+                                <div>
+                                  <h5 className="mb-0 d-inline-block me-1">
+                                    <Link to="#">Pete Sariya</Link>
+                                  </h5>
+                                  <p className=" mb-0 d-inline-block">
+                                    Update his Status
+                                  </p>
+                                  <p className="mb-0">7 hour ago</p>
+                                </div>
+                                <div className="card-post-toolbar">
+                                  <Dropdown>
+                                    <Dropdown.Toggle variant="bg-transparent">
+                                      <span className="material-symbols-outlined">
+                                        more_horiz
+                                      </span>
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="dropdown-menu m-0 p-0">
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            save
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Save Post</h6>
+                                            <p className="mb-0">
+                                              Add this to your saved items
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            edit
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Edit Post</h6>
+                                            <p className="mb-0">
+                                              Update your post and saved items
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            cancel
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Hide From Timeline</h6>
+                                            <p className="mb-0">
+                                              See fewer posts like this.
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            delete
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Delete</h6>
+                                            <p className="mb-0">
+                                              Remove thids Post on Timeline
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item p-3"
+                                        to="#"
+                                      >
+                                        <div className="d-flex align-items-top">
+                                          <i className="material-symbols-outlined">
+                                            notifications
+                                          </i>
+                                          <div className="data ms-2">
+                                            <h6>Notifications</h6>
+                                            <p className="mb-0">
+                                              Turn on notifications for this
+                                              post
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                  </Dropdown>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="user-post">
+                          <Link to="">
+                            <img
+                              src={img9}
+                              alt="postimage"
+                              className="img-fluid w-100"
+                            />
+                          </Link>
+                        </div>
+                        <div className="comment-area mt-3">
+                          <div className="d-flex justify-content-between align-items-center flex-wrap">
+                            <div className="like-block position-relative d-flex align-items-center">
+                              <div className="d-flex align-items-center">
+                                <div className="like-data">
+                                  <Dropdown>
+                                    <Dropdown.Toggle as={CustomToggle}>
+                                      <img
+                                        src={icon1}
+                                        className="img-fluid"
+                                        alt=""
+                                      />
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="py-2 show">
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Like</Tooltip>}
+                                        className="ms-2 me-2"
+                                      >
+                                        <img
+                                          src={icon1}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Love</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon2}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Happy</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon3}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>HaHa</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon4}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Think</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon5}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Sade</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon6}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                      <OverlayTrigger
+                                        placement="top"
+                                        overlay={<Tooltip>Lovely</Tooltip>}
+                                        className="me-2"
+                                      >
+                                        <img
+                                          src={icon7}
+                                          className="img-fluid me-2"
+                                          alt=""
+                                        />
+                                      </OverlayTrigger>
+                                    </Dropdown.Menu>
+                                  </Dropdown>
+                                </div>
+                                <div className="total-like-block ms-2 me-3">
+                                  <Dropdown>
+                                    <Dropdown.Toggle as={CustomToggle}>
+                                      140 Likes
+                                    </Dropdown.Toggle>
+                                    <Dropdown.Menu className="dropdown-menu">
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Max Emum
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Bill Yerds
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Hap E. Birthday
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Tara Misu
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Midge Itz
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Sal Vidge
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        className="dropdown-item"
+                                        href="#"
+                                      >
+                                        Other
+                                      </Dropdown.Item>
+                                    </Dropdown.Menu>
+                                  </Dropdown>
+                                </div>
+                              </div>
+                              <div className="total-comment-block">
+                                <Dropdown>
+                                  <Dropdown.Toggle as={CustomToggle}>
+                                    20 Comment
+                                  </Dropdown.Toggle>
+                                  <Dropdown.Menu className="dropdown-menu">
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Max Emum
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Bill Yerds
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Hap E. Birthday
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Tara Misu
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Midge Itz
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Sal Vidge
+                                    </Dropdown.Item>
+                                    <Dropdown.Item
+                                      className="dropdown-item"
+                                      href="#"
+                                    >
+                                      Other
+                                    </Dropdown.Item>
+                                  </Dropdown.Menu>
+                                </Dropdown>
+                              </div>
+                            </div>
+                            <ShareOffcanvas />
+                          </div>
+                          <hr />
+                          <ul className="post-comments p-0 m-0">
+                            <li className="mb-2">
+                              <div className="d-flex ">
+                                <div className="user-img">
+                                  <img
+                                    src={img10}
+                                    alt="userimg"
+                                    className="avatar-35 rounded-circle img-fluid"
+                                  />
+                                </div>
+                                <div className="comment-data-block ms-3">
+                                  <h6>Monty Carlo</h6>
+                                  <p className="mb-0">
+                                    Lorem ipsum dolor sit amet
+                                  </p>
+                                  <div className="d-flex flex-wrap align-items-center comment-activity">
+                                    <Link to="">like</Link>
+                                    <Link to="">reply</Link>
+                                    <Link to="">translate</Link>
+                                    <span> 5 min </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                            <li>
+                              <div className="d-flex ">
+                                <div className="user-img">
+                                  <img
+                                    src={img11}
+                                    alt="userimg"
+                                    className="avatar-35 rounded-circle img-fluid"
+                                  />
+                                </div>
+                                <div className="comment-data-block ms-3">
+                                  <h6>Paul Molive</h6>
+                                  <p className="mb-0">
+                                    Lorem ipsum dolor sit amet
+                                  </p>
+                                  <div className="d-flex flex-wrap align-items-center comment-activity">
+                                    <Link to="">like</Link>
+                                    <Link to="">reply</Link>
+                                    <Link to="">translate</Link>
+                                    <span> 5 min </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </li>
+                          </ul>
+                          <form
+                            className="comment-text d-flex align-items-center mt-3"
+                            action=""
+                          >
+                            <input
+                              type="text"
+                              className="form-control rounded"
+                              placeholder="Enter Your Comment"
+                            />
+                            <div className="comment-attagement d-flex">
+                              <Link to="">
+                                <i className="ri-link me-3"></i>
+                              </Link>
+                              <Link to="">
+                                <i className="ri-user-smile-line me-3"></i>
+                              </Link>
+                              <Link to="">
+                                <i className="ri-camera-line me-3"></i>
+                              </Link>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </Card.Body>
+                  </Card>
+                </Col>
+                <Col lg="4">
+                  <Card>
+                    <div className="card-header d-flex justify-content-between">
+                      <div className="header-title">
+                        <h4 className="card-title">Members</h4>
+                      </div>
+                    </div>
+                    <Card.Body>
+                      <ul className="media-story list-inline m-0 p-0">
+                        {oldData?.admin_id && (
+                          <li
+                            className="d-flex mb-4 align-items-center"
+                            key="admin"
+                          >
+                            <img
+                              className="rounded-circle img-fluid"
+                              src={oldData?.admin_id?.profile_picture || user1} // Use default image if no profile picture
+                              alt="profile-img"
+                            />
+                            <div className="stories-data ms-3">
+                              <h5>{oldData?.admin_id?.username || "Admin"}</h5>
+                              <p className="mb-0">Admin</p>
+                            </div>
+                          </li>
+                        )}
+
+                        {validGroupMembers
+                          .filter(
+                            (member) =>
+                              member?.users_id?.documentId !==
+                              oldData?.admin_id?.documentId
+                          ) // Exclude admin from members
+                          .slice(0, 8) // Change slice to show 8 members instead of 6
+                          .map((member, index) => (
+                            <li
+                              className="d-flex mb-4 align-items-center"
+                              key={index}
+                            >
+                              <img
+                                className="rounded-circle img-fluid"
+                                src={member?.users_id?.profile_picture || user1} // Use user1 as fallback
+                                alt="profile-img"
+                              />
+                              <div className="stories-data ms-3">
+                                <h5>
+                                  {member?.users_id?.username || "Anonymous"}
+                                </h5>
+                                <p className="mb-0">Joined recently</p>
+                              </div>
+                            </li>
+                          ))}
+                      </ul>
+                      <Button
+                        onClick={() => handleSeeAllClick()}
+                        className="btn btn-primary d-block mt-3"
+                      >
+                        See All
+                      </Button>
+                    </Card.Body>
+                  </Card>
+                  <Card>
+                    <Card.Header className="card-header d-flex justify-content-between">
+                      <div className="header-title">
+                        <h4 className="card-title">About</h4>
+                      </div>
+                    </Card.Header>
+                    <Card.Body>
+                      <ul className="list-inline p-0 m-0">
+                        <li className="mb-3">
+                          <p className="mb-0">Developer's Group...</p>
+                        </li>
+                        <li className="mb-3">
+                          <div className="d-flex">
+                            <div className="flex-shrink-0">
+                              <i className="material-symbols-outlined">lock</i>
+                            </div>
+                            <div className="flex-grow-1 ms-3">
+                              <h6>Private</h6>
+                              <p className="mb-0">
+                                Success in slowing economic activity.
+                              </p>
+                            </div>
                           </div>
                         </li>
-                      ))}
-                  </ul>
-                  <Link to="#" className="btn btn-primary d-block mt-3">
-                    See All
-                  </Link>
-                </Card.Body>
-              </Card>
-              <Card>
-                <Card.Header className="card-header d-flex justify-content-between">
-                  <div className="header-title">
-                    <h4 className="card-title">About</h4>
-                  </div>
-                </Card.Header>
-                <Card.Body>
-                  <ul className="list-inline p-0 m-0">
-                    <li className="mb-3">
-                      <p className="mb-0">Developer's Group...</p>
-                    </li>
-                    <li className="mb-3">
-                      <div className="d-flex">
-                        <div className="flex-shrink-0">
-                          <i className="material-symbols-outlined">lock</i>
-                        </div>
-                        <div className="flex-grow-1 ms-3">
-                          <h6>Private</h6>
-                          <p className="mb-0">
-                            Success in slowing economic activity.
-                          </p>
+                        <li className="mb-3">
+                          <div className="d-flex">
+                            <div className="flex-shrink-0">
+                              <i className="material-symbols-outlined">
+                                visibility
+                              </i>
+                            </div>
+                            <div className="flex-grow-1 ms-3">
+                              <h6>Visible</h6>
+                              <p className="mb-0">
+                                Various versions have evolved over the years
+                              </p>
+                            </div>
+                          </div>
+                        </li>
+                        <li>
+                          <div className="d-flex">
+                            <div className="flex-shrink-0">
+                              <i className="material-symbols-outlined">group</i>
+                            </div>
+                            <div className="flex-grow-1 ms-3">
+                              <h6>General group</h6>
+                              <p className="mb-0">
+                                There are many variations of passages
+                              </p>
+                            </div>
+                          </div>
+                        </li>
+                      </ul>
+                    </Card.Body>
+                  </Card>
+                </Col>
+              </>
+            ) : (
+              
+              <Col md={6}>
+                <Card className=" card-block card-stretch card-height">
+                  <Card.Body className=" profile-page p-0">
+                    <div className="profile-header-image">
+                      <div className="cover-container">
+                        <img
+                          loading="lazy"
+                          src={img13}
+                          alt="profile-bg"
+                          className="rounded img-fluid w-100"
+                        />
+                      </div>
+                      <div className="profile-info p-4">
+                        <div className="user-detail">
+                          <div className="d-flex flex-wrap justify-content-between align-items-start">
+                            <div className="profile-detail d-flex">
+                              <div className="profile-img pe-4">
+                                <img
+                                  loading="lazy"
+                                  src={user9}
+                                  alt="profile-img"
+                                  className="avatar-130 img-fluid"
+                                />
+                              </div>
+                              <div className="user-data-block">
+                                <h4>
+                                  <Link to="/dashboard/app/friend-profile">
+                                    Anna Sthesia
+                                  </Link>
+                                </h4>
+                                <h6>@designer</h6>
+                                
+                              </div>
+                            </div>
+                            <button type="submit" className="btn btn-primary">
+                              Following
+                            </button>
+                          </div>
                         </div>
                       </div>
-                    </li>
-                    <li className="mb-3">
-                      <div className="d-flex">
-                        <div className="flex-shrink-0">
-                          <i className="material-symbols-outlined">
-                            visibility
-                          </i>
-                        </div>
-                        <div className="flex-grow-1 ms-3">
-                          <h6>Visible</h6>
-                          <p className="mb-0">
-                            Various versions have evolved over the years
-                          </p>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div className="d-flex">
-                        <div className="flex-shrink-0">
-                          <i className="material-symbols-outlined">group</i>
-                        </div>
-                        <div className="flex-grow-1 ms-3">
-                          <h6>General group</h6>
-                          <p className="mb-0">
-                            There are many variations of passages
-                          </p>
-                        </div>
-                      </div>
-                    </li>
-                  </ul>
-                </Card.Body>
-              </Card>
-            </Col>
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Col>
+            )}
           </Row>
         </Container>
       </div>
