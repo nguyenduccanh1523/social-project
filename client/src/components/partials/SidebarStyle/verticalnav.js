@@ -17,11 +17,11 @@ function CustomToggle({ children, eventKey, onClick }) {
     const isCurrentEventKey = activeEventKey === eventKey;
 
     return (
-        <Link to="#" aria-expanded={isCurrentEventKey ? 'true' : 'false'} className="nav-link" role="button" onClick={(e) => {
+        <div to="#" aria-expanded={isCurrentEventKey ? 'true' : 'false'} className="nav-link" role="button" onClick={(e) => {
             decoratedOnClick(isCurrentEventKey)
         }}>
             {children}
-        </Link>
+        </div>
     );
 }
 

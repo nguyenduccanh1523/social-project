@@ -7,6 +7,7 @@ import  userReducer  from "./userReducer";
 import userSocialsReducer from "./userSocialReducer";
 import friendReducer from "./friendReducer";
 import groupReducer from "./groupReducer";
+import postReducer from "./postReducer";
 
 
 
@@ -26,7 +27,8 @@ const rootReducer = combineReducers({
     user: userReducer,
     userSocials: userSocialsReducer,
     friend: friendReducer,
-    group: groupReducer
+    group: groupReducer,
+    post: postReducer
 })
 
 export default rootReducer
