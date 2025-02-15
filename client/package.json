@@ -17,6 +17,7 @@
     "apexcharts": "^4.0.0",
     "axios": "^1.7.9",
     "bootstrap": "^5.2.3",
+    "date-fns": "^4.1.0",
     "fullcalendar-interaction": "^5.3.3",
     "jquery": "^3.6.0",
     "leaflet": "^1.7.1",
