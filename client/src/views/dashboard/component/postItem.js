@@ -194,6 +194,7 @@ const PostItem = ({ post }) => {
                       height: "auto",
                       objectFit: "cover",
                       borderRadius: "8px",
+                      cursor: "pointer",
                     }}
                   />
                 )}
@@ -214,6 +215,7 @@ const PostItem = ({ post }) => {
                           height: "200px", // Đặt chiều cao cố định
                           objectFit: "cover", // Đảm bảo giữ tỷ lệ ảnh
                           borderRadius: "8px",
+                          cursor: "pointer",
                         }}
                       />
                     ))}
@@ -248,6 +250,7 @@ const PostItem = ({ post }) => {
                               : "2 / 3", // Ảnh lớn chiếm 2 hàng
                           objectFit: "cover", // Cắt ảnh để phù hợp container
                           borderRadius: "8px", // Làm tròn góc
+                          cursor: "pointer", // Hiển thị con trỏ khi hover
                         }}
                       />
                     ))}
@@ -288,6 +291,7 @@ const PostItem = ({ post }) => {
                             height: "100%",
                             objectFit: "cover",
                             borderRadius: "8px",
+                            cursor: "pointer",
                           }}
                           onClick={() => handleImageClick(index)} // Đặt slide index
                         />
