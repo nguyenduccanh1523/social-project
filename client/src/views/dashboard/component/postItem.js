@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { formatDistanceToNow } from "date-fns";
-import { Image, Flex, Tag } from "antd";
+import { Image, Tag } from "antd";
 
 // Images import (you can import them or pass them as props)
 
@@ -12,6 +12,7 @@ import { Col } from "react-bootstrap";
 import Card from "../../../components/Card";
 import CustomToggle from "../../../components/dropdowns";
 import ShareOffcanvas from "../../../components/share-offcanvas";
+import { colorsTag } from "../others/format";
 
 //image
 import user2 from "../../../assets/images/user/02.jpg";
@@ -24,11 +25,12 @@ import icon7 from "../../../assets/images/icon/07.png";
 import icon1 from "../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../assets/images/icon/02.png"; // Example icon for love
 import { useDispatch, useSelector } from "react-redux";
-import { fetchPostMedia } from "../../../actions/actions";
+import { fetchPostMedia, fetchPostTag } from "../../../actions/actions";
 
 const PostItem = ({ post }) => {
   const dispatch = useDispatch();
   const { medias } = useSelector((state) => state.root.media || {});
+  const { tags } = useSelector((state) => state.root.tag || {});
   const createdAt = new Date(post?.user_id?.createdAt);
 
   const [imageController, setImageController] = useState({
@@ -46,12 +48,12 @@ const PostItem = ({ post }) => {
 
   useEffect(() => {
     dispatch(fetchPostMedia(post?.documentId)); // Truyền đúng giá trị groupId
+    dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
   }, [post, dispatch]);
 
   const postMedia = medias[post?.documentId] || [];
+  const postTag = tags[post?.documentId] || [];
 
-  console.log("post", post);
-  // Format the time difference from now
   const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
   const validSources = Array.isArray(postMedia?.data)
@@ -59,6 +61,12 @@ const PostItem = ({ post }) => {
         .map((item) => item?.media?.file_path)
         .filter((path) => typeof path === "string" && path.trim() !== "")
     : [];
+
+  const validTags = Array.isArray(postTag?.data)
+    ? postTag.data.map((item) => item?.tag_id?.name)
+    : [];
+
+  const colors = colorsTag;
 
   return (
     <>
@@ -163,20 +171,17 @@ const PostItem = ({ post }) => {
             <div className="mt-3">
               <p>{post?.content}</p>
             </div>
-            <Flex gap="4px" wrap>
-              <Tag color="magenta">magenta</Tag>
-              <Tag color="red">red</Tag>
-              <Tag color="volcano">volcano</Tag>
-              <Tag color="orange">orange</Tag>
-              <Tag color="gold">gold</Tag>
-              <Tag color="lime">lime</Tag>
-              <Tag color="green">green</Tag>
-              <Tag color="cyan">cyan</Tag>
-              <Tag color="blue">blue</Tag>
-              <Tag color="geekblue">geekblue</Tag>
-              <Tag color="purple">purple</Tag>
-            </Flex>
-            
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
+              {validTags.map((tag, index) => (
+                <Tag
+                  key={tag}
+                  color={colors[index % colors.length]} // Áp dụng màu theo danh sách
+                >
+                  {tag}
+                </Tag>
+              ))}
+            </div>
+
             <div className="user-post mt-3">
               <Image.PreviewGroup>
                 {Array.isArray(validSources) && validSources.length === 1 && (

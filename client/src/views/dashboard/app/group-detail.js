@@ -16,7 +16,6 @@ import ProfileHeader from "../../../components/profile-header";
 import PostItem from "../component/postItem";
 
 //image
-import img1 from "../../../assets/images/page-img/gi-1.jpg";
 import user1 from "../../../assets/images/user/05.jpg";
 import user9 from "../../../assets/images/user/1.jpg";
 import img5 from "../../../assets/images/user/1.jpg";

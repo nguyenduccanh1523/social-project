@@ -9,6 +9,7 @@ import friendReducer from "./friendReducer";
 import groupReducer from "./groupReducer";
 import postReducer from "./postReducer";
 import mediaReducer from "./mediaReducer";
+import tagReducer from "./tagReducer";
 
 
 
@@ -30,7 +31,8 @@ const rootReducer = combineReducers({
     friend: friendReducer,
     group: groupReducer,
     post: postReducer,
-    media: mediaReducer
+    media: mediaReducer,
+    tag: tagReducer
 })
 
 export default rootReducer
