@@ -38,6 +38,7 @@ import img14 from "../../../assets/images/page-img/profile-bg9.jpg";
 import { fetchGroupMembers, fetchGroupPost } from "../../../actions/actions";
 import { useDispatch, useSelector } from "react-redux";
 
+
 const GroupDetail = () => {
   const dispatch = useDispatch();
   const [show, setShow] = useState(false);
@@ -61,7 +62,7 @@ const GroupDetail = () => {
   const groupPosts = posts[oldData?.documentId] || [];
   // Đảm bảo groupMembers là mảng trước khi gọi .slice()
   const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
-  console.log("groupMembers: ", groupPosts);
+  //console.log("groupMembers: ", groupPosts);
 
   return (
     <>
@@ -75,7 +76,7 @@ const GroupDetail = () => {
                   <div className="me-3">
                     <img
                       className="rounded-circle img-fluid avatar-100"
-                      src={img1}
+                      src={oldData?.image_group}
                       alt=""
                     />
                   </div>
@@ -431,7 +432,7 @@ const GroupDetail = () => {
                             </Button>
                           </Modal.Body>
                         </Modal>
-                      </Card>
+                      </Card>       
                       <Card>
                         <Card.Body>
                           {groupPosts?.data?.map((post, index) => (

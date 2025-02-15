@@ -3078,7 +3078,7 @@ const UserProfile = () => {
                                 <div className="d-grid gap-2 d-grid-template-1fr-13">
                                   <div>
                                     <div className="user-images position-relative overflow-hidden">
-                                      <Link
+                                      <div
                                         onClick={() => imageOnSlide(10)}
                                         to="#"
                                       >
@@ -3088,7 +3088,7 @@ const UserProfile = () => {
                                           className="img-fluid rounded"
                                           alt="Responsive"
                                         />
-                                      </Link>
+                                      </div>
                                       <div className="image-hover-data">
                                         <div className="product-elements-icon">
                                           <ul className="d-flex align-items-center m-0 p-0 list-inline">
