@@ -5,6 +5,7 @@ import UserProfile from "../views/dashboard/app/user-profile";
 import Groups from "../views/dashboard/app/groups";
 import MyGroups from "../views/dashboard/app/my-group";
 import GroupDetail from "../views/dashboard/app/group-detail";
+import Chat from "../views/dashboard/app/chat";
 
 export const DefaultRouter = [
   {
@@ -34,5 +35,9 @@ export const DefaultRouter = [
   {
     path:"/group-detail/:id",
     element:<GroupDetail/>
+  },
+  {
+    path:"/chat",
+    element:<Chat/>
   }
 ];

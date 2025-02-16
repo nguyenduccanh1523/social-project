@@ -207,7 +207,7 @@ const VerticalNav = React.memo(() => {
                     </Link>
                 </Nav.Item>
                 <Nav.Item as="li">
-                    <Link className={`${location.pathname === '/chat/index' ? 'active' : ''} nav-link `} aria-current="page" to="/chat/index" target='_blank noopener,noreferrer'>
+                    <Link className={`${location.pathname === '/chat' ? 'active' : ''} nav-link `} aria-current="page" to="/chat" >
                         <OverlayTrigger placement="right" overlay={<Tooltip>Chat</Tooltip>}>
                         <i className="icon material-symbols-outlined">
                             message
