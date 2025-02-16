@@ -10,6 +10,7 @@ import groupReducer from "./groupReducer";
 import postReducer from "./postReducer";
 import mediaReducer from "./mediaReducer";
 import tagReducer from "./tagReducer";
+import converReducer from "./converReducer";
 
 
 
@@ -32,7 +33,8 @@ const rootReducer = combineReducers({
     group: groupReducer,
     post: postReducer,
     media: mediaReducer,
-    tag: tagReducer
+    tag: tagReducer,
+    conversation: converReducer
 })
 
 export default rootReducer

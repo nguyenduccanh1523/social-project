@@ -1,24 +1,32 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Col, Form, Tab, Nav, Button } from "react-bootstrap";
-import {
-  MessageOutlined,
-} from "@ant-design/icons";
+import { MessageOutlined } from "@ant-design/icons";
 import ProfileMessager from "./profileMessager";
 import HeaderMessager from "./headerMessager";
 import SendMessager from "./sendMessager";
 import ContentMessager from "./contentMessager";
 
-import user1 from "../../../../assets/images/user/1.jpg";
 import user5 from "../../../../assets/images/user/05.jpg";
 import user6 from "../../../../assets/images/user/06.jpg";
 import user7 from "../../../../assets/images/user/07.jpg";
 import user8 from "../../../../assets/images/user/08.jpg";
 import user9 from "../../../../assets/images/user/09.jpg";
-const Conversation = () => {
+import { useDispatch, useSelector } from "react-redux";
+import { fetchConversation } from "../../../../actions/actions";
+
+const Conversation = ({ profile }) => {
+  const dispatch = useDispatch();
   const [show, setShow] = useState("");
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const { conversations } = useSelector(
+    (state) => state.root.conversation || {}
+  );
   const [show1, setShow1] = useState("");
   const chatContainerRef = useRef(null);
+
+  useEffect(() => {
+    dispatch(fetchConversation(profile?.documentId)); // Truyền đúng giá trị groupId
+  }, [profile, dispatch]);
 
   useEffect(() => {
     const container = chatContainerRef.current;
@@ -27,17 +35,12 @@ const Conversation = () => {
     }
   }, [show]);
 
-  useEffect(() => {
-    console.log("Trạng thái nút cuộn xuống:", showScrollToBottom);
-  }, [showScrollToBottom]); // Theo dõi thay đổi của showScrollToBottom
-
   const handleScroll = () => {
     const container = chatContainerRef.current;
     if (container) {
       const { scrollTop, clientHeight, scrollHeight } = container;
 
       const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
-      console.log("Khoảng cách từ cuối:", distanceFromBottom);
 
       // Cập nhật trạng thái dựa trên khoảng cách từ cuối
       if (distanceFromBottom > 200) {
@@ -69,22 +72,30 @@ const Conversation = () => {
     document.getElementsByClassName("scroller")[0].classList.add("show");
   };
 
+  const allConver = conversations[profile?.documentId] || [];
+  console.log("conversations: ", allConver);
+
   return (
     <>
       <Col lg={3} className="chat-data-left scroller">
         <div className="chat-search pt-3 ps-3">
           <div className="d-flex align-items-center">
-            <div className="chat-profile me-3">
+            <div className="avatar me-2">
               <img
                 loading="lazy"
-                src={user1}
-                alt="chat-user"
-                className="avatar-60 "
+                src={profile?.profile_picture}
+                alt="chatuserimage"
+                className="avatar-60"
               />
+              <span className="avatar-status">
+                <i className="material-symbols-outlined text-success  md-14 filled">
+                  circle
+                </i>
+              </span>
             </div>
             <div className="chat-caption">
-              <h5 className="mb-0">Bni Jordan</h5>
-              <p className="m-0">Web Designer</p>
+              <h5 className="mb-0">{profile?.username}</h5>
+              <p className="m-0">Online</p>
             </div>
           </div>
           <div className="chat-searchbar mt-4">
@@ -102,70 +113,52 @@ const Conversation = () => {
         <div className="chat-sidebar-channel scroller mt-4 ps-3">
           <h5>Conversation</h5>
           <Nav as="ul" variant="pills" className="iq-chat-ui nav flex-column">
-            <Nav.Item as="li">
-              <Nav.Link
-                eventKey="first"
-                onClick={() => setShow("first")}
-                href="#chatbox1"
-              >
-                <div className="d-flex align-items-center">
-                  <div className="avatar me-2">
-                    <img
-                      loading="lazy"
-                      src={user5}
-                      alt="chatuserimage"
-                      className="avatar-50 "
-                    />
-                    <span className="avatar-status">
-                      <i className="material-symbols-outlined text-success  md-14 filled">
-                        circle
-                      </i>
-                    </span>
-                  </div>
-                  <div className="chat-sidebar-name">
-                    <h6 className="mb-0">Team Discussions</h6>
-                    <span>Lorem Ipsum is</span>
-                  </div>
-                  <div className="chat-meta float-right text-center mt-2 me-1">
-                    <div className="chat-msg-counter bg-primary text-white">
-                      20
+            {allConver?.data?.map((item, index) => {
+              // Kiểm tra điều kiện
+              const isCreatedByProfile =
+                item?.conversation_created_by?.documentId ===
+                profile?.documentId;
+
+              // Lấy dữ liệu `username`
+              const username = isCreatedByProfile
+                ? item?.user_chated_with
+                : item?.conversation_created_by;
+
+              return (
+                <Nav.Item as="li" key={index}>
+                  <Nav.Link
+                    eventKey="first"
+                    onClick={() => setShow("first")}
+                    // eventKey={`conversation-${index}`}
+                    // onClick={() => setShow(`conversation-${index}`)}
+                  >
+                    <div className="d-flex align-items-center">
+                      <div className="avatar me-2">
+                        <img
+                          loading="lazy"
+                          src={username?.profile_picture}
+                          alt="chatuserimage"
+                          className="avatar-50"
+                        />
+                        <span className="avatar-status">
+                          <i className="material-symbols-outlined text-success md-14 filled">
+                            circle
+                          </i>
+                        </span>
+                      </div>
+                      <div className="chat-sidebar-name">
+                        <h6 className="mb-0">{username?.username}</h6>{" "}
+                        {/* Hiển thị username */}
+                        <span>Lorem Ipsum is</span>
+                      </div>
+                      <div className="chat-meta float-right text-center mt-2 me-1">
+                        <div className="chat-msg-counter bg-primary"></div>
+                      </div>
                     </div>
-                    <span className="text-nowrap">05 min</span>
-                  </div>
-                </div>
-              </Nav.Link>
-            </Nav.Item>
-            <li>
-              <Nav.Link
-                eventKey="second"
-                onClick={() => setShow("second")}
-                href="#chatbox2"
-              >
-                <div className="d-flex align-items-center">
-                  <div className="avatar me-2">
-                    <img
-                      loading="lazy"
-                      src={user6}
-                      alt="chatuserimage"
-                      className="avatar-50 "
-                    />
-                    <span className="avatar-status">
-                      <i className="ri-checkbox-blank-circle-fill text-success"></i>
-                    </span>
-                  </div>
-                  <div className="chat-sidebar-name">
-                    <h6 className="mb-0">Announcement</h6>
-                    <span>This Sunday we</span>
-                  </div>
-                  <div className="chat-meta float-right text-center mt-2 me-1">
-                    <div className="chat-msg-counter bg-primary text-white">
-                      10
-                    </div>
-                    <span className="text-nowrap">10 min</span>
-                  </div>
-                </div>
-              </Nav.Link>
-            </li>
+                  </Nav.Link>
+                </Nav.Item>
+              );
+            })}
           </Nav>
           <h5 className="mt-3">Group Conversation</h5>
           <Nav variant="pills" className="iq-chat-ui nav flex-column ">
