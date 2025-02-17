@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Col, Form, Tab, Nav, Button } from "react-bootstrap";
-import { MessageOutlined } from "@ant-design/icons";
+import { MessageOutlined, SearchOutlined } from "@ant-design/icons";
+import { Input } from "antd"; // Import Search từ Ant Design
+
 import ProfileMessager from "./profileMessager";
 import HeaderMessager from "./headerMessager";
 import SendMessager from "./sendMessager";
 import ContentMessager from "./contentMessager";
 
 import user5 from "../../../../assets/images/user/05.jpg";
-import user6 from "../../../../assets/images/user/06.jpg";
 import user7 from "../../../../assets/images/user/07.jpg";
 import user8 from "../../../../assets/images/user/08.jpg";
 import user9 from "../../../../assets/images/user/09.jpg";
@@ -18,6 +19,7 @@ const Conversation = ({ profile }) => {
   const dispatch = useDispatch();
   const [show, setShow] = useState("");
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(""); // Trạng thái tìm kiếm
   const { conversations } = useSelector(
     (state) => state.root.conversation || {}
   );
@@ -42,8 +44,10 @@ const Conversation = ({ profile }) => {
 
       const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
 
+      //console.log("distanceFromBottom: ", distanceFromBottom);
       // Cập nhật trạng thái dựa trên khoảng cách từ cuối
       if (distanceFromBottom > 200) {
+        //console.log("distanceFromBottom: ", distanceFromBottom>200);
         setShowScrollToBottom(true);
       } else {
         setShowScrollToBottom(false);
@@ -75,6 +79,22 @@ const Conversation = ({ profile }) => {
   const allConver = conversations[profile?.documentId] || [];
   console.log("conversations: ", allConver);
 
+  const handleSearch = (value) => {
+    setSearchQuery(value); // Cập nhật giá trị tìm kiếm khi người dùng nhập
+  };
+
+  // Lọc các cuộc trò chuyện theo query tìm kiếm
+  const filteredConversations = allConver?.data?.filter((item) => {
+    // Kiểm tra nếu conversation_created_by là profile hiện tại
+    const username =
+      item?.conversation_created_by?.documentId === profile?.documentId
+        ? item?.user_chated_with?.username
+        : item?.conversation_created_by?.username;
+
+    // So sánh tên người nhắn với query tìm kiếm (tìm kiếm không phân biệt chữ hoa chữ thường)
+    return username?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
   return (
     <>
       <Col lg={3} className="chat-data-left scroller">
@@ -100,38 +120,31 @@ const Conversation = ({ profile }) => {
           </div>
           <div className="chat-searchbar mt-4">
             <Form.Group className="form-group chat-search-data m-0">
-              <input
-                type="text"
-                className="form-control round"
-                id="chat-search"
-                placeholder="Search"
+              <Input.Search
+                placeholder="Search..."
+                onSearch={handleSearch}
+                enterButton={<SearchOutlined />}
+                onChange={(e) => setSearchQuery(e.target.value)} // Cập nhật khi người dùng nhập vào
+                value={searchQuery}
               />
-              <i className="material-symbols-outlined">search</i>
             </Form.Group>
           </div>
         </div>
-        <div className="chat-sidebar-channel scroller mt-4 ps-3">
+        <div className="chat-sidebar-channel scroller mt-4 ps-3" height="100%">
           <h5>Conversation</h5>
           <Nav as="ul" variant="pills" className="iq-chat-ui nav flex-column">
-            {allConver?.data?.map((item, index) => {
-              // Kiểm tra điều kiện
+            {filteredConversations?.map((item, index) => {
               const isCreatedByProfile =
                 item?.conversation_created_by?.documentId ===
                 profile?.documentId;
 
-              // Lấy dữ liệu `username`
               const username = isCreatedByProfile
                 ? item?.user_chated_with
                 : item?.conversation_created_by;
 
               return (
                 <Nav.Item as="li" key={index}>
-                  <Nav.Link
-                    eventKey="first"
-                    onClick={() => setShow("first")}
-                    // eventKey={`conversation-${index}`}
-                    // onClick={() => setShow(`conversation-${index}`)}
-                  >
+                  <Nav.Link eventKey="first" onClick={() => setShow("first")}>
                     <div className="d-flex align-items-center">
                       <div className="avatar me-2">
                         <img
@@ -147,12 +160,8 @@ const Conversation = ({ profile }) => {
                         </span>
                       </div>
                       <div className="chat-sidebar-name">
-                        <h6 className="mb-0">{username?.username}</h6>{" "}
-                        {/* Hiển thị username */}
+                        <h6 className="mb-0">{username?.username}</h6>
                         <span>Lorem Ipsum is</span>
-                      </div>
-                      <div className="chat-meta float-right text-center mt-2 me-1">
-                        <div className="chat-msg-counter bg-primary"></div>
                       </div>
                     </div>
                   </Nav.Link>
