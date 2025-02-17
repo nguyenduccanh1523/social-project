@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useRef, useState } from "react";
 import { Col, Form, Tab, Nav, Button } from "react-bootstrap";
 import { MessageOutlined, SearchOutlined } from "@ant-design/icons";
@@ -8,7 +9,6 @@ import HeaderMessager from "./headerMessager";
 import SendMessager from "./sendMessager";
 import ContentMessager from "./contentMessager";
 
-import user5 from "../../../../assets/images/user/05.jpg";
 import user7 from "../../../../assets/images/user/07.jpg";
 import user8 from "../../../../assets/images/user/08.jpg";
 import user9 from "../../../../assets/images/user/09.jpg";
@@ -24,30 +24,29 @@ const Conversation = ({ profile }) => {
     (state) => state.root.conversation || {}
   );
   const [show1, setShow1] = useState("");
-  const chatContainerRef = useRef(null);
+  const chatContainerRefs = useRef([]);
 
   useEffect(() => {
     dispatch(fetchConversation(profile?.documentId)); // Truyền đúng giá trị groupId
   }, [profile, dispatch]);
 
   useEffect(() => {
-    const container = chatContainerRef.current;
+    const container = chatContainerRefs.current[show]; // Lấy phần tử hiện tại dựa trên `show`
     if (container) {
       container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     }
-  }, [show]);
+  }, []);
 
-  const handleScroll = () => {
-    const container = chatContainerRef.current;
+  const handleScroll = (index) => {
+    const container = chatContainerRefs.current[index]; // Truy cập ref động theo chỉ mục
     if (container) {
       const { scrollTop, clientHeight, scrollHeight } = container;
 
       const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
+      console.log("distanceFromBottom: ", distanceFromBottom);
 
-      //console.log("distanceFromBottom: ", distanceFromBottom);
-      // Cập nhật trạng thái dựa trên khoảng cách từ cuối
-      if (distanceFromBottom > 200) {
-        //console.log("distanceFromBottom: ", distanceFromBottom>200);
+      if (distanceFromBottom > 1300) {
+        console.log("Show scroll to bottom", distanceFromBottom>1300);
         setShowScrollToBottom(true);
       } else {
         setShowScrollToBottom(false);
@@ -55,18 +54,25 @@ const Conversation = ({ profile }) => {
     }
   };
 
-  // Gắn sự kiện cuộn
+  // Gắn sự kiện cuộn vào các phần tử map
   useEffect(() => {
-    const container = chatContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-      return () => container.removeEventListener("scroll", handleScroll);
-    }
+    chatContainerRefs.current.forEach((container, index) => {
+      if (container) {
+        container.addEventListener("scroll", () => handleScroll(index));
+      }
+    });
+
+    return () => {
+      chatContainerRefs.current.forEach((container, index) => {
+        if (container) {
+          container.removeEventListener("scroll", () => handleScroll(index));
+        }
+      });
+    };
   }, []);
 
-  // Cuộn xuống cuối
-  const scrollToBottom = () => {
-    const container = chatContainerRef.current;
+  const scrollToBottom = (index) => {
+    const container = chatContainerRefs.current[index]; // Truy cập vào phần tử cụ thể
     if (container) {
       container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     }
@@ -77,7 +83,6 @@ const Conversation = ({ profile }) => {
   };
 
   const allConver = conversations[profile?.documentId] || [];
-  console.log("conversations: ", allConver);
 
   const handleSearch = (value) => {
     setSearchQuery(value); // Cập nhật giá trị tìm kiếm khi người dùng nhập
@@ -94,6 +99,7 @@ const Conversation = ({ profile }) => {
     // So sánh tên người nhắn với query tìm kiếm (tìm kiếm không phân biệt chữ hoa chữ thường)
     return username?.toLowerCase().includes(searchQuery.toLowerCase());
   });
+  //console.log("filteredConversations: ", filteredConversations);
 
   return (
     <>
@@ -144,7 +150,11 @@ const Conversation = ({ profile }) => {
 
               return (
                 <Nav.Item as="li" key={index}>
-                  <Nav.Link eventKey="first" onClick={() => setShow("first")}>
+                  <Nav.Link
+                    eventKey={`conversation-${item?.documentId}`}
+                    onClick={() => setShow(`conversation-${item?.documentId}`)}
+                    href={`#${item?.documentId}`}
+                  >
                     <div className="d-flex align-items-center">
                       <div className="avatar me-2">
                         <img
@@ -274,95 +284,123 @@ const Conversation = ({ profile }) => {
               </Button>
             </div>
           </Tab.Pane>
-          <Tab.Pane
-            eventKey="first"
-            className={`tab-pane fade ${show === "first" ? "show active" : ""}`}
-            id="chatbox1"
-            role="tabpanel"
-          >
-            <div className="chat-head">
-              <header className="d-flex justify-content-between align-items-center bg-white pt-3  ps-3 pe-3 pb-3">
-                <div className="d-flex align-items-center">
-                  <div className="sidebar-toggle">
-                    <i className="ri-menu-3-line"></i>
-                  </div>
-                  <div className="avatar chat-user-profile m-0 me-3 ">
-                    <img
-                      loading="lazy"
-                      src={user5}
-                      alt="avatar"
-                      className="avatar-50 "
-                      onClick={() => setShow1("true")}
-                      style={{ cursor: "pointer" }}
-                    />
-                    <span className="avatar-status">
-                      <i className="material-symbols-outlined text-success  md-14 filled">
-                        circle
-                      </i>
-                    </span>
-                  </div>
-                  <h5 className="mb-0">Team Discussions</h5>
+          {filteredConversations?.map((item, index) => {
+            const isCreatedByProfile =
+              item?.conversation_created_by?.documentId === profile?.documentId;
+
+            const username = isCreatedByProfile
+              ? item?.user_chated_with
+              : item?.conversation_created_by;
+
+            return (
+              <Tab.Pane
+                key={index}
+                eventKey={`conversation-${item?.documentId}`} // Đặt eventKey giống với Nav.Link
+                className={`tab-pane fade ${
+                  show === `conversation-${item?.documentId}`
+                    ? "show active"
+                    : ""
+                }`}
+                id={`chatbox-${item?.documentId}`} // Định danh duy nhất cho tab
+                role="tabpanel"
+              >
+                <div className="chat-head">
+                  <header className="d-flex justify-content-between align-items-center bg-white pt-3  ps-3 pe-3 pb-3">
+                    <div className="d-flex align-items-center">
+                      <div className="sidebar-toggle">
+                        <i className="ri-menu-3-line"></i>
+                      </div>
+                      <div className="avatar chat-user-profile m-0 me-3 ">
+                        <img
+                          loading="lazy"
+                          src={username?.profile_picture}
+                          alt="avatar"
+                          className="avatar-50 "
+                          onClick={() => setShow1("true")}
+                          style={{ cursor: "pointer" }}
+                        />
+                        <span className="avatar-status">
+                          <i className="material-symbols-outlined text-success  md-14 filled">
+                            circle
+                          </i>
+                        </span>
+                      </div>
+                      <h5 className="mb-0">{username?.username}</h5>
+                    </div>
+                    <div
+                      className={`scroller ${show1 === "true" ? "show" : ""}`}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0, // Popup hiển thị bên phải
+                        width: "300px",
+                        height: "100%",
+                        background: "white",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                        zIndex: 1000,
+                        display: show1 === "true" ? "block" : "none", // Ẩn/Hiển thị dựa trên trạng thái
+                        transform:
+                          show1 === "true"
+                            ? "translateX(0)"
+                            : "translateX(100%)", // Hiển thị/Ẩn với hiệu ứng trượt
+                        transition: "transform 0.3s ease-in-out", // Thêm hiệu ứng chuyển động
+                      }}
+                    >
+                      <div className="user-profile">
+                        <Button
+                          type="submit"
+                          onClick={() => setShow1("false")} // Ẩn popup
+                          variant="close-popup p-3"
+                        >
+                          <i className="material-symbols-outlined md-18">
+                            close
+                          </i>
+                        </Button>
+                        <ProfileMessager user={username} />
+                      </div>
+                    </div>
+                    <HeaderMessager />
+                  </header>
                 </div>
                 <div
-                  className={`scroller ${show1 === "true" ? "show" : ""}`}
+                  ref={(el) => (chatContainerRefs.current[index] = el)}
+                  className="chat-content scroller"
                   style={{
-                    position: "absolute",
-                    top: 0,
-                    right: 0, // Popup hiển thị bên phải
-                    width: "300px",
-                    height: "100%",
-                    background: "white",
-                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-                    zIndex: 1000,
-                    display: show1 === "true" ? "block" : "none", // Ẩn/Hiển thị dựa trên trạng thái
-                    transform:
-                      show1 === "true" ? "translateX(0)" : "translateX(100%)", // Hiển thị/Ẩn với hiệu ứng trượt
-                    transition: "transform 0.3s ease-in-out", // Thêm hiệu ứng chuyển động
-                  }}
-                >
-                  <div className="user-profile">
-                    <Button
-                      type="submit"
-                      onClick={() => setShow1("false")} // Ẩn popup
-                      variant="close-popup p-3"
-                    >
-                      <i className="material-symbols-outlined md-18">close</i>
-                    </Button>
-                    <ProfileMessager />
-                  </div>
-                </div>
-                <HeaderMessager />
-              </header>
-            </div>
-            <div ref={chatContainerRef} className="chat-content scroller">
-              {/* Nội dung chat */}
-              <ContentMessager />
-              {showScrollToBottom && (
-                <Button
-                  onClick={scrollToBottom}
-                  style={{
-                    position: "fixed",
-                    bottom: "145px",
-                    right: "600px",
-                    background: "#1890ff",
-                    color: "#fff",
-                    borderRadius: "50%",
-                    width: "50px",
-                    height: "50px",
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-                    cursor: "pointer",
-                    zIndex: 100,
+                    flexDirection: "column-reverse",
+                    overflowY: "auto",
                   }}
                 >
-                  ↓
-                </Button>
-              )}
-            </div>
-            <SendMessager />
-          </Tab.Pane>
+                  {/* Nội dung chat */}
+                  <ContentMessager item={item?.documentId} profile={profile} username={username} />
+                  {showScrollToBottom && (
+                    <Button
+                      onClick={() => scrollToBottom(index)}
+                      style={{
+                        position: "fixed",
+                        bottom: "145px",
+                        right: "600px",
+                        background: "#1890ff",
+                        color: "#fff",
+                        borderRadius: "50%",
+                        width: "50px",
+                        height: "50px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                        cursor: "pointer",
+                        zIndex: 100,
+                      }}
+                    >
+                      ↓
+                    </Button>
+                  )}
+                </div>
+                <SendMessager />
+              </Tab.Pane>
+            );
+          })}
         </Tab.Content>
       </Col>
     </>

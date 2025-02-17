@@ -1,477 +1,96 @@
-import React from "react";
+/* eslint-disable react-hooks/rules-of-hooks */
+import React, { useEffect} from "react";
 import { Link } from "react-router-dom";
+import { Image } from "antd";
 
-import user1 from "../../../../assets/images/user/1.jpg";
-import user5 from "../../../../assets/images/user/05.jpg";
-const ContentMessager = () => {
+import { useDispatch, useSelector } from "react-redux";
+import { fetchMessage } from "../../../../actions/actions";
+import {
+  convertToVietnamDate,
+  convertToVietnamHour,
+} from "../../others/format";
+const ContentMessager = ({ item, profile, username }) => {
+  const dispatch = useDispatch();
+  const { messages } = useSelector((state) => state.root.message || {});
+
+  useEffect(() => {
+    dispatch(fetchMessage(item)); // Truyền đúng giá trị groupId
+  }, [item, dispatch]);
+
+  const allMessages = messages[item] || [];
+
+
   return (
     <>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35"
-            />
-          </Link>
-          <span className="chat-time mt-1">6:45</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>How can we help? We're here for you! 😄</p>
+      {allMessages?.data?.map((message, index) => {
+        const isSentByUser =
+          message?.sender_id?.documentId === profile?.documentId;
+        const messageDate = message?.createdAt; // Lấy ngày của tin nhắn
+        const formattedDate = convertToVietnamDate(messageDate); // Chuyển đổi ngày thành định dạng Việt Nam
+        const formattedTime = convertToVietnamHour(messageDate); // Chuyển đổi giờ thành định dạng Việt Nam
+
+        // Kiểm tra nếu ngày của tin nhắn khác với ngày trước đó
+        return (
+          <div key={index}>
+            <div
+              className={
+                isSentByUser ? "chat d-flex other-user" : "chat chat-left"
+              }
+            >
+              <div className="chat-user">
+                <Link className="avatar m-0" to="">
+                  <img
+                    loading="lazy"
+                    src={
+                      isSentByUser
+                        ? profile?.profile_picture
+                        : username?.profile_picture
+                    }
+                    alt="avatar"
+                    className="avatar-35"
+                  />
+                </Link>
+                <span className="chat-time mt-1">{formattedTime}</span>
+                <span className="chat-time mb-4">{formattedDate}</span>
+              </div>
+              <div
+                className="chat-detail"
+                style={{
+                  justifyContent: isSentByUser ? "flex-end" : "flex-start",
+                }}
+              >
+                {message?.content ? (
+                  <div className="chat-message">
+                    <p>{message.content}</p>
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      padding: isSentByUser ? "0 20px 20px 0" : "0 0 20px 20px",
+                      justifyContent: isSentByUser ? "flex-end" : "flex-start",
+                      width: "50%",
+                    }}
+                  >
+                    <Image.PreviewGroup>
+                      <Image
+                        src={message?.media_id?.file_path}
+                        alt="post1"
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          objectFit: "cover",
+                          borderRadius: "8px",
+                          cursor: "pointer",
+                        }}
+                      />
+                    </Image.PreviewGroup>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:48</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Hey John, I am looking for the best admin template.</p>
-            <p>Could you please help me to find it out? 🤔</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:49</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Absolutely!</p>
-            <p>
-              SocialV Dashboard is the responsive bootstrap 5 admin template.
-            </p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:52</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Looks clean and fresh UI.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:53</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Thanks, from ThemeForest.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:54</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>I will purchase it for sure. 👍</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:56</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Okay Thanks..</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:48</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Hey John, I am looking for the best admin template.</p>
-            <p>Could you please help me to find it out? 🤔</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:49</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Absolutely!</p>
-            <p>
-              SocialV Dashboard is the responsive bootstrap 5 admin template.
-            </p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:52</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Looks clean and fresh UI.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:53</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Thanks, from ThemeForest.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:54</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>I will purchase it for sure. 👍</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:56</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Okay Thanks..</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:48</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Hey John, I am looking for the best admin template.</p>
-            <p>Could you please help me to find it out? 🤔</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:49</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Absolutely!</p>
-            <p>
-              SocialV Dashboard is the responsive bootstrap 5 admin template.
-            </p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:52</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Looks clean and fresh UI.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:53</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Thanks, from ThemeForest.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:54</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>I will purchase it for sure. 👍</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:56</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Okay Thanks..</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:48</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Hey John, I am looking for the best admin template.</p>
-            <p>Could you please help me to find it out? 🤔</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:49</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Absolutely!</p>
-            <p>
-              SocialV Dashboard is the responsive bootstrap 5 admin template.
-            </p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:52</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Looks clean and fresh UI.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:53</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Thanks, from ThemeForest.</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat chat-left">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user5}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:54</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>I will purchase it for sure. 👍</p>
-          </div>
-        </div>
-      </div>
-      <div className="chat d-flex other-user">
-        <div className="chat-user">
-          <Link className="avatar m-0" to="">
-            <img
-              loading="lazy"
-              src={user1}
-              alt="avatar"
-              className="avatar-35 "
-            />
-          </Link>
-          <span className="chat-time mt-1">6:56</span>
-        </div>
-        <div className="chat-detail">
-          <div className="chat-message">
-            <p>Okay Thanks..</p>
-          </div>
-        </div>
-      </div>
+        );
+      })}
     </>
   );
 };
