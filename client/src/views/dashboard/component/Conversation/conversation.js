@@ -18,65 +18,15 @@ import { fetchConversation } from "../../../../actions/actions";
 const Conversation = ({ profile }) => {
   const dispatch = useDispatch();
   const [show, setShow] = useState("");
-  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const [searchQuery, setSearchQuery] = useState(""); // Trạng thái tìm kiếm
   const { conversations } = useSelector(
     (state) => state.root.conversation || {}
   );
   const [show1, setShow1] = useState("");
-  const chatContainerRefs = useRef([]);
 
   useEffect(() => {
     dispatch(fetchConversation(profile?.documentId)); // Truyền đúng giá trị groupId
   }, [profile, dispatch]);
-
-  useEffect(() => {
-    const container = chatContainerRefs.current[show]; // Lấy phần tử hiện tại dựa trên `show`
-    if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-    }
-  }, []);
-
-  const handleScroll = (index) => {
-    const container = chatContainerRefs.current[index]; // Truy cập ref động theo chỉ mục
-    if (container) {
-      const { scrollTop, clientHeight, scrollHeight } = container;
-
-      const distanceFromBottom = scrollHeight - (scrollTop + clientHeight);
-      console.log("distanceFromBottom: ", distanceFromBottom);
-
-      if (distanceFromBottom > 1300) {
-        console.log("Show scroll to bottom", distanceFromBottom>1300);
-        setShowScrollToBottom(true);
-      } else {
-        setShowScrollToBottom(false);
-      }
-    }
-  };
-
-  // Gắn sự kiện cuộn vào các phần tử map
-  useEffect(() => {
-    chatContainerRefs.current.forEach((container, index) => {
-      if (container) {
-        container.addEventListener("scroll", () => handleScroll(index));
-      }
-    });
-
-    return () => {
-      chatContainerRefs.current.forEach((container, index) => {
-        if (container) {
-          container.removeEventListener("scroll", () => handleScroll(index));
-        }
-      });
-    };
-  }, []);
-
-  const scrollToBottom = (index) => {
-    const container = chatContainerRefs.current[index]; // Truy cập vào phần tử cụ thể
-    if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-    }
-  };
 
   const ChatSidebar = () => {
     document.getElementsByClassName("scroller")[0].classList.add("show");
@@ -362,41 +312,14 @@ const Conversation = ({ profile }) => {
                     <HeaderMessager />
                   </header>
                 </div>
-                <div
-                  ref={(el) => (chatContainerRefs.current[index] = el)}
-                  className="chat-content scroller"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column-reverse",
-                    overflowY: "auto",
-                  }}
-                >
+
                   {/* Nội dung chat */}
-                  <ContentMessager item={item?.documentId} profile={profile} username={username} />
-                  {showScrollToBottom && (
-                    <Button
-                      onClick={() => scrollToBottom(index)}
-                      style={{
-                        position: "fixed",
-                        bottom: "145px",
-                        right: "600px",
-                        background: "#1890ff",
-                        color: "#fff",
-                        borderRadius: "50%",
-                        width: "50px",
-                        height: "50px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
-                        cursor: "pointer",
-                        zIndex: 100,
-                      }}
-                    >
-                      ↓
-                    </Button>
-                  )}
-                </div>
+                  <ContentMessager
+                    item={item?.documentId}
+                    profile={profile}
+                    username={username}
+                  />
+
                 <SendMessager />
               </Tab.Pane>
             );
