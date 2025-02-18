@@ -34,6 +34,7 @@ export const login = (payload) => async (dispatch) => {
 
       // Lưu token vào localStorage
       localStorage.setItem("token", token);
+      
       dispatch({
         type: actionTypes.LOGIN_SUCCESS,
         data: response?.data?.jwt,
@@ -61,6 +62,7 @@ export const logout = () => (dispatch) => {
   // Xóa token và refreshToken khỏi localStorage
   localStorage.removeItem("token");
   localStorage.removeItem("refreshToken");
+  localStorage.removeItem("toastShown");
 
   // Gửi action để cập nhật state (đăng xuất)
   dispatch({

@@ -14,6 +14,8 @@ import SwiperCore, { Navigation, Autoplay } from "swiper";
 import "swiper/swiper-bundle.min.css";
 // import 'swiper/components/navigation/navigation.scss';
 
+
+
 //img
 import logo from "../../../assets/images/logo-full.png";
 import login1 from "../../../assets/images/login/1.png";
@@ -28,7 +30,7 @@ const SignIn = () => {
   //let history = useNavigate();
   const { isLoggedIn, msg, update, loading } = useSelector(
     (state) => state.root.auth || {}
-  )
+  );
   //const [loading, setLoading] = useState(false);
   //console.log('loading: ', loading)
 
@@ -53,11 +55,10 @@ const SignIn = () => {
     });
   };
 
-
   useEffect(() => {
     if (isLoggedIn) {
       const token = localStorage.getItem("token");
-  
+
       if (token) {
         console.log("Token found in localStorage:", token); // Debug token
         navigate("/"); // Chuyển hướng về trang chính
@@ -96,7 +97,7 @@ const SignIn = () => {
         password: formData.password,
       };
       //setLoading(true); // Hiển thị loader
-      dispatch(actions.login(payload))
+      dispatch(actions.login(payload));
     }
   };
 

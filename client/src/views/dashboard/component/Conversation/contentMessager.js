@@ -6,6 +6,7 @@ import {
   convertToVietnamDate,
   convertToVietnamHour,
 } from "../../others/format";
+import loader from "../../../../assets/images/page-img/page-load-loader.gif";
 
 const ContentMessager = ({ item, profile, username }) => {
   const [messages, setMessages] = useState([]); // Lưu trữ tin nhắn trong state
@@ -107,6 +108,7 @@ const ContentMessager = ({ item, profile, username }) => {
       }, 300); // Cuộn xuống sau khi tải tin nhắn mới
     }
   }, [shouldScrollToBottom]);
+  //console.log("messages", messages);
 
   return (
     <>
@@ -117,6 +119,12 @@ const ContentMessager = ({ item, profile, username }) => {
       >
         {/* Hiển thị khi không còn dữ liệu để tải thêm */}
         {!hasNextPage && <p>No more messages</p>}
+        {/* Hiển thị loading nếu dữ liệu đang được tải */}
+        {loading && (
+          <div className="col-sm-12 text-center">
+            <img src={loader} alt="loader" style={{ height: "100px" }} />
+          </div>
+        )}
         {messages?.map((message, index) => {
           const isSentByUser =
             message?.sender_id?.documentId === profile?.documentId;
@@ -138,7 +146,7 @@ const ContentMessager = ({ item, profile, username }) => {
                       src={
                         isSentByUser
                           ? profile?.profile_picture
-                          : username?.profile_picture
+                          : message?.sender_id?.profile_picture
                       }
                       alt="avatar"
                       className="avatar-35"
@@ -154,9 +162,15 @@ const ContentMessager = ({ item, profile, username }) => {
                 >
                   {message?.content ? (
                     <div className="chat-message">
-                      <span className="chat-time">{formattedDate}</span>
+                      <span
+                        className="chat-time"
+                        style={{
+                          justifyItems: isSentByUser ? "" : "center",
+                        }}
+                      >
+                        {formattedDate}
+                      </span>
                       <p>{message.content}</p>
-                      
                     </div>
                   ) : (
                     <div
@@ -190,8 +204,6 @@ const ContentMessager = ({ item, profile, username }) => {
             </div>
           );
         })}
-        {/* Hiển thị loading nếu dữ liệu đang được tải */}
-        {loading && <p>Loading...</p>}
         {/* Nút cuộn xuống dưới cùng */}
         {showScrollButton && (
           <button

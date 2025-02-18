@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import { Col, Form, Tab, Nav, Button } from "react-bootstrap";
-import { MessageOutlined, SearchOutlined } from "@ant-design/icons";
+import { MessageOutlined, SearchOutlined, DownOutlined, RightOutlined } from "@ant-design/icons";
 import { Input } from "antd"; // Import Search từ Ant Design
 
 import ProfileMessager from "./profileMessager";
@@ -10,19 +10,24 @@ import SendMessager from "./sendMessager";
 import ContentMessager from "./contentMessager";
 
 import { useDispatch, useSelector } from "react-redux";
-import { fetchConversation, fetchParticipantByUser } from "../../../../actions/actions";
+import {
+  fetchConversation,
+  fetchParticipantByUser,
+} from "../../../../actions/actions";
 
 const Conversation = ({ profile }) => {
   const dispatch = useDispatch();
+  const [showConversations, setShowConversations] = useState(true); // Trạng thái để mở/đóng Conversation
+  const [showGroups, setShowGroups] = useState(true); // Trạng thái để mở/đóng Group Conversation
   const [show, setShow] = useState("");
+  const [show1, setShow1] = useState("");
   const [searchQuery, setSearchQuery] = useState(""); // Trạng thái tìm kiếm
+
   const { conversations } = useSelector(
     (state) => state.root.conversation || {}
   );
-  const { participants } = useSelector( (state) => state.root.participant || {}); // Lấy danh sách thành viên từ store
-  const [show1, setShow1] = useState("");
+  const { participants } = useSelector((state) => state.root.participant || {}); // Lấy danh sách thành viên từ store
 
-  
   useEffect(() => {
     dispatch(fetchConversation(profile?.documentId)); // Truyền đúng giá trị groupId
     dispatch(fetchParticipantByUser(profile?.documentId)); // Truyền đúng giá trị userId
@@ -50,10 +55,12 @@ const Conversation = ({ profile }) => {
     // So sánh tên người nhắn với query tìm kiếm (tìm kiếm không phân biệt chữ hoa chữ thường)
     return username?.toLowerCase().includes(searchQuery.toLowerCase());
   });
-  console.log("filteredConversations: ", allParticipant);
+  //console.log("filteredConversations: ", allParticipant);
 
   const filteredParticipants = allParticipant?.data?.filter((participant) => {
-    return participant?.conversation_id?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+    return participant?.conversation_id?.name
+      ?.toLowerCase()
+      .includes(searchQuery.toLowerCase());
   });
 
   return (
@@ -92,78 +99,105 @@ const Conversation = ({ profile }) => {
           </div>
         </div>
         <div className="chat-sidebar-channel scroller mt-4 ps-3" height="100%">
-          <h5>Conversation</h5>
-          <Nav as="ul" variant="pills" className="iq-chat-ui nav flex-column">
-            {filteredConversations?.map((item, index) => {
-              const isCreatedByProfile =
-                item?.conversation_created_by?.documentId ===
-                profile?.documentId;
+          {/* Conversation */}
+          <h5
+            onClick={() => setShowConversations(!showConversations)} // Toggle hiển thị phần Conversation
+            style={{ cursor: "pointer" }}
+          >
+            {showConversations
+              ? <>Conversation <DownOutlined /></>
+              : <>Conversation <RightOutlined /></>}
+          </h5>
+          {showConversations && (
+            <Nav as="ul" variant="pills" className="iq-chat-ui nav flex-column">
+              {filteredConversations?.map((item, index) => {
+                const isCreatedByProfile =
+                  item?.conversation_created_by?.documentId ===
+                  profile?.documentId;
 
-              const username = isCreatedByProfile
-                ? item?.user_chated_with
-                : item?.conversation_created_by;
+                const username = isCreatedByProfile
+                  ? item?.user_chated_with
+                  : item?.conversation_created_by;
 
-              return (
-                <Nav.Item as="li" key={index}>
+                return (
+                  <Nav.Item as="li" key={index}>
+                    <Nav.Link
+                      eventKey={`conversation-${item?.documentId}`}
+                      onClick={() =>
+                        setShow(`conversation-${item?.documentId}`)
+                      }
+                      href={`#${item?.documentId}`}
+                    >
+                      <div className="d-flex align-items-center">
+                        <div className="avatar me-2">
+                          <img
+                            loading="lazy"
+                            src={username?.profile_picture}
+                            alt="chatuserimage"
+                            className="avatar-50"
+                          />
+                          <span className="avatar-status">
+                            <i className="material-symbols-outlined text-success md-14 filled">
+                              circle
+                            </i>
+                          </span>
+                        </div>
+                        <div className="chat-sidebar-name">
+                          <h6 className="mb-0">{username?.username}</h6>
+                          <span>Lorem Ipsum is</span>
+                        </div>
+                      </div>
+                    </Nav.Link>
+                  </Nav.Item>
+                );
+              })}
+            </Nav>
+          )}
+
+          {/* Group Conversation */}
+          <h5
+            onClick={() => setShowGroups(!showGroups)} // Toggle hiển thị phần Group Conversation
+            style={{ cursor: "pointer" }}
+          >
+            {showGroups
+              ? <>Groups Conversation <DownOutlined /></>
+              : <>Groups Conversation <RightOutlined /></>}
+          </h5>
+          {showGroups && (
+            <Nav variant="pills" className="iq-chat-ui nav flex-column">
+              {filteredParticipants?.map((item, index) => (
+                <li key={index}>
                   <Nav.Link
-                    eventKey={`conversation-${item?.documentId}`}
-                    onClick={() => setShow(`conversation-${item?.documentId}`)}
-                    href={`#${item?.documentId}`}
+                    eventKey={`conversation-${item?.conversation_id?.documentId}`}
+                    onClick={() =>
+                      setShow(
+                        `conversation-${item?.conversation_id?.documentId}`
+                      )
+                    }
+                    href={`#${item?.conversation_id?.documentId}`}
                   >
                     <div className="d-flex align-items-center">
                       <div className="avatar me-2">
                         <img
                           loading="lazy"
-                          src={username?.profile_picture}
+                          src={item?.conversation_id?.image_group_chat}
                           alt="chatuserimage"
-                          className="avatar-50"
+                          className="avatar-50 "
                         />
                         <span className="avatar-status">
-                          <i className="material-symbols-outlined text-success md-14 filled">
-                            circle
-                          </i>
+                          <i className="ri-checkbox-blank-circle-fill text-warning"></i>
                         </span>
                       </div>
                       <div className="chat-sidebar-name">
-                        <h6 className="mb-0">{username?.username}</h6>
-                        <span>Lorem Ipsum is</span>
+                        <h6 className="mb-0">{item?.conversation_id?.name}</h6>
+                        <span>There are many </span>
                       </div>
                     </div>
                   </Nav.Link>
-                </Nav.Item>
-              );
-            })}
-          </Nav>
-          <h5 className="mt-3">Group Conversation</h5>
-          <Nav variant="pills" className="iq-chat-ui nav flex-column ">
-          {filteredParticipants?.map((item, index) =>(
-            <li key={index}>
-              <Nav.Link
-                eventKey={`conversation-${item?.conversation_id?.documentId}`}
-                onClick={() => setShow(`conversation-${item?.conversation_id?.documentId}`)}
-                href={`#${item?.conversation_id?.documentId}`}
-              >
-                <div className="d-flex align-items-center">
-                  <div className="avatar me-2">
-                    <img
-                      loading="lazy"
-                      src={item?.conversation_id?.image_group_chat}
-                      alt="chatuserimage"
-                      className="avatar-50 "
-                    />
-                    <span className="avatar-status">
-                      <i className="ri-checkbox-blank-circle-fill text-warning"></i>
-                    </span>
-                  </div>
-                  <div className="chat-sidebar-name">
-                    <h6 className="mb-0">{item?.conversation_id?.name}</h6>
-                    <span>There are many </span>
-                  </div>
-                </div>
-              </Nav.Link>
-            </li>
-          ))}
-          </Nav>
+                </li>
+              ))}
+            </Nav>
+          )}
         </div>
       </Col>
       <Col lg={9} className=" chat-data p-0 chat-data-right">
@@ -270,12 +304,12 @@ const Conversation = ({ profile }) => {
                   </header>
                 </div>
 
-                  {/* Nội dung chat */}
-                  <ContentMessager
-                    item={item?.documentId}
-                    profile={profile}
-                    username={username}
-                  />
+                {/* Nội dung chat */}
+                <ContentMessager
+                  item={item?.documentId}
+                  profile={profile}
+                  username={username}
+                />
 
                 <SendMessager />
               </Tab.Pane>
@@ -353,12 +387,12 @@ const Conversation = ({ profile }) => {
                   </header>
                 </div>
 
-                  {/* Nội dung chat */}
-                  <ContentMessager
-                    item={item?.documentId}
-                    profile={profile}
-                    //username={item?.conversation_id?.name}
-                  />
+                {/* Nội dung chat */}
+                <ContentMessager
+                  item={item?.conversation_id?.documentId}
+                  profile={profile}
+                  //username={item?.conversation_id?.name}
+                />
 
                 <SendMessager />
               </Tab.Pane>
