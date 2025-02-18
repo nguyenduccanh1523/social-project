@@ -9,9 +9,6 @@ import HeaderMessager from "./headerMessager";
 import SendMessager from "./sendMessager";
 import ContentMessager from "./contentMessager";
 
-import user7 from "../../../../assets/images/user/07.jpg";
-import user8 from "../../../../assets/images/user/08.jpg";
-import user9 from "../../../../assets/images/user/09.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchConversation, fetchParticipantByUser } from "../../../../actions/actions";
 
