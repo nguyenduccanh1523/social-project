@@ -7,7 +7,7 @@ const ProfileMessager = ({ user }) => {
         <Link className="avatar m-0" to="">
           <img
             loading="lazy"
-            src={user?.profile_picture}
+            src={user?.profile_picture || user?.image_group_chat}
             alt="avatar"
             className="avatar-130 "
           />
