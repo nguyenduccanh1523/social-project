@@ -1,24 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col, Image, Container } from "react-bootstrap";
-import { Input, Select, Space } from "antd";
+import { Input, Select, Space, Pagination } from "antd";
 import Card from "../../../components/Card";
 import { Link } from "react-router-dom";
+import { StarOutlined, StarFilled } from "@ant-design/icons";
+import BlogDetail from "../component/Blog/BlogDetail";
 
 // img
 import blog6 from "../../../assets/images/blog/01.jpg";
-import blog2 from "../../../assets/images/blog/02.jpg";
-import blog3 from "../../../assets/images/blog/03.jpg";
-import blog4 from "../../../assets/images/blog/04.jpg";
-import blog5 from "../../../assets/images/blog/05.jpg";
-import blog7 from "../../../assets/images/blog/06.jpg";
-import blog8 from "../../../assets/images/blog/07.jpg";
-import blog9 from "../../../assets/images/blog/08.jpg";
-
-import icon1 from "../../../assets/images/icon/01.png";
-import icon2 from "../../../assets/images/icon/02.png";
-import icon3 from "../../../assets/images/icon/03.png";
-import icon4 from "../../../assets/images/icon/07.png";
 import img7 from "../../../assets/images/page-img/profile-bg5.jpg";
+import { apiGetBlogList } from "../../../services/blog";
+import { convertToVietnamDate } from "../others/format";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -26,6 +18,79 @@ const { Option } = Select;
 const BlogList = () => {
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [isLoading, setIsLoading] = useState(false);
+  const [pageParam, setPageParam] = useState(1);
+  const [savedBlogs, setSavedBlogs] = useState([]);
+  const [allBlogs, setAllBlogs] = useState([]);
+  const [selectedBlog, setSelectedBlog] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  useEffect(() => {
+    const fetchAllBlogs = async () => {
+      setIsLoading(true);
+      try {
+        let allData = [];
+        let currentPage = 1;
+        let hasMore = true;
+
+        while (hasMore) {
+          const res = await apiGetBlogList({
+            pageParam: currentPage,
+            searchText,
+            filterType,
+          });
+          allData = [...allData, ...res.data];
+          if (currentPage >= res.hasNextPage) {
+            hasMore = false;
+          }
+          currentPage++;
+        }
+
+        setAllBlogs(allData);
+        setIsLoading(false);
+      } catch (err) {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAllBlogs();
+  }, [filterType, searchText]);
+
+  const handleSaveBlog = (blogId) => {
+    if (savedBlogs.includes(blogId)) {
+      setSavedBlogs(savedBlogs.filter((id) => id !== blogId));
+    } else {
+      setSavedBlogs([...savedBlogs, blogId]);
+    }
+  };
+
+  const filteredBlogs = allBlogs?.filter((blog) => {
+    if (!searchText) return true;
+    return (
+      blog?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
+      blog?.description?.toLowerCase().includes(searchText.toLowerCase())
+    );
+  });
+
+  const currentPageData = filteredBlogs.slice(
+    (pageParam - 1) * 10,
+    pageParam * 10
+  );
+
+  const handleSearch = (value) => {
+    setSearchText(value);
+    setPageParam(1);
+  };
+
+  const handleBlogClick = (blog) => {
+    setSelectedBlog(blog);
+    setIsModalVisible(true);
+  };
+
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+    setSelectedBlog(null);
+  };
 
   return (
     <>
@@ -54,10 +119,7 @@ const BlogList = () => {
                       style={{ width: 400 }}
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
-                      onSearch={(value) => {
-                        console.log("Search value:", value);
-                        // Thêm logic tìm kiếm ở đây
-                      }}
+                      onSearch={handleSearch}
                     />
                     <Select
                       defaultValue="all"
@@ -65,16 +127,13 @@ const BlogList = () => {
                       size="large"
                       onChange={(value) => {
                         setFilterType(value);
-                        console.log("Filter type:", value);
-                        // Thêm logic filter ở đây
+                        setPageParam(1);
                       }}
                     >
-                      <Option value="all">Tất cả bài viết</Option>
-                      <Option value="newest">Mới nhất</Option>
-                      <Option value="oldest">Cũ nhất</Option>
-                      <Option value="most_commented">
-                        Nhiều bình luận nhất
-                      </Option>
+                      <Option value="all">All BlogList</Option>
+                      <Option value="newest">Lastest</Option>
+                      <Option value="oldest">Oldest</Option>
+                      <Option value="most_commented">Most Commented</Option>
                     </Select>
                   </Space>
                 </Card.Body>
@@ -82,674 +141,208 @@ const BlogList = () => {
             </Col>
           </Row>
           <Row>
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog6}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                          <div className="date">
-                            <Link to="#" tabIndex="-1">
-                              4 Month ago
-                            </Link>
-                          </div>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More{" "}
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
+            {currentPageData.map((blog, index) => (
+              <Col lg="12" key={blog.id}>
+                <Card
+                  className={`card-block card-stretch card-height blog-list ${
+                    index % 2 !== 0 ? "list-even" : ""
+                  }`}
+                >
+                  <Card.Body>
+                    <Row className="align-items-center">
+                      {index % 2 === 0 ? (
+                        <>
+                          <Col md="6">
+                            <div className="image-block">
                               <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
+                                src={blog?.media?.file_path || blog6}
+                                className="img-fluid rounded w-100"
+                                alt="blog-img"
                               />
-                            </Link>
-                            <Link to="#" className="iq-media">
+                            </div>
+                          </Col>
+                          <Col md="6">
+                            <div className="blog-description rounded p-2">
+                              <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
+                                <div className="date">
+                                  <Link to="#" tabIndex="-1">
+                                    {convertToVietnamDate(blog?.createdAt)}
+                                  </Link>
+                                </div>
+                                <div
+                                  className="bookmark-icon"
+                                  onClick={() => handleSaveBlog(blog.id)}
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "20px",
+                                    color: "#1890ff",
+                                  }}
+                                >
+                                  {savedBlogs.includes(blog.id) ? (
+                                    <StarFilled />
+                                  ) : (
+                                    <StarOutlined />
+                                  )}
+                                </div>
+                              </div>
+                              <h5
+                                className="mb-2"
+                                onClick={() => handleBlogClick(blog)}
+                                style={{ cursor: "pointer" }}
+                              >
+                                {blog?.title}
+                              </h5>
+                              <p>{blog?.description}</p>
+                              <Link
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleBlogClick(blog);
+                                }}
+                                to="#"
+                                tabIndex="-1"
+                                className="d-flex align-items-center"
+                              >
+                                Read More{" "}
+                                <i className="material-symbols-outlined md-14 filled">
+                                  arrow_forward_ios
+                                </i>
+                              </Link>
+                              <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
+                                <div className="iq-media-group d-flex align-items-center">
+                                  <Link to="#" className="iq-media">
+                                    <Image
+                                      className="img-fluid rounded-circle avatar-50"
+                                      src={
+                                        blog?.author?.profile_picture || blog6
+                                      }
+                                      alt="avatar"
+                                    />
+                                  </Link>
+                                  <span className="ms-2">
+                                    {blog?.author?.username || "Anonymous"}
+                                  </span>
+                                </div>
+                                <div className="comment d-flex align-items-center">
+                                  <i className="material-symbols-outlined me-2 md-18">
+                                    chat_bubble_outline
+                                  </i>
+                                  {blog?.commentCount || 0} comments
+                                </div>
+                              </div>
+                            </div>
+                          </Col>
+                        </>
+                      ) : (
+                        <>
+                          <Col md="6">
+                            <div className="blog-description rounded p-2">
+                              <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
+                                <div
+                                  className="bookmark-icon"
+                                  onClick={() => handleSaveBlog(blog.id)}
+                                  style={{
+                                    cursor: "pointer",
+                                    fontSize: "20px",
+                                    color: "#1890ff",
+                                  }}
+                                >
+                                  {savedBlogs.includes(blog.id) ? (
+                                    <StarFilled />
+                                  ) : (
+                                    <StarOutlined />
+                                  )}
+                                </div>
+                                <div className="date">
+                                  <Link to="#" tabIndex="-1">
+                                    {convertToVietnamDate(blog?.createdAt)}
+                                  </Link>
+                                </div>
+                              </div>
+                              <h5
+                                className="mb-2"
+                                onClick={() => handleBlogClick(blog)}
+                                style={{ cursor: "pointer" }}
+                              >
+                                {blog?.title}
+                              </h5>
+                              <p>{blog?.description}</p>
+                              <Link
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleBlogClick(blog);
+                                }}
+                                to="#"
+                                tabIndex="-1"
+                              >
+                                Read More{" "}
+                                <i className="material-symbols-outlined md-14 filled">
+                                  arrow_forward_ios
+                                </i>
+                              </Link>
+                              <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
+                                <div className="iq-media-group d-flex align-items-center">
+                                  <Link to="#" className="iq-media">
+                                    <Image
+                                      className="img-fluid rounded-circle avatar-50"
+                                      src={
+                                        blog?.author?.profile_picture || blog6
+                                      }
+                                      alt="avatar"
+                                    />
+                                  </Link>
+                                  <span className="ms-2">
+                                    {blog?.author?.username || "Anonymous"}
+                                  </span>
+                                </div>
+                                <div className="comment d-flex align-items-center">
+                                  <i className="material-symbols-outlined me-2 md-18">
+                                    chat_bubble_outline
+                                  </i>
+                                  {blog?.commentCount || 0} comments
+                                </div>
+                              </div>
+                            </div>
+                          </Col>
+                          <Col md="6">
+                            <div className="image-block">
                               <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
+                                src={blog?.media?.file_path || blog6}
+                                className="img-fluid rounded w-100"
+                                alt="blog-img"
                               />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list list-even">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="date mb-2">
-                          <Link to="#" tabIndex="-1">
-                            4 Month ago
-                          </Link>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog2}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog3}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                          <div className="date">
-                            <Link to="#" tabIndex="-1">
-                              4 Month ago
-                            </Link>
-                          </div>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More{" "}
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list list-even">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="date mb-2">
-                          <Link to="#" tabIndex="-1">
-                            4 Month ago
-                          </Link>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More{" "}
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog4}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
+                            </div>
+                          </Col>
+                        </>
+                      )}
+                    </Row>
+                  </Card.Body>
+                </Card>
+              </Col>
+            ))}
+          </Row>
 
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog5}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                          <div className="date">
-                            <Link to="#" tabIndex="-1">
-                              4 Month ago
-                            </Link>
-                          </div>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More{" "}
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list list-even">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="date mb-2">
-                          <Link to="#" tabIndex="-1">
-                            4 Month ago
-                          </Link>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More{" "}
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog7}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog8}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                          <div className="date">
-                            <Link to="#" tabIndex="-1">
-                              4 Month ago
-                            </Link>
-                          </div>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More{" "}
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
-            </Col>
-            <Col lg="12">
-              <Card className="card-block card-stretch card-height blog-list list-even">
-                <Card.Body>
-                  <Row className="align-items-center">
-                    <Col md="6">
-                      <div className="blog-description rounded p-2">
-                        <div className="date mb-2">
-                          <Link to="#" tabIndex="-1">
-                            4 Month ago
-                          </Link>
-                        </div>
-                        <h5 className="mb-2">
-                          Containing coronavirus spread comes
-                        </h5>
-                        <p>
-                          In the blogpost, the IMF experts observed, "Success in
-                          containing the virus comes at the price of slowing
-                          economic activity."
-                        </p>{" "}
-                        <Link
-                          to="#"
-                          tabIndex="-1"
-                          className="d-flex align-items-center"
-                        >
-                          Read More{" "}
-                          <i className="material-symbols-outlined md-14 filled">
-                            arrow_forward_ios
-                          </i>
-                        </Link>
-                        <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                          <div className="iq-media-group">
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon1}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon2}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon3}
-                                alt=""
-                              />
-                            </Link>
-                            <Link to="#" className="iq-media">
-                              <Image
-                                className="img-fluid rounded-circle"
-                                src={icon4}
-                                alt=""
-                              />
-                            </Link>
-                          </div>
-                          <div className="comment d-flex align-items-center">
-                            <i className="material-symbols-outlined me-2 md-18">
-                              chat_bubble_outline
-                            </i>
-                            7 comments
-                          </div>
-                        </div>
-                      </div>
-                    </Col>
-                    <Col md="6">
-                      <div className="image-block">
-                        <Image
-                          src={blog9}
-                          className="img-fluid rounded w-100"
-                          alt="blog-img"
-                        />
-                      </div>
-                    </Col>
-                  </Row>
-                </Card.Body>
-              </Card>
+          <Row className="mt-4 mb-4">
+            <Col lg="12" className="d-flex justify-content-end">
+              <Pagination
+                current={pageParam}
+                total={filteredBlogs.length}
+                pageSize={10}
+                onChange={(page) => setPageParam(page)}
+                showSizeChanger={false}
+                disabled={isLoading}
+                style={{ marginBottom: "20px" }}
+              />
             </Col>
           </Row>
         </Container>
       </div>
+      <BlogDetail
+        blog={selectedBlog}
+        visible={isModalVisible}
+        onClose={handleModalClose}
+        onSave={() => handleSaveBlog(selectedBlog?.id)}
+        isSaved={savedBlogs.includes(selectedBlog?.id)}
+      />
     </>
   );
 };
