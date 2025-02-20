@@ -11,6 +11,8 @@ import { useDispatch } from "react-redux";
 // import state selectors
 import { setSetting } from "./store/setting/actions";
 import { useEffect } from "react";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function App(props) {
   const dispatch = useDispatch();
@@ -22,6 +24,7 @@ function App(props) {
     <div className="App">
       {/* <IndexRouters /> */}
       {props.children}
+      <ToastContainer />
     </div>
   );
 }

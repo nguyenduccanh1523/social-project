@@ -6,6 +6,7 @@ import Loader from "../../../components/loading/loader";
 import Swal from "sweetalert2";
 import Overlay from "./style";
 
+
 //swiper
 import { Swiper, SwiperSlide } from "swiper/react";
 import SwiperCore, { Navigation, Autoplay } from "swiper";
@@ -13,8 +14,6 @@ import SwiperCore, { Navigation, Autoplay } from "swiper";
 // Import Swiper styles
 import "swiper/swiper-bundle.min.css";
 // import 'swiper/components/navigation/navigation.scss';
-
-
 
 //img
 import logo from "../../../assets/images/logo-full.png";
@@ -58,10 +57,8 @@ const SignIn = () => {
   useEffect(() => {
     if (isLoggedIn) {
       const token = localStorage.getItem("token");
-
       if (token) {
-        console.log("Token found in localStorage:", token); // Debug token
-        navigate("/"); // Chuyển hướng về trang chính
+        navigate("/"); // Chỉ navigate, không hiển thị toast ở đây
         Swal.fire("Success!", "You have successfully logged in!", "success");
       }
     }
@@ -69,8 +66,7 @@ const SignIn = () => {
 
   useEffect(() => {
     if (msg && !isLoggedIn) {
-      //setLoading(false); // Dừng loader khi có lỗi
-      Swal.fire("Error", msg, "error"); // Hiển thị thông báo lỗi
+      Swal.fire("Error", msg, "error");
     }
   }, [msg, isLoggedIn]);
 

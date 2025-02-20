@@ -12,7 +12,7 @@ import { Provider } from "react-redux";
 //reducer
 //import { store1 } from "./store";
 
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { PersistGate } from "redux-persist/integration/react";
