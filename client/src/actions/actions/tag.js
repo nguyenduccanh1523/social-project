@@ -1,6 +1,6 @@
 import actionTypes from "./actionTypes";
 
-import { apiGetPostTag } from "../../services/tag";
+import { apiGetPostTag, apiGetTag } from "../../services/tag";
 
 
 export const fetchPostTag = (postId) => async (dispatch) => {
@@ -18,4 +18,16 @@ export const fetchPostTag = (postId) => async (dispatch) => {
         payload: error.response?.data?.message || "Failed to fetch group members",
       });
     }
+};
+
+export const fetchTag= () => async (dispatch) => {
+  try {
+    const response = await apiGetTag();
+    dispatch({ type: actionTypes.TAG_SUCCESS , payload: response.data });
+  } catch (error) {
+    dispatch({
+      type: actionTypes.TAG_FAILURE,
+      payload: error.response?.data?.message || "Failed to fetch profile",
+    });
+  }
 };

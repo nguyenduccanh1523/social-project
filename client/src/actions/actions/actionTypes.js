@@ -55,6 +55,9 @@ const actionTypes = {
     PARICIPANT_SUCCESS: 'PARICIPANT_SUCCESS',
     PARICIPANT_FAILURE: 'PARICIPANT_FAILURE',
 
+    TAG_SUCCESS: 'TAG_SUCCESS',
+    TAG_FAILURE: 'TAG_FAILURE',
+
 }
 
 export default actionTypes

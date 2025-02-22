@@ -98,7 +98,7 @@ const BlogDetail = ({ blog, visible, onClose, onSave, isSaved }) => {
               src={blog?.media?.file_path}
               alt={blog?.title}
               preview={false}
-              className="blog-image"
+              className="blog-image w-100 h-100"
             />
           </div>
           <div className="blog-gradient-overlay">

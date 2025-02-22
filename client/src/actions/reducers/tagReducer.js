@@ -19,7 +19,19 @@ const tagReducer = (state = initialState, action) => {
           [action.payload.postId]: action.payload.tags, // Lưu theo groupId
         },
       };
+    case actionTypes.TAG_SUCCESS:
+      return {
+        ...state,
+        loading: false,
+        tags: action.payload,
+      };
     case actionTypes.POST_TAG_FAILURE:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+      };
+    case actionTypes.TAG_FAILURE:
       return {
         ...state,
         loading: false,

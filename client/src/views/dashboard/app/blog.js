@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Image, Container } from "react-bootstrap";
-import { Input, Select, Space, Pagination } from "antd";
+import { Input, Select, Space, Pagination, Tag } from "antd";
 import Card from "../../../components/Card";
 import { Link } from "react-router-dom";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
@@ -10,12 +10,18 @@ import BlogDetail from "../component/Blog/BlogDetail";
 import blog6 from "../../../assets/images/blog/01.jpg";
 import img7 from "../../../assets/images/page-img/profile-bg5.jpg";
 import { apiGetBlogList } from "../../../services/blog";
+import { apiGetDocumentTag } from "../../../services/tag";
 import { convertToVietnamDate } from "../others/format";
+import { colorsTag } from "../others/format";
+import { fetchTag } from "../../../actions/actions/tag";
+import { useDispatch, useSelector } from "react-redux";
 
 const { Search } = Input;
 const { Option } = Select;
 
 const BlogList = () => {
+  const dispatch = useDispatch();
+  const { tags } = useSelector((state) => state.root.tag || {});
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +30,8 @@ const BlogList = () => {
   const [allBlogs, setAllBlogs] = useState([]);
   const [selectedBlog, setSelectedBlog] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [blogTags, setBlogTags] = useState({});
+  const [selectedTags, setSelectedTags] = useState([]);
 
   useEffect(() => {
     const fetchAllBlogs = async () => {
@@ -47,14 +55,43 @@ const BlogList = () => {
         }
 
         setAllBlogs(allData);
+        
+
+        // Fetch tags cho mỗi blog
+        const tagsPromises = allData.map(async (blog) => {
+          try {
+            const tagResponse = await apiGetDocumentTag({
+              documentId: blog?.documentId
+            });
+            return { blogId: blog?.documentId, tags: tagResponse.data };
+          } catch (err) {
+            console.error(`Error fetching tags for blog ${blog?.documentId}:`, err);
+            return { blogId: blog?.documentId, tags: [] };
+          }
+        });
+
+        const tagsResults = await Promise.all(tagsPromises);
+        const tagsMap = {};
+        tagsResults.forEach(result => {
+          tagsMap[result.blogId] = result.tags;
+        });
+        setBlogTags(tagsMap);
+        
+
         setIsLoading(false);
       } catch (err) {
         setIsLoading(false);
+        console.error("Error fetching blogs:", err);
       }
     };
 
     fetchAllBlogs();
   }, [filterType, searchText]);
+
+  useEffect(() => {
+    dispatch(fetchTag());
+  }, [dispatch]);
+
 
   const handleSaveBlog = (blogId) => {
     if (savedBlogs.includes(blogId)) {
@@ -65,11 +102,18 @@ const BlogList = () => {
   };
 
   const filteredBlogs = allBlogs?.filter((blog) => {
-    if (!searchText) return true;
-    return (
+    // Filter by search text
+    const matchesSearch = !searchText || 
       blog?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
-      blog?.description?.toLowerCase().includes(searchText.toLowerCase())
-    );
+      blog?.description?.toLowerCase().includes(searchText.toLowerCase());
+
+    // Filter by selected tags
+    const matchesTags = selectedTags.length === 0 || 
+      blogTags[blog?.documentId]?.data?.some(tagItem => 
+        selectedTags.includes(tagItem?.tag_id?.documentId)
+      );
+
+    return matchesSearch && matchesTags;
   });
 
   const currentPageData = filteredBlogs.slice(
@@ -121,36 +165,58 @@ const BlogList = () => {
                       onChange={(e) => setSearchText(e.target.value)}
                       onSearch={handleSearch}
                     />
-                    <Select
-                      defaultValue="all"
-                      style={{ width: 200 }}
-                      size="large"
-                      onChange={(value) => {
-                        setFilterType(value);
-                        setPageParam(1);
-                      }}
-                    >
-                      <Option value="all">All BlogList</Option>
-                      <Option value="newest">Lastest</Option>
-                      <Option value="oldest">Oldest</Option>
-                      <Option value="most_commented">Most Commented</Option>
-                    </Select>
+                    <Space>
+                      <Select
+                        mode="multiple"
+                        placeholder="Select tags"
+                        value={selectedTags}
+                        onChange={setSelectedTags}
+                        style={{ width: '350px' }}
+                        size="large"
+                        optionLabelProp="label"
+                      >
+                        {tags?.data?.map((tag) => (
+                          <Option 
+                            key={tag.id} 
+                            value={tag.documentId}
+                            label={tag.name}
+                          >
+                            <Tag color={colorsTag[tag.id % colorsTag.length]}>
+                              {tag.name}
+                            </Tag>
+                          </Option>
+                        ))}
+                      </Select>
+                      <Select
+                        defaultValue="all"
+                        style={{ width: 200 }}
+                        size="large"
+                        onChange={(value) => {
+                          setFilterType(value);
+                          setPageParam(1);
+                        }}
+                      >
+                        <Option value="all">All BlogList</Option>
+                        <Option value="newest">Lastest</Option>
+                        <Option value="oldest">Oldest</Option>
+                        <Option value="most_commented">Most Commented</Option>
+                      </Select>
+                    </Space>
                   </Space>
                 </Card.Body>
               </Card>
             </Col>
           </Row>
           <Row>
-            {currentPageData.map((blog, index) => (
+            {currentPageData.map((blog, blogIndex) => (
               <Col lg="12" key={blog.id}>
                 <Card
-                  className={`card-block card-stretch card-height blog-list ${
-                    index % 2 !== 0 ? "list-even" : ""
-                  }`}
+                  className={`card-block card-stretch card-height blog-list ${blogIndex % 2 !== 0 ? "list-even" : ""
+                    }`}
                 >
                   <Card.Body>
                     <Row className="align-items-center">
-                      {index % 2 === 0 ? (
+                      {blogIndex % 2 === 0 ? (
                         <>
                           <Col md="6">
                             <div className="image-block">
@@ -193,6 +259,17 @@ const BlogList = () => {
                                 {blog?.title}
                               </h5>
                               <p>{blog?.description}</p>
+                              <div className="blog-tags mb-2">
+                                {blogTags[blog?.documentId]?.data?.map((tagItem) => (
+                                  <Tag
+                                    key={tagItem?.tag_id?.id}
+                                    color={colorsTag[blogIndex % colorsTag.length]}
+                                    style={{ marginBottom: '5px' }}
+                                  >
+                                    {tagItem?.tag_id?.name}
+                                  </Tag>
+                                ))}
+                              </div>
                               <Link
                                 onClick={(e) => {
                                   e.preventDefault();
@@ -266,6 +343,17 @@ const BlogList = () => {
                                 {blog?.title}
                               </h5>
                               <p>{blog?.description}</p>
+                              <div className="blog-tags mb-2">
+                                {blogTags[blog?.documentId]?.data?.map((tagItem) => (
+                                  <Tag
+                                    key={tagItem?.tag_id?.id}
+                                    color={colorsTag[blogIndex % colorsTag.length]}
+                                    style={{ marginBottom: '5px' }}
+                                  >
+                                    {tagItem?.tag_id?.name}
+                                  </Tag>
+                                ))}
+                              </div>
                               <Link
                                 onClick={(e) => {
                                   e.preventDefault();
