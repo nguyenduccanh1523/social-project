@@ -4,10 +4,10 @@ import { Container, Row, Col, Modal, Button, Dropdown } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import CustomToggle from "../../../../components/dropdowns";
 import ReactFsLightbox from "fslightbox-react";
-import { apiGetPageDetail } from "../../../../services/page";
+import { apiGetPageDetail, apiGetPageHour } from "../../../../services/page";
 import loader from "../../../../assets/images/page-img/page-load-loader.gif";
+import BioDetailModal from "./bio-detail-modal";
 
-import imgp1 from "../../../../assets/images/user/15.jpg";
 import imgp2 from "../../../../assets/images/user/05.jpg";
 import imgp3 from "../../../../assets/images/user/06.jpg";
 import imgp4 from "../../../../assets/images/user/07.jpg";
@@ -71,6 +71,10 @@ const PageDetail = () => {
     slide: 1,
   });
 
+  const [showBioModal, setShowBioModal] = useState(false);
+
+  const [pageHour, setPageHour] = useState(null);
+
   function imageOnSlide(number) {
     setImageController({
       toggler: !imageController.toggler,
@@ -99,6 +103,34 @@ const PageDetail = () => {
     fetchPageDetail();
   }, [pageId, initialPageDetail]);
 
+  // Lấy thông tin giờ mở cửa
+  useEffect(() => {
+    if (pageData?.page_open_hour?.documentId) {
+      apiGetPageHour({ pageId: pageData.page_open_hour.documentId }).then(
+        (res) => {
+          setPageHour(res.data);
+        }
+      );
+    }
+  }, [pageData?.page_open_hour?.documentId]);
+
+  // Tạo chuỗi hiển thị giờ mở cửa
+  const getOpenHourString = () => {
+    if (!pageHour) return "Updating...";
+
+    const isOpen = pageHour?.data?.status_open;
+
+    return (
+      <div>
+        <div className="d-flex align-items-center">
+          <span className={`me-2 ${isOpen ? "text-success" : "text-danger"}`}>
+            {isOpen ? "● Opened" : "● Closed"}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   if (loading)
     return (
       <div className="col-sm-12 text-center">
@@ -107,8 +139,6 @@ const PageDetail = () => {
     );
 
   if (!pageData) return <div>No page data found</div>;
-  console.log(pageData);
-
   return (
     <>
       <FsLightbox
@@ -116,7 +146,7 @@ const PageDetail = () => {
         sources={[g1, g2, g3, g4, g5, g6, g7, g8, g9]}
         slide={imageController.slide}
       />
-      <ProfileHeader title="Profile 2" img={bg3} />
+      <ProfileHeader title={pageData?.page_name} img={bg3} />
       <div className="profile-2">
         <div id="content-page" className="content-page">
           <Container>
@@ -200,7 +230,7 @@ const PageDetail = () => {
                                   schedule
                                 </span>
                                 <span className="ms-2 text-success">
-                                  Luôn mở cửa
+                                  {getOpenHourString()}
                                 </span>
                               </div>
                             </div>
@@ -647,7 +677,10 @@ const PageDetail = () => {
                     </div>
                     <div className="d-flex align-items-center">
                       <p className="m-0">
-                        <Link to="#"> Know More </Link>
+                        <Link to="#" onClick={() => setShowBioModal(true)}>
+                          {" "}
+                          Know More{" "}
+                        </Link>
                       </p>
                     </div>
                   </div>
@@ -699,9 +732,7 @@ const PageDetail = () => {
                         </Link>
                       </div>
                       <div className="d-flex align-items-center">
-                        <span className="material-symbols-outlined ">
-                          star
-                        </span>
+                        <span className="material-symbols-outlined ">star</span>
                         <Link to="#" className="link-primary ms-2 mt-1">
                           {pageData?.star || "5"}
                         </Link>
@@ -1316,6 +1347,11 @@ const PageDetail = () => {
           </Container>
         </div>
       </div>
+      <BioDetailModal
+        show={showBioModal}
+        onHide={() => setShowBioModal(false)}
+        pageData={pageData}
+      />
     </>
   );
 };

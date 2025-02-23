@@ -3,7 +3,7 @@ import { Row, Col, Container } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import { Link, useLocation } from "react-router-dom";
 import ProfileHeader from "../../../../components/profile-header";
-import { Empty } from "antd";
+import { Empty, Input } from "antd";
 
 // image
 
@@ -12,6 +12,8 @@ import img9 from "../../../../assets/images/page-img/profile-bg9.jpg";
 import user05 from "../../../../assets/images/user/05.jpg";
 import { apiGetPagesTags, apiGetPageDetail } from "../../../../services/page";
 import loader from "../../../../assets/images/page-img/page-load-loader.gif";
+
+const { Search } = Input;
 
 // Thêm CSS cho card hover
 const cardHoverStyle = {
@@ -28,6 +30,7 @@ const PageLists = () => {
   const [pages, setPages] = useState([]);
   const [pageDetails, setPageDetails] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const fetchPages = async () => {
@@ -67,26 +70,60 @@ const PageLists = () => {
     fetchPages();
   }, [tagId]);
   console.log("pageDetails", pageDetails);
+
+  // Lọc pages theo tên từ pageDetails
+  const filteredPages = pages?.data?.filter((page) => {
+    if (!searchTerm) return true;
+    const pageDetail = pageDetails[page?.page_id?.documentId];
+    const pageName = pageDetail?.page_name?.toLowerCase() || "";
+    return pageName.includes(searchTerm.toLowerCase());
+  });
+
+  const handleSearch = (value) => {
+    setSearchTerm(value);
+  };
+
   return (
     <>
       <ProfileHeader title={`PageLists in ${tagName || "Tag"}`} img={img9} />
       <div id="content-page" className="content-page">
         <Container>
           <Row>
+            <Col md="12" className="mb-3">
+              <Search
+                placeholder="Search pages by name..."
+                allowClear
+                enterButton
+                size="large"
+                onSearch={handleSearch}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  maxWidth: "500px",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  display: "block",
+                }}
+              />
+            </Col>
+
             {isLoading ? (
               <div className="col-sm-12 text-center">
                 <img src={loader} alt="loader" style={{ height: "100px" }} />
               </div>
-            ) : !pages?.data?.length ? (
+            ) : !filteredPages?.length ? (
               <Col xs={12}>
                 <Card>
                   <Card.Body className="text-center">
                     <Empty
                       image={Empty.PRESENTED_IMAGE_SIMPLE}
                       description={
-                        <span>
-                          No pages found in tag <strong>{tagName}</strong>
-                        </span>
+                        searchTerm ? (
+                          <span>No pages found for "{searchTerm}"</span>
+                        ) : (
+                          <span>
+                            No pages found in tag <strong>{tagName}</strong>
+                          </span>
+                        )
                       }
                     >
                       <Link to="/pages" className="btn btn-primary mt-3">
@@ -97,7 +134,7 @@ const PageLists = () => {
                 </Card>
               </Col>
             ) : (
-              pages?.data?.map((page) => {
+              filteredPages?.map((page) => {
                 const pageDetail = pageDetails[page?.page_id?.documentId];
                 return (
                   <Col md={6} key={page.id}>
