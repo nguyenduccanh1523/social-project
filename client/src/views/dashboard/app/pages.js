@@ -60,7 +60,7 @@ const Pages = () => {
       return;
     }
     
-    navigate(`/page-lists/${tag?.documentIdocumentId}`, { 
+    navigate(`/page-lists/${tag?.name}`, { 
       state: { 
         selectedTag: tag,
         tagName: tag?.name,
@@ -96,8 +96,8 @@ const Pages = () => {
 
           <Row>
             <div className="mb-3">
-              <h4>Popular apps</h4>
-              <p>Explore the most installed apps in the HubSpot Marketplace</p>
+              <h4>Popular tags</h4>
+              <p>Explore the most used tags in TalkC SocialV</p>
             </div>
             {getCurrentPageTags().map((tag) => {
               // Lấy theme màu dựa trên tên tag

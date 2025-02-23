@@ -1,77 +1,82 @@
-import React, { useEffect, useState } from 'react'
-import {Row, Col, Container} from 'react-bootstrap'
-import Card from '../../../../components/Card'
-import {Link, useLocation} from 'react-router-dom'
-import ProfileHeader from '../../../../components/profile-header'
-import { Empty } from 'antd';
+import React, { useEffect, useState } from "react";
+import { Row, Col, Container } from "react-bootstrap";
+import Card from "../../../../components/Card";
+import { Link, useLocation } from "react-router-dom";
+import ProfileHeader from "../../../../components/profile-header";
+import { Empty } from "antd";
 
 // image
 
-import img8 from '../../../../assets/images/page-img/profile-bg8.jpg'
-import img9 from '../../../../assets/images/page-img/profile-bg9.jpg'
-import user05 from '../../../../assets/images/user/05.jpg'
-import {apiGetPagesTags, apiGetPageDetail} from '../../../../services/page'
+import img8 from "../../../../assets/images/page-img/profile-bg8.jpg";
+import img9 from "../../../../assets/images/page-img/profile-bg9.jpg";
+import user05 from "../../../../assets/images/user/05.jpg";
+import { apiGetPagesTags, apiGetPageDetail } from "../../../../services/page";
+import loader from "../../../../assets/images/page-img/page-load-loader.gif";
 
 // Thêm CSS cho card hover
 const cardHoverStyle = {
-  transition: 'transform 0.3s ease-in-out',
-  cursor: 'pointer',
-  '&:hover': {
-    transform: 'translateY(-5px)'
-  }
+  transition: "transform 0.3s ease-in-out",
+  cursor: "pointer",
+  "&:hover": {
+    transform: "translateY(-5px)",
+  },
 };
 
 const PageLists = () => {
-  const location = useLocation()
-  const {selectedTag, tagName, tagId} = location.state || {}
-  const [pages, setPages] = useState([])
-  const [pageDetails, setPageDetails] = useState({})
-  const [isLoading, setIsLoading] = useState(false)
+  const location = useLocation();
+  const { selectedTag, tagName, tagId } = location.state || {};
+  const [pages, setPages] = useState([]);
+  const [pageDetails, setPageDetails] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchPages = async () => {
-      if (!tagId) return
-      
-      setIsLoading(true)
+      if (!tagId) return;
+
+      setIsLoading(true);
       try {
         // Lấy danh sách pages của tag
-        const response = await apiGetPagesTags({tagId})
-        setPages(response.data || [])
+        const response = await apiGetPagesTags({ tagId });
+        setPages(response.data || []);
 
         // Lấy chi tiết của từng page
-        const pageIds = response.data?.data?.map(page => page.page_id?.documentId) || []
-        const pageDetailsPromises = pageIds.map(pageId => 
-          apiGetPageDetail({pageId})
-            .then(res => ({[pageId]: res.data?.data?.[0]}))
-            .catch(err => {
-              console.error(`Error fetching page detail for ${pageId}:`, err)
-              return {[pageId]: null}
+        const pageIds =
+          response.data?.data?.map((page) => page.page_id?.documentId) || [];
+        const pageDetailsPromises = pageIds.map((pageId) =>
+          apiGetPageDetail({ pageId })
+            .then((res) => ({ [pageId]: res.data?.data?.[0] }))
+            .catch((err) => {
+              console.error(`Error fetching page detail for ${pageId}:`, err);
+              return { [pageId]: null };
             })
-        )
+        );
 
-        const pageDetailsResults = await Promise.all(pageDetailsPromises)
-        const pageDetailsMap = pageDetailsResults.reduce((acc, curr) => ({...acc, ...curr}), {})
-        setPageDetails(pageDetailsMap)
-
+        const pageDetailsResults = await Promise.all(pageDetailsPromises);
+        const pageDetailsMap = pageDetailsResults.reduce(
+          (acc, curr) => ({ ...acc, ...curr }),
+          {}
+        );
+        setPageDetails(pageDetailsMap);
       } catch (error) {
-        console.error("Error fetching pages:", error)
+        console.error("Error fetching pages:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    
+    };
 
-    fetchPages()
-  }, [tagId])
-  console.log('pageDetails', pageDetails)
+    fetchPages();
+  }, [tagId]);
+  console.log("pageDetails", pageDetails);
   return (
     <>
-      <ProfileHeader title={`PageLists in ${tagName || 'Tag'}`} img={img9}/>
+      <ProfileHeader title={`PageLists in ${tagName || "Tag"}`} img={img9} />
       <div id="content-page" className="content-page">
         <Container>
           <Row>
             {isLoading ? (
-              <div>Loading...</div>
+              <div className="col-sm-12 text-center">
+                <img src={loader} alt="loader" style={{ height: "100px" }} />
+              </div>
             ) : !pages?.data?.length ? (
               <Col xs={12}>
                 <Card>
@@ -93,20 +98,20 @@ const PageLists = () => {
               </Col>
             ) : (
               pages?.data?.map((page) => {
-                const pageDetail = pageDetails[page?.page_id?.documentId]
+                const pageDetail = pageDetails[page?.page_id?.documentId];
                 return (
                   <Col md={6} key={page.id}>
-                    <Card 
+                    <Card
                       className="card-block card-stretch card-height card-hover"
                       style={cardHoverStyle}
                     >
                       <Card.Body className="profile-page p-0">
                         <div className="profile-header-image">
                           <div className="cover-container">
-                            <img 
+                            <img
                               loading="lazy"
-                              src={pageDetail?.media?.url || img8} 
-                              alt="profile-bg" 
+                              src={pageDetail?.media?.url || img8}
+                              alt="profile-bg"
                               className="rounded img-fluid w-100"
                             />
                           </div>
@@ -115,16 +120,29 @@ const PageLists = () => {
                               <div className="d-flex flex-wrap justify-content-between align-items-start">
                                 <div className="profile-detail d-flex">
                                   <div className="profile-img pe-4">
-                                    <img 
+                                    <img
                                       loading="lazy"
-                                      src={pageDetail?.profile_picture?.file_path || user05} 
-                                      alt="page-avatar" 
-                                      className="avatar-130 img-fluid rounded-circle" 
+                                      src={
+                                        pageDetail?.profile_picture
+                                          ?.file_path || user05
+                                      }
+                                      alt="page-avatar"
+                                      className="avatar-130 img-fluid rounded-circle"
                                     />
                                   </div>
                                   <div className="user-data-block">
                                     <h4 className="d-flex align-items-center">
-                                      <Link to={`/dashboard/page-detail/${page.page_id?.documentId}`}>
+                                      <Link
+                                        to={`/page/${page.page_id?.page_name}`}
+                                        state={{
+                                          pageId: page.page_id?.documentId,
+                                          pageDetail:
+                                            pageDetails[
+                                              page?.page_id?.documentId
+                                            ],
+                                          pageInfo: page,
+                                        }}
+                                      >
                                         {pageDetail?.page_name}
                                       </Link>
                                       {pageDetail?.is_verified && (
@@ -133,30 +151,47 @@ const PageLists = () => {
                                         </i>
                                       )}
                                     </h4>
-                                    <p className="mb-2">{pageDetail?.intro || "No intro available"}</p>
+                                    <p className="mb-2">
+                                      {pageDetail?.intro ||
+                                        "No intro available"}
+                                    </p>
                                     <div className="d-flex align-items-center mb-2">
-                                      <img 
-                                        src={pageDetail?.author?.profile_picture || user05}
+                                      <img
+                                        src={
+                                          pageDetail?.author?.profile_picture ||
+                                          user05
+                                        }
                                         alt="author"
                                         className="avatar-30 rounded-circle me-2"
                                       />
-                                      <span>@{pageDetail?.author?.username || 'anonymous'}</span>
+                                      <span>
+                                        @
+                                        {pageDetail?.author?.username ||
+                                          "anonymous"}
+                                      </span>
                                     </div>
                                     <div className="d-flex align-items-center">
-                                      <i className="material-symbols-outlined me-2">group</i>
-                                      <span>{pageDetail?.followers_count || 0} followers</span>
+                                      <i className="material-symbols-outlined me-2">
+                                        group
+                                      </i>
+                                      <span>
+                                        {pageDetail?.followers_count || 0}{" "}
+                                        followers
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
-                                <button 
-                                  type="button" 
+                                <button
+                                  type="button"
                                   className="btn btn-primary rounded-pill px-4"
                                   onClick={(e) => {
                                     e.preventDefault();
                                     // Xử lý follow/unfollow
                                   }}
                                 >
-                                  {pageDetail?.is_followed ? 'Unfollow' : 'Follow'}
+                                  {pageDetail?.is_followed
+                                    ? "Unfollow"
+                                    : "Follow"}
                                 </button>
                               </div>
                             </div>
@@ -165,18 +200,18 @@ const PageLists = () => {
                       </Card.Body>
                     </Card>
                   </Col>
-                )
+                );
               })
             )}
           </Row>
         </Container>
       </div>
     </>
-  )
-}
+  );
+};
 
 // Thêm CSS cho card hover
-const style = document.createElement('style');
+const style = document.createElement("style");
 style.textContent = `
   .card-hover {
     transition: transform 0.3s ease-in-out !important;

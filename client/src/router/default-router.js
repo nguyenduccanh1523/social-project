@@ -9,6 +9,7 @@ import Chat from "../views/dashboard/app/chat";
 import Blog from "../views/dashboard/app/blog";
 import Pages from "../views/dashboard/app/pages";
 import PageLists from "../views/dashboard/component/pages/pageLists"
+import PageDetail from "../views/dashboard/component/pages/page-detail"
 
 export const DefaultRouter = [
   {
@@ -54,5 +55,9 @@ export const DefaultRouter = [
   {
     path:"/page-lists/:id",
     element:<PageLists />
+  },
+  {
+    path:"/page/:id",
+    element:<PageDetail />
   }
 ];
