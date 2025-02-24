@@ -23,3 +23,35 @@ export const apiGetGroupPost = ({ groupId }) =>
       reject(error);
     }
   });
+
+export const apiGetPostByUserId = ({ userId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      if (!userId) {
+        return reject(new Error("userId is required"));
+      }
+
+      const response = await axiosConfig({
+        method: "get",
+        url: `/posts?filters[$and][0][user_id][documentId][$eq]=${userId}&populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const apiGetPostByFriendId = ({ friendId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/posts?filters[$and][0][user_id][documentId][$eq]=${friendId}&populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  }); 
+
+
