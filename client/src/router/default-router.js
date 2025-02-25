@@ -10,6 +10,10 @@ import Blog from "../views/dashboard/app/blog";
 import Pages from "../views/dashboard/app/pages";
 import PageLists from "../views/dashboard/component/pages/pageLists"
 import PageDetail from "../views/dashboard/component/pages/page-detail"
+import Faq from "../views/dashboard/component/Support/Fag"
+import Guider from "../views/dashboard/component/Support/Guider"
+import Contact from "../views/dashboard/component/Support/Contact"
+import Update from "../views/dashboard/component/Support/Update"
 
 export const DefaultRouter = [
   {
@@ -59,5 +63,21 @@ export const DefaultRouter = [
   {
     path:"/page/:id",
     element:<PageDetail />
+  },
+  {
+    path:"/faq",
+    element:<Faq />
+  },
+  {
+    path:"/guide",
+    element:<Guider />
+  },
+  {
+    path:"/contact",
+    element:<Contact />
+  },
+  {
+    path:"/update",
+    element:<Update />
   }
 ];

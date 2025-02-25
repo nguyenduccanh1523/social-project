@@ -1,11 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Row,
-  Col,
-  Container,
-  Dropdown,
-  Modal,
-} from "react-bootstrap";
+import { Row, Col, Container, Dropdown, Modal } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Card from "../../../components/Card";
 import CustomToggle from "../../../components/dropdowns";
@@ -34,7 +28,6 @@ import s3 from "../../../assets/images/page-img/s3.jpg";
 import s4 from "../../../assets/images/page-img/s4.jpg";
 import s5 from "../../../assets/images/page-img/s5.jpg";
 
-
 import loader from "../../../assets/images/page-img/page-load-loader.gif";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -45,7 +38,6 @@ const Index = () => {
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state) => state.root.auth || {});
 
-  
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [displayPosts, setDisplayPosts] = useState([]);
@@ -75,18 +67,20 @@ const Index = () => {
         const pagination = response.data?.meta?.pagination;
 
         // Kiểm tra và lấy thông tin page cho các post
-        const updatedPosts = await Promise.all(posts.map(async (post) => {
-          if (post?.page?.documentId) {
-            const pageInfo = await fetchPageInfo(post.page.documentId);
-            if (pageInfo) {
-              setPageInfoMap(prev => ({
-                ...prev,
-                [post.page.documentId]: pageInfo // Lưu thông tin page vào map
-              }));
+        const updatedPosts = await Promise.all(
+          posts.map(async (post) => {
+            if (post?.page?.documentId) {
+              const pageInfo = await fetchPageInfo(post.page.documentId);
+              if (pageInfo) {
+                setPageInfoMap((prev) => ({
+                  ...prev,
+                  [post.page.documentId]: pageInfo, // Lưu thông tin page vào map
+                }));
+              }
             }
-          }
-          return post;
-        }));
+            return post;
+          })
+        );
 
         // Random hóa các bài viết
         const shuffledPosts = shuffleArray(updatedPosts);
@@ -116,27 +110,29 @@ const Index = () => {
     try {
       setLoadingMore(true);
       const nextPage = currentPage + 1;
-      console.log('Loading page:', nextPage);
+      console.log("Loading page:", nextPage);
 
       const response = await getAllPosts({ page: nextPage });
       const newPosts = response.data?.data || [];
       const pagination = response.data?.meta?.pagination;
 
       // Kiểm tra và lấy thông tin page cho các post mới
-      const updatedPosts = await Promise.all(newPosts.map(async (post) => {
-        if (post?.page?.documentId) {
-          const pageInfo = await fetchPageInfo(post.page.documentId);
-          if (pageInfo) {
-            setPageInfoMap(prev => ({
-              ...prev,
-              [post.page.documentId]: pageInfo // Lưu thông tin page vào map
-            }));
+      const updatedPosts = await Promise.all(
+        newPosts.map(async (post) => {
+          if (post?.page?.documentId) {
+            const pageInfo = await fetchPageInfo(post.page.documentId);
+            if (pageInfo) {
+              setPageInfoMap((prev) => ({
+                ...prev,
+                [post.page.documentId]: pageInfo, // Lưu thông tin page vào map
+              }));
+            }
           }
-        }
-        return post;
-      }));
+          return post;
+        })
+      );
 
-      setDisplayPosts(prev => {
+      setDisplayPosts((prev) => {
         const shuffledPosts = shuffleArray(updatedPosts);
         return [...prev, ...shuffledPosts];
       });
@@ -159,14 +155,14 @@ const Index = () => {
       // Trigger load more khi scroll gần đến cuối
       if (scrollTop + clientHeight >= scrollHeight - 500) {
         if (!loadingMore && hasMore) {
-          console.log('Loading more posts, current page:', currentPage);
+          console.log("Loading more posts, current page:", currentPage);
           loadMorePosts();
         }
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [currentPage, hasMore, loadingMore, loadMorePosts]);
 
   // Welcome toast
@@ -177,7 +173,10 @@ const Index = () => {
         toast.success(
           <div>
             <h5>Welcome, Nguyen Duc Canh</h5>
-            <p>You have successfully logged in as a client user to SocialV. Now you can start to explore. Enjoy!</p>
+            <p>
+              You have successfully logged in as a client user to SocialV. Now
+              you can start to explore. Enjoy!
+            </p>
           </div>,
           {
             position: "top-right",
@@ -505,20 +504,24 @@ const Index = () => {
               {isLoading ? (
                 <div className="col-sm-12 text-center">
                   <img src={loader} alt="loader" style={{ height: "100px" }} />
-                        </div>
+                </div>
               ) : (
                 <>
                   {displayPosts.map((post, index) => (
-                    <PostHome 
+                    <PostHome
                       key={`${post?.documentId}-${index}`}
-                      post={post} 
+                      post={post}
                       pageInfo={pageInfoMap[post.page?.documentId]}
                     />
                   ))}
 
                   {loadingMore && (
                     <div className="col-sm-12 text-center">
-                      <img src={loader} alt="loader" style={{ height: "100px" }} />
+                      <img
+                        src={loader}
+                        alt="loader"
+                        style={{ height: "100px" }}
+                      />
                     </div>
                   )}
 
