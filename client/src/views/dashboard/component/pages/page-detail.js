@@ -84,12 +84,15 @@ const PageDetail = () => {
 
   useEffect(() => {
     const fetchPageDetail = async () => {
-      if (!pageId) return;
+      if (!pageId || typeof pageId !== "string") {
+        console.error("Invalid pageId:", pageId);
+        return; // Ngừng thực hiện nếu pageId không hợp lệ
+      }
 
       setLoading(true);
       try {
         // Fetch lại data mới nhất nếu cần
-        const response = await apiGetPageDetail({ pageId });
+        const response = await apiGetPageDetail(pageId);
         setPageData(response.data?.data?.[0] || initialPageDetail);
       } catch (error) {
         console.error("Error fetching page detail:", error);

@@ -28,14 +28,12 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
 import { apiGetPageDetail } from "../../../../services/page";
 
-const PostHome = ({ post }) => {
+const PostHome = ({ post, pageInfo }) => {
   const dispatch = useDispatch();
   const { medias } = useSelector((state) => state.root.media || {});
   const { tags } = useSelector((state) => state.root.tag || {});
   const createdAt = new Date(post?.createdAt);
-  const [pageInfo, setPageInfo] = useState(null);
 
-  
   const [imageController, setImageController] = useState({
     toggler: false, // Kiểm soát hiển thị gallery
     slide: 0, // Vị trí ảnh hiện tại
@@ -55,26 +53,6 @@ const PostHome = ({ post }) => {
     dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
   }, [post, dispatch]);
 
-  useEffect(() => {
-    const fetchPageInfo = async () => {
-      if (!post?.user_id && post?.page?.documentId) {
-        try {
-          const response = await apiGetPageDetail(post.page.documentId);
-          console.log("Page detail response:", response); // Log phản hồi từ API
-          if (response && response.data) {
-            setPageInfo(response?.data?.data);
-          } else {
-            console.warn("No data found in page detail response");
-          }
-        } catch (error) {
-          console.error("Error fetching page info:", error);
-        }
-      }
-    };
-
-    fetchPageInfo();
-  }, [post]);
-
   const postMedia = medias[post?.documentId] || [];
   const postTag = tags[post?.documentId] || [];
 
@@ -82,8 +60,8 @@ const PostHome = ({ post }) => {
 
   const validSources = Array.isArray(postMedia?.data)
     ? postMedia.data
-        .map((item) => item?.media?.file_path)
-        .filter((path) => typeof path === "string" && path.trim() !== "")
+      .map((item) => item?.media?.file_path)
+      .filter((path) => typeof path === "string" && path.trim() !== "")
     : [];
 
   const validTags = Array.isArray(postTag?.data)
@@ -96,7 +74,7 @@ const PostHome = ({ post }) => {
   return (
     <>
       <Col sm={12}>
-        <Card className=" card-block card-stretch card-height">
+        <Card className="card-block card-stretch card-height">
           <Card.Body>
             <div className="user-post-data">
               <div className="d-flex justify-content-between">
@@ -104,9 +82,9 @@ const PostHome = ({ post }) => {
                   <div className="user-img">
                     <img
                       src={
-                        post?.user_id 
-                          ? post?.user_id?.profile_picture 
-                          : pageInfo?.profile_picture?.file_path || 'default-avatar.png'
+                        post?.user_id
+                          ? post?.user_id?.profile_picture
+                          : pageInfo?.data?.profile_picture?.file_path || 'default-avatar.png'
                       }
                       alt="userimg"
                       className="avatar-60 rounded-circle"
@@ -117,11 +95,20 @@ const PostHome = ({ post }) => {
                   <div className="d-flex justify-content-between">
                     <div>
                       <h5 className="d-flex align-items-center">
-                        {post?.user_id 
-                          ? post?.user_id?.username 
-                          : post?.page?.page_name || 'Unknown Page'
-                        }
-                        {post?.page?.is_verified && (
+                        <Link
+                          to={`/page/${pageInfo?.data?.page_name}`}
+                          state={{
+                            pageId: pageInfo?.data?.documentId,
+                            pageDetail: pageInfo?.data
+                          }}
+                          style={{ textDecoration: "none", color: "black" }}
+                        >
+                          {post?.user_id
+                            ? post?.user_id?.username
+                            : pageInfo?.data?.page_name || 'Unknown Page'
+                          }
+                        </Link>
+                        {pageInfo?.data?.is_verified && (
                           <i
                             className="material-symbols-outlined verified-badge ms-2"
                             style={{
@@ -215,6 +202,7 @@ const PostHome = ({ post }) => {
             <div className="mt-3">
               <p>{post?.content}</p>
             </div>
+            
             <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
               {validTags.map((tag, index) => (
                 <Tag
@@ -234,7 +222,7 @@ const PostHome = ({ post }) => {
                     src={validSources[0]}
                     alt="post1"
                     style={{
-                      width: "610px",
+                      width: "620px",
                       height: "auto",
                       objectFit: "cover",
                       borderRadius: "8px",
@@ -290,8 +278,8 @@ const PostHome = ({ post }) => {
                             index === 0
                               ? "1 / 3"
                               : index === 1
-                              ? "1 / 2"
-                              : "2 / 3", // Ảnh lớn chiếm 2 hàng
+                                ? "1 / 2"
+                                : "2 / 3", // Ảnh lớn chiếm 2 hàng
                           objectFit: "cover", // Cắt ảnh để phù hợp container
                           borderRadius: "8px", // Làm tròn góc
                           cursor: "pointer", // Hiển thị con trỏ khi hover
@@ -322,8 +310,8 @@ const PostHome = ({ post }) => {
                             index === 0
                               ? "1 / 3"
                               : index === 1
-                              ? "1 / 2"
-                              : "2 / 3",
+                                ? "1 / 2"
+                                : "2 / 3",
                         }}
                       >
                         <Image

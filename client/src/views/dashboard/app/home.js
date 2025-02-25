@@ -40,7 +40,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import PostHome from "../component/Home/postHome";
 import { getAllPosts } from "../../../services/post";
-
+import { apiGetPageDetail } from "../../../services/page";
 const Index = () => {
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state) => state.root.auth || {});
@@ -52,50 +52,52 @@ const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  
+  const [pageInfoMap, setPageInfoMap] = useState({});
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
+  const fetchPageInfo = async (pageId) => {
+    try {
+      const response = await apiGetPageDetail(pageId);
+      return response.data; // Trả về dữ liệu
+    } catch (error) {
+      console.error("Error fetching page info:", error);
+      return null;
+    }
+  };
 
   // Fetch posts ban đầu
   useEffect(() => {
     const fetchInitialPosts = async () => {
       try {
-        setIsLoading(true);
         const response = await getAllPosts({ page: 1 });
         const posts = response.data?.data || [];
         const pagination = response.data?.meta?.pagination;
-        
-        // console.log('Initial posts:', {
-        //   posts: posts.length,
-        //   currentPage: pagination?.page,
-        //   pageCount: pagination?.pageCount,
-        //   total: pagination?.total
-        // });
 
-        setDisplayPosts(shuffleArray(posts));
-        setHasMore(pagination?.page < pagination?.pageCount);
+        // Kiểm tra và lấy thông tin page cho các post
+        const updatedPosts = await Promise.all(posts.map(async (post) => {
+          if (post?.page?.documentId) {
+            const pageInfo = await fetchPageInfo(post.page.documentId);
+            if (pageInfo) {
+              setPageInfoMap(prev => ({
+                ...prev,
+                [post.page.documentId]: pageInfo // Lưu thông tin page vào map
+              }));
+            }
+          }
+          return post;
+        }));
+
+        // Random hóa các bài viết
+        const shuffledPosts = shuffleArray(updatedPosts);
+        setDisplayPosts(shuffledPosts);
       } catch (error) {
         console.error("Error fetching initial posts:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchInitialPosts();
   }, []);
-
-  // // Hàm debounce để tối ưu scroll
-  // const debounce = (func, wait) => {
-  //   let timeout;
-  //   return function executedFunction(...args) {
-  //     const later = () => {
-  //       clearTimeout(timeout);
-  //       func(...args);
-  //     };
-  //     clearTimeout(timeout);
-  //     timeout = setTimeout(later, wait);
-  //   };
-  // };
 
   // Hàm shuffle array
   const shuffleArray = (array) => {
@@ -120,28 +122,26 @@ const Index = () => {
       const newPosts = response.data?.data || [];
       const pagination = response.data?.meta?.pagination;
 
-      // console.log('New posts loaded:', {
-      //   count: newPosts.length,
-      //   page: pagination?.page,
-      //   totalPages: pagination?.pageCount,
-      //   currentPage: nextPage
-      // });
+      // Kiểm tra và lấy thông tin page cho các post mới
+      const updatedPosts = await Promise.all(newPosts.map(async (post) => {
+        if (post?.page?.documentId) {
+          const pageInfo = await fetchPageInfo(post.page.documentId);
+          if (pageInfo) {
+            setPageInfoMap(prev => ({
+              ...prev,
+              [post.page.documentId]: pageInfo // Lưu thông tin page vào map
+            }));
+          }
+        }
+        return post;
+      }));
 
-      if (newPosts.length > 0) {
-        setDisplayPosts(prev => {
-          // Kiểm tra và lọc bỏ posts trùng lặp
-          const existingIds = new Set(prev.map(post => post.documentId));
-          const uniqueNewPosts = newPosts.filter(post => !existingIds.has(post.documentId));
-          
-          const updatedPosts = [...prev, ...shuffleArray(uniqueNewPosts)];
-          //console.log('Total posts now:', updatedPosts.length);
-          return updatedPosts;
-        });
-        setCurrentPage(nextPage);
-        setHasMore(nextPage < pagination?.pageCount);
-      } else {
-        setHasMore(false);
-      }
+      setDisplayPosts(prev => {
+        const shuffledPosts = shuffleArray(updatedPosts);
+        return [...prev, ...shuffledPosts];
+      });
+      setCurrentPage(nextPage);
+      setHasMore(nextPage < pagination?.pageCount);
     } catch (error) {
       console.error("Error loading more posts:", error);
     } finally {
@@ -512,6 +512,7 @@ const Index = () => {
                     <PostHome 
                       key={`${post?.documentId}-${index}`}
                       post={post} 
+                      pageInfo={pageInfoMap[post.page?.documentId]}
                     />
                   ))}
 
