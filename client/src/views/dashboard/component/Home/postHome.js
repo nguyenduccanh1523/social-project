@@ -26,12 +26,14 @@ import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for l
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
+import { apiGetPageDetail } from "../../../../services/page";
 
 const PostHome = ({ post }) => {
   const dispatch = useDispatch();
   const { medias } = useSelector((state) => state.root.media || {});
   const { tags } = useSelector((state) => state.root.tag || {});
   const createdAt = new Date(post?.createdAt);
+  const [pageInfo, setPageInfo] = useState(null);
 
   
   const [imageController, setImageController] = useState({
@@ -53,6 +55,26 @@ const PostHome = ({ post }) => {
     dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
   }, [post, dispatch]);
 
+  useEffect(() => {
+    const fetchPageInfo = async () => {
+      if (!post?.user_id && post?.page?.documentId) {
+        try {
+          const response = await apiGetPageDetail(post.page.documentId);
+          console.log("Page detail response:", response); // Log phản hồi từ API
+          if (response && response.data) {
+            setPageInfo(response?.data?.data);
+          } else {
+            console.warn("No data found in page detail response");
+          }
+        } catch (error) {
+          console.error("Error fetching page info:", error);
+        }
+      }
+    };
+
+    fetchPageInfo();
+  }, [post]);
+
   const postMedia = medias[post?.documentId] || [];
   const postTag = tags[post?.documentId] || [];
 
@@ -69,6 +91,7 @@ const PostHome = ({ post }) => {
     : [];
 
   const colors = colorsTag;
+  //console.log("pageInfo", pageInfo);
 
   return (
     <>
@@ -80,7 +103,11 @@ const PostHome = ({ post }) => {
                 <div className="me-3">
                   <div className="user-img">
                     <img
-                      src={post?.user_id?.profile_picture}
+                      src={
+                        post?.user_id 
+                          ? post?.user_id?.profile_picture 
+                          : pageInfo?.profile_picture?.file_path || 'default-avatar.png'
+                      }
                       alt="userimg"
                       className="avatar-60 rounded-circle"
                     />
@@ -89,8 +116,23 @@ const PostHome = ({ post }) => {
                 <div className="w-100">
                   <div className="d-flex justify-content-between">
                     <div>
-                      <h5 className="mb-0 d-inline-block">
-                        {post?.user_id?.username}
+                      <h5 className="d-flex align-items-center">
+                        {post?.user_id 
+                          ? post?.user_id?.username 
+                          : post?.page?.page_name || 'Unknown Page'
+                        }
+                        {post?.page?.is_verified && (
+                          <i
+                            className="material-symbols-outlined verified-badge ms-2"
+                            style={{
+                              fontSize: "20px",
+                              display: "flex",
+                              alignItems: "center",
+                            }}
+                          >
+                            verified
+                          </i>
+                        )}
                       </h5>
                       <p className="mb-0 text-primary">{timeAgo}</p>
                     </div>
@@ -192,7 +234,7 @@ const PostHome = ({ post }) => {
                     src={validSources[0]}
                     alt="post1"
                     style={{
-                      width: "100%",
+                      width: "610px",
                       height: "auto",
                       objectFit: "cover",
                       borderRadius: "8px",

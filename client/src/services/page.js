@@ -24,23 +24,18 @@ export const apiGetPagesTags = ({ tagId }) =>
         }
     });
 
-export const apiGetPageDetail = ({ pageId }) =>
+export const apiGetPageDetail = (pageId) =>
     new Promise(async (resolve, reject) => {
         try {
-            // Kiểm tra groupId trước khi dùng trong URL
             if (typeof pageId !== "string") {
-                //console.error("Invalid groupId:", groupId);
                 return reject(new Error("pageId should be a string"));
             }
 
-            //console.log("Fetching group members for groupId:", groupId);
-
-            // Gọi API với URL đã được truyền đúng groupId
             const response = await axiosConfig({
                 method: "get",
-                url: `/pages?filters[$and][0][documentId][$eq]=${pageId}&populate=*`,
+                url: `/pages/${pageId}?populate=*`,
             });
-            //console.log("Response:", response); // Log ra chi tiết phản hồi
+            console.log("Response from apiGetPageDetail:", response); // Log phản hồi
             resolve(response);
         } catch (error) {
             console.error("Error fetching page detail:", error.response || error);

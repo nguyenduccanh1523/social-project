@@ -65,12 +65,12 @@ const Index = () => {
         const posts = response.data?.data || [];
         const pagination = response.data?.meta?.pagination;
         
-        console.log('Initial posts:', {
-          posts: posts.length,
-          currentPage: pagination?.page,
-          pageCount: pagination?.pageCount,
-          total: pagination?.total
-        });
+        // console.log('Initial posts:', {
+        //   posts: posts.length,
+        //   currentPage: pagination?.page,
+        //   pageCount: pagination?.pageCount,
+        //   total: pagination?.total
+        // });
 
         setDisplayPosts(shuffleArray(posts));
         setHasMore(pagination?.page < pagination?.pageCount);
@@ -120,12 +120,12 @@ const Index = () => {
       const newPosts = response.data?.data || [];
       const pagination = response.data?.meta?.pagination;
 
-      console.log('New posts loaded:', {
-        count: newPosts.length,
-        page: pagination?.page,
-        totalPages: pagination?.pageCount,
-        currentPage: nextPage
-      });
+      // console.log('New posts loaded:', {
+      //   count: newPosts.length,
+      //   page: pagination?.page,
+      //   totalPages: pagination?.pageCount,
+      //   currentPage: nextPage
+      // });
 
       if (newPosts.length > 0) {
         setDisplayPosts(prev => {
@@ -134,7 +134,7 @@ const Index = () => {
           const uniqueNewPosts = newPosts.filter(post => !existingIds.has(post.documentId));
           
           const updatedPosts = [...prev, ...shuffleArray(uniqueNewPosts)];
-          console.log('Total posts now:', updatedPosts.length);
+          //console.log('Total posts now:', updatedPosts.length);
           return updatedPosts;
         });
         setCurrentPage(nextPage);
@@ -505,7 +505,7 @@ const Index = () => {
               {isLoading ? (
                 <div className="col-sm-12 text-center">
                   <img src={loader} alt="loader" style={{ height: "100px" }} />
-                </div>
+                        </div>
               ) : (
                 <>
                   {displayPosts.map((post, index) => (

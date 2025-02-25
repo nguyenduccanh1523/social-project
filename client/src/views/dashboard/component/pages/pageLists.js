@@ -86,9 +86,9 @@ const PageLists = () => {
   return (
     <>
       <ProfileHeader title={`PageLists in ${tagName || "Tag"}`} img={img9} />
-      <div id="content-page" className="content-page">
-        <Container>
-          <Row>
+                <div id="content-page" className="content-page">
+                    <Container>
+                        <Row>
             <Col md="12" className="mb-3">
               <Search
                 placeholder="Search pages by name..."
@@ -104,12 +104,12 @@ const PageLists = () => {
                   display: "block",
                 }}
               />
-            </Col>
+                            </Col>
 
             {isLoading ? (
               <div className="col-sm-12 text-center">
                 <img src={loader} alt="loader" style={{ height: "100px" }} />
-              </div>
+                                            </div>
             ) : !filteredPages?.length ? (
               <Col xs={12}>
                 <Card>
@@ -130,9 +130,9 @@ const PageLists = () => {
                         Back to Tags
                       </Link>
                     </Empty>
-                  </Card.Body>
-                </Card>
-              </Col>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
             ) : (
               filteredPages?.map((page) => {
                 const pageDetail = pageDetails[page?.page_id?.documentId];
@@ -143,20 +143,20 @@ const PageLists = () => {
                       style={cardHoverStyle}
                     >
                       <Card.Body className="profile-page p-0">
-                        <div className="profile-header-image">
-                          <div className="cover-container">
+                                        <div className="profile-header-image">
+                                            <div className="cover-container">
                             <img
                               loading="lazy"
                               src={pageDetail?.media?.url || img8}
                               alt="profile-bg"
                               className="rounded img-fluid w-100"
                             />
-                          </div>
-                          <div className="profile-info p-4">
-                            <div className="user-detail">
-                              <div className="d-flex flex-wrap justify-content-between align-items-start">
-                                <div className="profile-detail d-flex">
-                                  <div className="profile-img pe-4">
+                                            </div>
+                                            <div className="profile-info p-4">
+                                                <div className="user-detail">
+                                                    <div className="d-flex flex-wrap justify-content-between align-items-start">
+                                                        <div className="profile-detail d-flex">
+                                                            <div className="profile-img pe-4">
                                     <img
                                       loading="lazy"
                                       src={
@@ -166,8 +166,8 @@ const PageLists = () => {
                                       alt="page-avatar"
                                       className="avatar-130 img-fluid rounded-circle"
                                     />
-                                  </div>
-                                  <div className="user-data-block">
+                                                            </div>
+                                                            <div className="user-data-block">
                                     <h4 className="d-flex align-items-center">
                                       <Link
                                         to={`/page/${page.page_id?.page_name}`}
@@ -187,7 +187,7 @@ const PageLists = () => {
                                           verified
                                         </i>
                                       )}
-                                    </h4>
+                                                                </h4>
                                     <p className="mb-2">
                                       {pageDetail?.intro ||
                                         "No intro available"}
@@ -215,8 +215,8 @@ const PageLists = () => {
                                         {pageDetail?.followers_count || 0}{" "}
                                         followers
                                       </span>
+                                        </div>
                                     </div>
-                                  </div>
                                 </div>
                                 <button
                                   type="button"
@@ -230,20 +230,20 @@ const PageLists = () => {
                                     ? "Unfollow"
                                     : "Follow"}
                                 </button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
                 );
               })
             )}
-          </Row>
-        </Container>
-      </div>
-    </>
+                        </Row>
+                    </Container>
+                </div>
+        </>
   );
 };
 
