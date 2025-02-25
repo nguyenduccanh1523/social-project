@@ -78,11 +78,11 @@ export const apiGetPage = (payload) =>
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: "/pages?populate=*",
+                url: "/pages?pagination[pageSize]=100&populate=*",
                 data: payload,
             });
             resolve(response);
         } catch (error) {
             reject(error);
         }
-    });
+});

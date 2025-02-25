@@ -41,17 +41,64 @@ export const apiGetPostByUserId = ({ userId }) =>
     }
   });
 
-export const apiGetPostByFriendId = ({ friendId }) =>
+// export const apiGetPostByFriendId = ({ friendId }) =>
+//   new Promise(async (resolve, reject) => {
+//     try {
+//       const response = await axiosConfig({
+//         method: "get",
+//         url: `/posts?filters[$and][0][user_id][documentId][$eq]=${friendId}&populate=*`,
+//       });
+//       resolve(response);
+//     } catch (error) {
+//       reject(error);
+//     }
+//   }); 
+
+// export const apiGetPostByPage = (payload) =>
+//   new Promise(async (resolve, reject) => {
+//     try {
+//       const response = await axiosConfig({
+//         method: "get",
+//         url: `/posts?&pagination[pageSize]=100&sort=createdAt:DESC&filters[$and][0][page][documentId][$notNull]=true&populate=*`,
+//         data: payload,
+//       });
+//       resolve(response);
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+
+// export const getAllPostsRemaining = (payload) =>
+//   new Promise(async (resolve, reject) => {
+//     try {
+//       const response = await axiosConfig({
+//         method: "get",
+//         url: `/posts?pagination[pageSize]=100&sort=createdAt:DESC&filters[$and][0][page][documentId][$null]=true&filters[$and][1][group][documentId][$null]=true&populate=*`,
+//         data: payload,
+//       });
+//       resolve(response)
+//     } catch (error) {
+//       reject(error);
+//     }
+//   });
+
+export const getAllPosts = ({ page }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/posts?filters[$and][0][user_id][documentId][$eq]=${friendId}&populate=*`,
-      });
-      resolve(response);
+        url: `/posts?pagination[pageSize]=50&pagination[page]=${page}&sort=createdAt:DESC&populate=*`,
+      }); 
+      resolve(response)
     } catch (error) {
       reject(error);
     }
-  }); 
+  });
+
+
+
+
+
+
 
 

@@ -31,13 +31,15 @@ const PostHome = ({ post }) => {
   const dispatch = useDispatch();
   const { medias } = useSelector((state) => state.root.media || {});
   const { tags } = useSelector((state) => state.root.tag || {});
-  const createdAt = new Date(post?.user_id?.createdAt);
+  const createdAt = new Date(post?.createdAt);
 
+  
   const [imageController, setImageController] = useState({
     toggler: false, // Kiểm soát hiển thị gallery
     slide: 0, // Vị trí ảnh hiện tại
   });
 
+  //console.log("post", post);
   // Hàm xử lý `onClick` khi click vào ảnh
   const handleImageClick = (index) => {
     setImageController({
