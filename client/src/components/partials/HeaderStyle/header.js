@@ -1426,7 +1426,7 @@ const Header = () => {
                         </span>
                         <div className="ms-3">
                           <Link
-                            to="/dashboard/app/user-account-setting"
+                            to="/account-setting"
                             className="mb-0 h6"
                           >
                             Account settings
@@ -1437,7 +1437,7 @@ const Header = () => {
                         <span className="material-symbols-outlined">lock</span>
                         <div className="ms-3">
                           <Link
-                            to="/dashboard/app/user-privacy-setting"
+                            to="/privacy-setting"
                             className="mb-0 h6"
                           >
                             Privacy Settings

@@ -26,7 +26,7 @@ const Faq = () => {
       <div id="content-page" className="content-page">
         <Container>
           <Row>
-            <Tab.Container id="left-tabs-example" defaultActiveKey="first">
+            <Tab.Container id="left-tabs-example" defaultActiveKey="19">
               <Col lg={3}>
                 <Card className="p-0">
                   <Card.Body className="p-0">

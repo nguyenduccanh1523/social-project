@@ -14,6 +14,8 @@ import Faq from "../views/dashboard/component/Support/Fag"
 import Guider from "../views/dashboard/component/Support/Guider"
 import Contact from "../views/dashboard/component/Support/Contact"
 import Update from "../views/dashboard/component/Support/Update"
+import UserPrivacySetting from "../views/dashboard/component/SettingUser/privacyUser"
+import UserAccountSetting from "../views/dashboard/component/SettingUser/accountSetting"
 
 export const DefaultRouter = [
   {
@@ -79,5 +81,13 @@ export const DefaultRouter = [
   {
     path:"/update",
     element:<Update />
+  },
+  {
+    path:"/privacy-setting",
+    element:<UserPrivacySetting />
+  },
+  {
+    path:"/account-setting",
+    element:<UserAccountSetting />
   }
 ];
