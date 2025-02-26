@@ -12,7 +12,7 @@ import mediaReducer from "./mediaReducer";
 import tagReducer from "./tagReducer";
 import converReducer from "./converReducer";
 import participantReducer from "./participantReducer";
-
+import supportReducer from "./supportReducer";
 
 const commonConfig = {
     storage,
@@ -35,7 +35,8 @@ const rootReducer = combineReducers({
     media: mediaReducer,
     tag: tagReducer,
     conversation: converReducer,
-    participant: participantReducer
+    participant: participantReducer,
+    support: supportReducer
 })
 
 export default rootReducer

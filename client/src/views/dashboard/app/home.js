@@ -504,7 +504,7 @@ const Index = () => {
               {isLoading ? (
                 <div className="col-sm-12 text-center">
                   <img src={loader} alt="loader" style={{ height: "100px" }} />
-                </div>
+                        </div>
               ) : (
                 <>
                   {displayPosts.map((post, index) => (

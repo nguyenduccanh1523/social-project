@@ -43,17 +43,17 @@ export const apiGetDocumentTag = ({ documentId }) =>
     }
   });
 
-  export const apiGetTag = (payload) =>
-    new Promise(async (resolve, reject) => {
-      try {
-        const response = await axiosConfig({
-          method: "get",
-          url: "/tags?populate=*",
-          data: payload,
-        });
-        resolve(response);
-      } catch (error) {
-        reject(error);
-      }
-    });
+export const apiGetTag = (payload) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: "/tags?populate=*",
+        data: payload,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
 
