@@ -13,7 +13,7 @@ import Error500 from "../views/dashboard/errors/error500";
 
 
 //extrpages
-// import Maintenance from "../views/dashboard/extrapages/maintenance";
+ import Maintenance from "../views/dashboard/errors/maintaince";
 // import ComingSoon from "../views/dashboard/extrapages/comingsoon";
 
 export const SimpleRouter = [
@@ -46,10 +46,10 @@ export const SimpleRouter = [
     path: "errors/error500",
     element: <Error500 />,
   },
-//   {
-//     path: "extra-pages/pages-maintenance",
-//     element: <Maintenance />,
-//   },
+  {
+    path: "/pages-maintenance",
+    element: <Maintenance />,
+  },
 //   {
 //     path: "extra-pages/pages-comingsoon",
 //     element: <ComingSoon />,
