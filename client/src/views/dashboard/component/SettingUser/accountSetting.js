@@ -5,6 +5,9 @@ import { fetchUserSocials } from '../../../../actions/actions';
 
 const UserAccountSetting = () => {
     const dispatch = useDispatch();
+    const [facebookUrl, setFacebookUrl] = useState('');
+    const [instagramUrl, setInstagramUrl] = useState('');
+    const [youtubeUrl, setYoutubeUrl] = useState('');
     const { profile } = useSelector((state) => state.root.user || {});
     const { socials } = useSelector((state) => state.root.userSocials || {});
 
@@ -15,8 +18,7 @@ const UserAccountSetting = () => {
             dispatch(fetchUserSocials(document));
         }
     }, [document, dispatch]);
-    console.log('socials', socials);
-
+    
     const [validated, setValidated] = useState(false);
     const [validatedSocials, setValidatedSocials] = useState(false);
 
@@ -38,10 +40,17 @@ const UserAccountSetting = () => {
         setValidatedSocials(true);
     };
 
-    // Lấy thông tin từ socials
-    const facebookUrl = socials?.data?.find(social_id  => social_id?.platform === 'facebook')?.account_url || '';
-    const instagramUrl = socials?.data?.find(social_id => social_id?.platform === 'instagram')?.account_url || '';
-    const youtubeUrl = socials?.data?.find(social_id => social_id?.platform === 'youtube')?.account_url || '';
+    useEffect(() => {
+        socials?.data?.forEach((social) => {
+            if (social?.social_id?.platform === 'facebook') {
+                setFacebookUrl(social?.account_url);
+            } else if (social?.social_id?.platform === 'instagram') {
+                setInstagramUrl(social?.account_url);
+            } else if (social?.social_id?.platform === 'youtube') {
+                setYoutubeUrl(social?.account_url);
+            }
+        });
+    }, [socials]);
 
     return (
         <>
@@ -141,6 +150,7 @@ const UserAccountSetting = () => {
                                             <Form.Control type="text" className="form-control" id="youtube" defaultValue={youtubeUrl} required />
                                             <Form.Control.Feedback type="invalid">Please provide a valid YouTube URL.</Form.Control.Feedback>
                                         </Form.Group>
+                                        
                                         <Button type="submit" className="btn btn-primary me-2">Submit</Button>
                                         <Button type="reset" className="btn bg-soft-danger">Cancel</Button>
                                     </Form>

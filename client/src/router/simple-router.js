@@ -13,10 +13,11 @@ import Error500 from "../views/dashboard/errors/error500";
 
 
 //extrpages
- import Maintenance from "../views/dashboard/errors/maintaince";
-// import ComingSoon from "../views/dashboard/extrapages/comingsoon";
+
+
 
 export const SimpleRouter = [
+  
 //   {
 //     path: "auth/confirm-mail",
 //     element: <ConfirmMail />,
@@ -39,17 +40,13 @@ export const SimpleRouter = [
     element: <SignUp />,
   },
   {
-    path: "errors/error404",
+    path: "*",
     element: <Error404 />,
   },
   {
-    path: "errors/error500",
+    path: "*",
     element: <Error500 />,
-  },
-  {
-    path: "/pages-maintenance",
-    element: <Maintenance />,
-  },
+  }
 //   {
 //     path: "extra-pages/pages-comingsoon",
 //     element: <ComingSoon />,

@@ -102,6 +102,10 @@ ul.media-story {
 			@if $enable-rounded == true {
 				@include radius-mixin($border-radius-pill);
 			}
+
+			&.active {
+				border-color: var(--bs-primary) !important;
+			}
 		}
 		>i {
 			height: 3.75rem;
@@ -122,6 +126,19 @@ ul.media-story {
 		}
 	}
 }
+
+.media-story{
+	li{
+		a{
+			&.active{
+				img{
+					border: 2px solid var(--bs-primary) !important;
+				}
+			}
+		}
+	}
+}
+
 .add-suggestion {
 	border: 1px solid var(--bs-primary);
 	height: 2.5rem;

@@ -130,11 +130,10 @@ const VerticalNav = React.memo(() => {
             <ul className="sub-nav">
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/dashboards/app/friend-list"
+                  className={`${location.pathname === "/dashboards/app/friend-list"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/dashboards/app/friend-list"
                 >
                   <i className="icon">
@@ -165,11 +164,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/dashboard/app/friend-profile"
+                  className={`${location.pathname === "/dashboard/app/friend-profile"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/dashboard/app/friend-profile"
                 >
                   <i className="icon">
@@ -200,11 +198,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/dashboard/app/friend-request"
+                  className={`${location.pathname === "/dashboard/app/friend-request"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/dashboard/app/friend-request"
                 >
                   <i className="icon">
@@ -269,9 +266,8 @@ const VerticalNav = React.memo(() => {
             <ul className="sub-nav">
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/groups" ? "active" : ""
-                  } nav-link`}
+                  className={`${location.pathname === "/groups" ? "active" : ""
+                    } nav-link`}
                   to="/groups"
                 >
                   <i className="icon">
@@ -302,9 +298,8 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/my-groups" ? "active" : ""
-                  } nav-link`}
+                  className={`${location.pathname === "/my-groups" ? "active" : ""
+                    } nav-link`}
                   to="/my-groups"
                 >
                   <i className="icon">
@@ -356,11 +351,10 @@ const VerticalNav = React.memo(() => {
             <ul className="sub-nav">
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/pages"
+                  className={`${location.pathname === "/pages"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/pages"
                 >
                   <i className="icon">
@@ -392,11 +386,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/dashboard/extrapages/pages-invoice"
+                  className={`${location.pathname === "/dashboard/extrapages/pages-invoice"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/dashboard/extrapages/pages-invoice"
                 >
                   <i className="icon">
@@ -428,11 +421,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/dashboard/extrapages/pages-pricing"
+                  className={`${location.pathname === "/dashboard/extrapages/pages-pricing"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/dashboard/extrapages/pages-pricing"
                 >
                   <i className="icon">
@@ -485,11 +477,10 @@ const VerticalNav = React.memo(() => {
             <ul className="sub-nav">
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/blogs"
+                  className={`${location.pathname === "/blogs"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/blogs"
                 >
                   <i className="icon">
@@ -521,11 +512,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/dashboard/blog/blog-list"
+                  className={`${location.pathname === "/dashboard/blog/blog-list"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/dashboard/blog/blog-list"
                 >
                   <i className="icon">
@@ -560,11 +550,10 @@ const VerticalNav = React.memo(() => {
         </Accordion.Item>
         <Nav.Item as="li">
           <Link
-            className={`${
-              location.pathname === "/dashboard/app/notification"
+            className={`${location.pathname === "/dashboard/app/notification"
                 ? "active"
                 : ""
-            } nav-link `}
+              } nav-link `}
             aria-current="page"
             to="/dashboard/app/notification"
           >
@@ -575,6 +564,16 @@ const VerticalNav = React.memo(() => {
               <i className="icon material-symbols-outlined">notifications</i>
             </OverlayTrigger>
             <span className="item-name">Notification</span>
+          </Link>
+        </Nav.Item>
+        <Nav.Item as="li">
+          <Link className={`${location.pathname === '/chat' ? 'active' : ''} nav-link `} aria-current="page" to="/chat" >
+            <OverlayTrigger placement="right" overlay={<Tooltip>Chat</Tooltip>}>
+              <i className="icon material-symbols-outlined">
+                message
+              </i>
+            </OverlayTrigger>
+            <span className="item-name">Chat</span>
           </Link>
         </Nav.Item>
         <Accordion.Item as="li" eventKey="support-menu" bsPrefix="nav-item">
@@ -597,11 +596,10 @@ const VerticalNav = React.memo(() => {
             <ul className="sub-nav">
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/faq"
+                  className={`${location.pathname === "/faq"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/faq"
                 >
                   <i className="icon">
@@ -633,11 +631,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/guide"
+                  className={`${location.pathname === "/guide"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/guide"
                 >
                   <i className="icon">
@@ -669,11 +666,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/contact"
+                  className={`${location.pathname === "/contact"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/contact"
                 >
                   <i className="icon">
@@ -705,11 +701,10 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${
-                    location.pathname === "/update"
+                  className={`${location.pathname === "/update"
                       ? "active"
                       : ""
-                  } nav-link`}
+                    } nav-link`}
                   to="/update"
                 >
                   <i className="icon">

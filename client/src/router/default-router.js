@@ -16,6 +16,7 @@ import Contact from "../views/dashboard/component/Support/Contact"
 import Update from "../views/dashboard/component/Support/Update"
 import UserPrivacySetting from "../views/dashboard/component/SettingUser/privacyUser"
 import UserAccountSetting from "../views/dashboard/component/SettingUser/accountSetting"
+import Story from "../views/dashboard/app/story"
 
 export const DefaultRouter = [
   {
@@ -89,5 +90,9 @@ export const DefaultRouter = [
   {
     path:"/account-setting",
     element:<UserAccountSetting />
+  },
+  {
+    path:"/stories",
+    element:<Story />
   }
 ];

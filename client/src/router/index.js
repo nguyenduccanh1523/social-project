@@ -2,19 +2,24 @@ import React from "react";
 
 //layoutpages
 import Default from "../layouts/dashboard/default";
-
 import { DefaultRouter } from "./default-router";
-import ProtectedRoute  from "./ProtectedRoute";
-//import { Layout1Router } from "./layout1-router";
+import ProtectedRoute from "./ProtectedRoute";
+import Maintenance from "../views/dashboard/errors/maintaince";
+
+const isMaintaince = process.env.REACT_APP_MAINTAINCE === "true";
 
 export const IndexRouters = [
   {
     path: "/",
-    element: (
+    element: isMaintaince ? <Maintenance /> : (
       <ProtectedRoute>
         <Default />
       </ProtectedRoute>
     ),
-    children: [...DefaultRouter],
+    children: [
+      ...DefaultRouter,
+      ...(isMaintaince ? [] : [{ path: "/pages-maintenance", element: <Maintenance /> }]),
+    ],
   },
+  ...(isMaintaince ? [{ path: "*", element: <Maintenance /> }] : []),
 ];
