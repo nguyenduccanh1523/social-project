@@ -233,6 +233,98 @@ const VerticalNav = React.memo(() => {
             </ul>
           </Accordion.Collapse>
         </Accordion.Item>
+        
+        <Accordion.Item as="li" eventKey="event-menu" bsPrefix="nav-item">
+          <CustomToggle
+            eventKey="event-menu"
+            onClick={(activeKey) => setActiveMenu(activeKey)}
+          >
+            <OverlayTrigger
+              placement="right"
+              overlay={<Tooltip>Event</Tooltip>}
+            >
+              <i className="icon material-symbols-outlined">event</i>
+            </OverlayTrigger>
+            <span className="item-name">Event</span>
+            <i className="right-icon material-symbols-outlined">
+              chevron_right
+            </i>
+          </CustomToggle>
+          <Accordion.Collapse eventKey="event-menu">
+            <ul className="sub-nav">
+              <Nav.Item as="li">
+                <Link
+                  className={`${location.pathname === "/faq"
+                      ? "active"
+                      : ""
+                    } nav-link`}
+                  to="/faq"
+                >
+                  <i className="icon">
+                    <svg
+                      className="icon-10"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="10"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <g>
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="8"
+                          fill="currentColor"
+                        ></circle>
+                      </g>
+                    </svg>
+                  </i>
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>Other Event</Tooltip>}
+                  >
+                    <i className="sidenav-mini-icon"> Other Event </i>
+                  </OverlayTrigger>
+                  <span className="item-name">Other Event</span>
+                </Link>
+              </Nav.Item>
+              <Nav.Item as="li">
+                <Link
+                  className={`${location.pathname === "/guide"
+                      ? "active"
+                      : ""
+                    } nav-link`}
+                  to="/guide"
+                >
+                  <i className="icon">
+                    <svg
+                      className="icon-10"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="10"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <g>
+                        <circle
+                          cx="12"
+                          cy="12"
+                          r="8"
+                          fill="currentColor"
+                        ></circle>
+                      </g>
+                    </svg>
+                  </i>
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={<Tooltip>My Event</Tooltip>}
+                  >
+                    <i className="sidenav-mini-icon"> My Event </i> 
+                  </OverlayTrigger>
+                  <span className="item-name">My Event</span>
+                </Link>
+              </Nav.Item>
+            </ul>
+          </Accordion.Collapse>
+        </Accordion.Item>
         <Accordion.Item as="li" eventKey="groups-menu" bsPrefix="nav-item">
           <CustomToggle
             eventKey="groups-menu"

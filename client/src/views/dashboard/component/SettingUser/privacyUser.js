@@ -20,7 +20,7 @@ const UserPrivacySetting = () => {
                             <Card.Body>
                                 <div className="acc-privacy">
                                     <div className="data-privacy">
-                                        <h4 className="mb-2">Account Privacy</h4>
+                                        <h4 className="mb-2">Setting Stories</h4>
                                         <Form.Check>
                                             <Form.Check.Input type="checkbox" id="customCheck5" />{' '}
                                             <Form.Check.Label className="pl-2" htmlor="customCheck5">Private Account</Form.Check.Label>

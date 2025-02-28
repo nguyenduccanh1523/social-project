@@ -583,7 +583,7 @@ const Index = () => {
                       </div>
                     </li>
                   </ul>
-                  <Link to="#" className="btn btn-primary d-block mt-3">
+                  <Link to="/stories" className="btn btn-primary d-block mt-3">
                     See All
                   </Link>
                 </Card.Body>
