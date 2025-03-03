@@ -17,6 +17,9 @@ import Update from "../views/dashboard/component/Support/Update"
 import UserPrivacySetting from "../views/dashboard/component/SettingUser/privacyUser"
 import UserAccountSetting from "../views/dashboard/component/SettingUser/accountSetting"
 import Story from "../views/dashboard/app/story"
+import Event from "../views/dashboard/app/event"
+import ProfileEvent from "../views/dashboard/component/Event/myEvent"
+import EventDetail from "../views/dashboard/component/Event/detail"
 
 export const DefaultRouter = [
   {
@@ -94,5 +97,19 @@ export const DefaultRouter = [
   {
     path:"/stories",
     element:<Story />
+  },
+  {
+    path:"/events",
+    element:<Event />
+  },
+  {
+    path:"/my-events",
+    element:<ProfileEvent />
+  },
+  {
+    path:"/event-detail/:id",
+    element:<EventDetail />
   }
+  
+
 ];

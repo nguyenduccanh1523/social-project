@@ -56,3 +56,12 @@ export const timeAgo = (dateString) => {
   if (interval > 1) return `${interval} minutes ago`;
   return `${seconds} seconds ago`;
 };
+
+export const getMonthAndDay = (dateString) => {
+  const date = new Date(dateString);
+  const options = { month: 'long' }; // Lấy tên tháng đầy đủ
+  const month = new Intl.DateTimeFormat('en-US', options).format(date);
+  const day = date.getDate(); // Lấy ngày
+
+  return { month, day };
+};

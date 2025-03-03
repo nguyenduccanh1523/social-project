@@ -254,11 +254,11 @@ const VerticalNav = React.memo(() => {
             <ul className="sub-nav">
               <Nav.Item as="li">
                 <Link
-                  className={`${location.pathname === "/faq"
+                  className={`${location.pathname === "/events"
                       ? "active"
                       : ""
                     } nav-link`}
-                  to="/faq"
+                  to="/events"
                 >
                   <i className="icon">
                     <svg
@@ -289,11 +289,11 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${location.pathname === "/guide"
+                  className={`${location.pathname === "/my-events"
                       ? "active"
                       : ""
                     } nav-link`}
-                  to="/guide"
+                  to="/my-events"
                 >
                   <i className="icon">
                     <svg
