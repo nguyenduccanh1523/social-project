@@ -25,6 +25,7 @@ import ListPost from "../views/dashboard/component/MarkPost/ListPost"
 import ListBlog from "../views/dashboard/component/MarkPost/ListBlog"
 import FriendList from "../views/dashboard/component/Friends/FriendList"
 import FriendRequest from "../views/dashboard/component/Friends/FriendRequest"
+import FriendProfile from "../views/dashboard/component/Friends/FriendProfile"
 export const DefaultRouter = [
   {
     path: "/",
@@ -133,6 +134,10 @@ export const DefaultRouter = [
   {
     path:"/friend-request",
     element:<FriendRequest />
+  },
+  {
+    path:"/friend-profile/:id",
+    element:<FriendProfile />
   }
   
 

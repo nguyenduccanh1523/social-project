@@ -11,7 +11,7 @@ export const apiGetFriendAccepted = ({ documentId }) =>
     } catch (error) {
       reject(error);
     }
-});
+  });
 
 export const apiUpdateFriendStatus = ({ friendId, status_type }) =>
   new Promise(async (resolve, reject) => {
@@ -31,7 +31,6 @@ export const apiUpdateFriendStatus = ({ friendId, status_type }) =>
     }
   });
 
-
 export const apiGetFriendsByDate = (documentId, daysAgo = 7) =>
   new Promise(async (resolve, reject) => {
     try {
@@ -50,30 +49,45 @@ export const apiGetFriendsByDate = (documentId, daysAgo = 7) =>
     }
   });
 
-
 export const apiGetFriendRequest = ({ documentId }) =>
-    new Promise(async (resolve, reject) => {
-      try {
-        const response = await axiosConfig({
-          method: "get",
-          url: `/friends?filters[$or][1][friend_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=pending&populate=*`,
-        });
-        resolve(response);
-      } catch (error) {
-        reject(error);
-      }
-});
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/friends?filters[$or][1][friend_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=pending&populate=*&pagination[pageSize]=100&pagination[page]=1`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
 
 export const apiGetFriendSent = ({ documentId }) =>
-    new Promise(async (resolve, reject) => {
-      try {
-        const response = await axiosConfig({
-          method: "get",
-          url: `/friends?filters[$or][0][user_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=pending&populate=*`,
-        });
-        resolve(response);
-      } catch (error) {
-        reject(error);
-      }
-});
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/friends?filters[$or][0][user_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=pending&populate=*&pagination[pageSize]=100&pagination[page]=1`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
 
+export const apiGetFriendMore = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url:
+          `/friends?populate=*` +
+          `&filters[$and][0][friend_id][documentId][$ne]=${documentId}` +
+          `&filters[$and][1][user_id][documentId][$ne]=${documentId}` +
+          `&pagination[pageSize]=100&pagination[page]=1`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
