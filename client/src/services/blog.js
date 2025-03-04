@@ -49,3 +49,17 @@ export const apiGetBlogList = ({
       reject(error);
     }
   });
+
+export const apiGetBlogDetail = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/document-shares/${documentId}?populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      console.error("Error fetching blog detail:", error.response || error);
+      reject(error);
+    }
+  }); 

@@ -20,7 +20,11 @@ import Story from "../views/dashboard/app/story"
 import Event from "../views/dashboard/app/event"
 import ProfileEvent from "../views/dashboard/component/Event/myEvent"
 import EventDetail from "../views/dashboard/component/Event/detail"
-
+import MarkPost from "../views/dashboard/app/markpost"
+import ListPost from "../views/dashboard/component/MarkPost/ListPost"
+import ListBlog from "../views/dashboard/component/MarkPost/ListBlog"
+import FriendList from "../views/dashboard/component/Friends/FriendList"
+import FriendRequest from "../views/dashboard/component/Friends/FriendRequest"
 export const DefaultRouter = [
   {
     path: "/",
@@ -109,6 +113,26 @@ export const DefaultRouter = [
   {
     path:"/event-detail/:id",
     element:<EventDetail />
+  },
+  {
+    path:"/mark-post",
+    element:<MarkPost />
+  },
+  {
+    path:"/mark-post/post",
+    element:<ListPost />
+  },
+  {
+    path:"/mark-post/blog",
+    element:<ListBlog />
+  },
+  {
+    path:"/friend-list",
+    element:<FriendList />
+  },
+  {
+    path:"/friend-request",
+    element:<FriendRequest />
   }
   
 

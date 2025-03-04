@@ -95,6 +95,19 @@ export const getAllPosts = ({ page }) =>
     }
   });
 
+  export const apiGetPostDetail = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/posts/${documentId}?populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  }); 
+
 
 
 

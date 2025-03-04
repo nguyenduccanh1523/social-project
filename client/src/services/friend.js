@@ -5,7 +5,7 @@ export const apiGetFriendAccepted = ({ documentId }) =>
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/friends?filters[$or][0][user_id][documentId][$eq]=${documentId}&filters[$or][1][friend_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=accepted&populate=*`,
+        url: `/friends?filters[$or][0][user_id][documentId][$eq]=${documentId}&filters[$or][1][friend_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=accepted&populate=*&pagination[pageSize]=100&pagination[page]=1`,
       });
       resolve(response);
     } catch (error) {
