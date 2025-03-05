@@ -24,8 +24,8 @@ const PostProfile = ({ userId }) => {
 
     return (
         <>
-            {postData.map((post) => (
-            <Card className="card-block card-stretch card-height">
+            {postData.map((post, index) => (
+            <Card className="card-block card-stretch card-height" key={index}>
                 <Post post={post} />
             </Card>
             ))}
