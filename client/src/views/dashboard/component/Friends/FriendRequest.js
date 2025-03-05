@@ -22,16 +22,20 @@ const FriendRequest = () => {
   const { profile } = useSelector((state) => state.root.user || {});
   const documentId = profile?.documentId;
 
-  // Lấy danh sách yêu cầu kết bạn
-  const { data: friendRequest, isLoading } = useQuery({
-    queryKey: ["friendRequest"],
-    queryFn: () => apiGetFriendRequest({ documentId: documentId }),
-  });
-  const friendRequestData = friendRequest?.data?.data || [];
-
   // Tạo state để lưu số lượng bạn bè
   const [userFriendCounts, setUserFriendCounts] = useState([]);
 
+  // Lấy danh sách yêu cầu kết bạn
+  const { data: friendRequest, isLoading, error } = useQuery({
+    queryKey: ['friendRequest', documentId],
+    queryFn: () => apiGetFriendRequest({ documentId }),
+    enabled: !!documentId,
+  });
+
+
+  const friendRequestData = friendRequest?.data?.data || [];
+
+  // Chuyển logic vào useEffect
   useEffect(() => {
     const fetchFriendCounts = async () => {
       const counts = await Promise.all(
@@ -49,9 +53,15 @@ const FriendRequest = () => {
       setUserFriendCounts(counts);
     };
 
-    fetchFriendCounts();
+    if (friendRequestData.length > 0) { // Chỉ gọi fetchFriendCounts nếu có dữ liệu
+      fetchFriendCounts();
+    }
   }, [friendRequestData]);
 
+  // Kiểm tra trạng thái loading và error
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error fetching friend requests</div>;
+  
   console.log("userFriendCounts", userFriendCounts);
 
   const questionAlert = () => {

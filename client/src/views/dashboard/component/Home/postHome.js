@@ -224,7 +224,7 @@ const PostHome = ({ post, pageInfo }) => {
                     style={{
                       width: "620px",
                       height: "auto",
-                      objectFit: "cover",
+                      objectFit: "fill",
                       borderRadius: "8px",
                       cursor: "pointer",
                     }}

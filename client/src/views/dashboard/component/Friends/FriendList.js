@@ -131,7 +131,11 @@ const FriendList = () => {
                                                                 </div>
                                                                 <div className="user-data-block">
                                                                     <h4>
-                                                                        <Link to="/dashboard/app/friend-profile">{friendData?.username || 'Unknown'}</Link>
+                                                                        <Link to={`/friend-profile/${friendData?.documentId}`}
+                                                                            state={{
+                                                                                friendId: friendData
+                                                                            }}
+                                                                        >{friendData?.username || 'Unknown'}</Link>
                                                                     </h4>
                                                                     <h6>@{friendData?.username || 'unknown'}</h6>
                                                                     <p>{friendData?.bio}</p>

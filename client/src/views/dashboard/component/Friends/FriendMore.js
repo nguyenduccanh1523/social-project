@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import Card from "../../../../components/Card";
 import { Link } from "react-router-dom";
 // img
@@ -18,6 +18,8 @@ import { useSelector } from "react-redux";
 
 const FriendMore = () => {
   const { profile } = useSelector((state) => state.root.user || {});
+  const [userFriendCounts, setUserFriendCounts] = useState([]);
+  const hasFetchedCounts = useRef(false); // Sử dụng useRef để theo dõi trạng thái
   const documentId = profile?.documentId;
 
   // Lấy danh sách bạn bè đã chấp nhận
@@ -41,30 +43,29 @@ const FriendMore = () => {
   });
   const allUsersData = allUsers?.data?.data || [];
 
-  // Kiểm tra người dùng không có trong friendRequestData và friendAcceptedData
-  const availableUsers = Array.isArray(allUsersData)
-    ? allUsersData.filter((user) => {
-        const isInFriendRequest = friendRequestData.some(
-          (request) => request.user_id.documentId === user.user_id.documentId
-        );
-
-        const isInFriendAccepted = friendAcceptedData.some((friend) => {
-          const isUserIdMatch = friend.user_id.documentId === documentId;
-          const isFriendIdMatch = friend.friend_id.documentId === documentId;
-          return (
-            (isUserIdMatch &&
-              friend.friend_id.documentId === user.user_id.documentId) ||
-            (isFriendIdMatch &&
-              friend.user_id.documentId === user.user_id.documentId)
+  // Tạo availableUsers với useMemo
+  const availableUsers = useMemo(() => {
+    return Array.isArray(allUsersData)
+      ? allUsersData.filter((user) => {
+          const isInFriendRequest = friendRequestData.some(
+            (request) => request.user_id.documentId === user.user_id.documentId
           );
-        });
 
-        return !isInFriendRequest && !isInFriendAccepted;
-      })
-    : []; // Nếu không phải là mảng, trả về mảng rỗng
+          const isInFriendAccepted = friendAcceptedData.some((friend) => {
+            const isUserIdMatch = friend.user_id.documentId === documentId;
+            const isFriendIdMatch = friend.friend_id.documentId === documentId;
+            return (
+              (isUserIdMatch &&
+                friend.friend_id.documentId === user.user_id.documentId) ||
+              (isFriendIdMatch &&
+                friend.user_id.documentId === user.user_id.documentId)
+            );
+          });
 
-  // Tạo state để lưu số lượng bạn bè
-  const [userFriendCounts, setUserFriendCounts] = useState([]);
+          return !isInFriendRequest && !isInFriendAccepted;
+        })
+      : []; // Nếu không phải là mảng, trả về mảng rỗng
+  }, [allUsersData, friendRequestData, friendAcceptedData, documentId]);
 
   useEffect(() => {
     const fetchFriendCounts = async () => {
@@ -83,10 +84,13 @@ const FriendMore = () => {
       setUserFriendCounts(counts);
     };
 
-    fetchFriendCounts();
+    if (availableUsers.length > 0 && !hasFetchedCounts.current) { // Chỉ gọi fetchFriendCounts nếu chưa gọi
+      fetchFriendCounts();
+      hasFetchedCounts.current = true; // Đánh dấu là đã gọi
+    }
   }, [availableUsers]);
 
-  console.log("userFriendCounts", userFriendCounts);
+  //console.log("userFriendCounts", userFriendCounts);
 
   const questionAlert = () => {
     const swalWithBootstrapButtons = Swal.mixin({

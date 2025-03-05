@@ -87,7 +87,7 @@ export const getAllPosts = ({ page }) =>
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/posts?pagination[pageSize]=10&pagination[page]=${page}&populate=*`,
+        url: `/posts?pagination[pageSize]=10&pagination[page]=${page}&populate=*&sort=createdAt:DESC`,
       }); 
       resolve(response)
     } catch (error) {
