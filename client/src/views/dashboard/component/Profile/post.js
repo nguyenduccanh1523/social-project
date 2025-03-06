@@ -38,7 +38,7 @@ const Post = ({ post }) => {
         slide: 0, // Vị trí ảnh hiện tại
     });
 
-    //console.log("post", post);
+    console.log("post", post);
     // Hàm xử lý `onClick` khi click vào ảnh
     const handleImageClick = (index) => {
         setImageController({

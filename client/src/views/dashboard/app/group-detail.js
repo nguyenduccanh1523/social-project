@@ -36,6 +36,7 @@ import img14 from "../../../assets/images/page-img/profile-bg9.jpg";
 
 import { fetchGroupMembers, fetchGroupPost } from "../../../actions/actions";
 import { useDispatch, useSelector } from "react-redux";
+import CreatePostGroup from "../component/Group/createPostGroup";
 
 
 const GroupDetail = () => {
@@ -47,9 +48,11 @@ const GroupDetail = () => {
   const { oldData } = location?.state || {};
   const { members } = useSelector((state) => state.root.group || {});
   const { posts } = useSelector((state) => state.root.post || {});
+  const { profile } = useSelector((state) => state.root.user || {});
   const images = [img12, img13, img14, img15, img16];
 
-  //console.log("oldData: ", posts);
+
+  //console.log("oldData: ", oldData);
 
   useEffect(() => {
     dispatch(fetchGroupMembers(oldData?.documentId)); // Truyền đúng giá trị groupId
@@ -149,7 +152,7 @@ const GroupDetail = () => {
                           <div className="d-flex align-items-center">
                             <div className="user-img">
                               <img
-                                src={user9}
+                                src={profile?.profile_picture}
                                 alt="userimg"
                                 className="avatar-60 rounded-circle"
                               />
@@ -167,7 +170,7 @@ const GroupDetail = () => {
                             </form>
                           </div>
                           <hr />
-                          <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap">
+                          <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap" onClick={handleShow}>
                             <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
                               <img
                                 src={small1}
@@ -201,236 +204,13 @@ const GroupDetail = () => {
                                         more_horiz
                                       </span>
                                     </Dropdown.Toggle>
-                                    <Dropdown.Menu>
-                                      <Dropdown.Item
-                                        onClick={handleShow}
-                                        href="#"
-                                      >
-                                        Check in
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={handleShow}
-                                        href="#"
-                                      >
-                                        Live Video
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={handleShow}
-                                        href="#"
-                                      >
-                                        Gif
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={handleShow}
-                                        href="#"
-                                      >
-                                        Watch Party
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={handleShow}
-                                        href="#"
-                                      >
-                                        Play with Friend
-                                      </Dropdown.Item>
-                                    </Dropdown.Menu>
                                   </Dropdown>
                                 </div>
                               </Button>
                             </li>
                           </ul>
                         </Card.Body>
-                        <Modal show={show} onHide={handleClose} size="lg">
-                          <Modal.Header
-                            className="d-flex justify-content-between"
-                            closeButton
-                          >
-                            <h5 className="modal-title" id="post-modalLabel">
-                              Create Post
-                            </h5>
-                          </Modal.Header>
-                          <Modal.Body>
-                            <div className="d-flex align-items-center">
-                              <div className="user-img">
-                                <img
-                                  src={img5}
-                                  alt="userimg"
-                                  className="avatar-60 rounded-circle img-fluid"
-                                />
-                              </div>
-                              <Form className="post-text ms-3 w-100" action="">
-                                <Form.Control
-                                  type="text"
-                                  className="rounded"
-                                  placeholder="Write something here..."
-                                  style={{ border: "none" }}
-                                />
-                              </Form>
-                            </div>
-                            <hr />
-                            <ul className="d-flex flex-wrap align-items-center list-inline m-0 p-0">
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small1}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Photo/Video
-                                </div>
-                              </Col>
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small2}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Tag Friend
-                                </div>
-                              </Col>
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small3}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Feeling/Activity
-                                </div>
-                              </Col>
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small4}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Check in
-                                </div>
-                              </Col>
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small5}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Live Video
-                                </div>
-                              </Col>
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small6}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Gif
-                                </div>
-                              </Col>
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small7}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Watch Party
-                                </div>
-                              </Col>
-                              <Col md="6" as="li" className="mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                  <Link to="#"></Link>
-                                  <img
-                                    src={small8}
-                                    alt="icon"
-                                    className="img-fluid"
-                                  />{" "}
-                                  Play with Friends
-                                </div>
-                              </Col>
-                            </ul>
-                            <hr />
-                            <div className="other-option">
-                              <div className="d-flex align-items-center justify-content-between">
-                                <div className="d-flex align-items-center">
-                                  <div className="user-img me-3">
-                                    <img
-                                      src={user9}
-                                      alt="userimg"
-                                      className="avatar-60 rounded-circle img-fluid"
-                                    />
-                                  </div>
-                                  <h6>Your Story</h6>
-                                </div>
-                                <div className="card-post-toolbar">
-                                  <Dropdown>
-                                    <Dropdown.Toggle>
-                                      <span>Friend</span>
-                                    </Dropdown.Toggle>
-                                    <Dropdown.Menu className="m-0 p-0">
-                                      <Dropdown.Item className="p-3" href="#">
-                                        <div className="d-flex align-items-top">
-                                          <i className="ri-save-line h4"></i>
-                                          <div className="data ms-2">
-                                            <h6>Public</h6>
-                                            <p className="mb-0">
-                                              Anyone on or off Facebook
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </Dropdown.Item>
-                                      <Dropdown.Item className="p-3" href="#">
-                                        <div className="d-flex align-items-top">
-                                          <i className="ri-close-circle-line h4"></i>
-                                          <div className="data ms-2">
-                                            <h6>Friends</h6>
-                                            <p className="mb-0">
-                                              Your Friend on facebook
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </Dropdown.Item>
-                                      <Dropdown.Item className="p-3" href="#">
-                                        <div className="d-flex align-items-top">
-                                          <i className="ri-user-unfollow-line h4"></i>
-                                          <div className="data ms-2">
-                                            <h6>Friends except</h6>
-                                            <p className="mb-0">
-                                              Don't show to some friends
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </Dropdown.Item>
-                                      <Dropdown.Item className="p-3" href="#">
-                                        <div className="d-flex align-items-top">
-                                          <i className="ri-notification-line h4"></i>
-                                          <div className="data ms-2">
-                                            <h6>Only Me</h6>
-                                            <p className="mb-0">Only me</p>
-                                          </div>
-                                        </div>
-                                      </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                  </Dropdown>
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              variant="primary"
-                              className="d-block w-100 mt-3"
-                            >
-                              Post
-                            </Button>
-                          </Modal.Body>
-                        </Modal>
+                        <CreatePostGroup show={show} handleClose={handleClose} profile={profile} group={oldData}/>
                       </Card>       
                       <Card>
                         <Card.Body>
@@ -444,7 +224,7 @@ const GroupDetail = () => {
                       </Card>
                     </Col>
                     <Col lg="4">
-                      <Card>
+                      {/* <Card>
                         <div className="card-header d-flex justify-content-between">
                           <div className="header-title">
                             <h4 className="card-title">Members</h4>
@@ -514,7 +294,7 @@ const GroupDetail = () => {
                             </Nav.Item>
                           </Nav>
                         </Card.Body>
-                      </Card>
+                      </Card> */}
                       <Card>
                         <Card.Header className="card-header d-flex justify-content-between">
                           <div className="header-title">
