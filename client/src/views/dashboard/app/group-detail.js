@@ -6,8 +6,6 @@ import {
   Card,
   Dropdown,
   Button,
-  Modal,
-  Form,
   Tab,
   Nav,
 } from "react-bootstrap";
@@ -17,16 +15,9 @@ import PostItem from "../component/postItem";
 
 //image
 import user1 from "../../../assets/images/user/05.jpg";
-import user9 from "../../../assets/images/user/1.jpg";
-import img5 from "../../../assets/images/user/1.jpg";
 import small1 from "../../../assets/images/small/07.png";
 import small2 from "../../../assets/images/small/08.png";
 import small3 from "../../../assets/images/small/09.png";
-import small4 from "../../../assets/images/small/10.png";
-import small5 from "../../../assets/images/small/11.png";
-import small6 from "../../../assets/images/small/12.png";
-import small7 from "../../../assets/images/small/13.png";
-import small8 from "../../../assets/images/small/14.png";
 import header from "../../../assets/images/page-img/profile-bg7.jpg";
 import img15 from "../../../assets/images/page-img/profile-bg4.jpg";
 import img16 from "../../../assets/images/page-img/profile-bg5.jpg";
@@ -36,7 +27,7 @@ import img14 from "../../../assets/images/page-img/profile-bg9.jpg";
 
 import { fetchGroupMembers, fetchGroupPost } from "../../../actions/actions";
 import { useDispatch, useSelector } from "react-redux";
-import CreatePostGroup from "../component/Group/createPostGroup";
+import CreatePost from "../component/Share/createPost";
 
 
 const GroupDetail = () => {
@@ -99,7 +90,7 @@ const GroupDetail = () => {
                     {validGroupMembers
                       .slice(0, 8) // Change slice to show 8 members instead of 6
                       .map((member, index) => (
-                        <Link to="#" className="iq-media" key={index}>
+                        <Link to="#" className="iq-media" key={member?.users_id?.documentId || index}>
                           <img
                             className="img-fluid avatar-40 rounded-circle"
                             src={member?.users_id?.profile_picture || user1} // Use user1 as fallback
@@ -210,13 +201,13 @@ const GroupDetail = () => {
                             </li>
                           </ul>
                         </Card.Body>
-                        <CreatePostGroup show={show} handleClose={handleClose} profile={profile} group={oldData}/>
+                        <CreatePost show={show} handleClose={handleClose} profile={profile} group={oldData}/>
                       </Card>       
                       <Card>
                         <Card.Body>
                           {groupPosts?.data?.map((post, index) => (
                             <PostItem
-                              key={index} // Dùng index hoặc một ID duy nhất nếu có
+                              key={post?.documentId || index} // Use post documentId or index as key
                               post={post}
                             />
                           ))}
@@ -418,7 +409,7 @@ const GroupDetail = () => {
                           oldData?.admin_id?.documentId // Exclude admin from members
                       )
                       .map((member, index) => (
-                        <Col md={6}>
+                        <Col md={6} key={member?.users_id?.documentId || index}>
                           <Card className=" card-block card-stretch card-height">
                             <Card.Body className=" profile-page p-0">
                               <div className="profile-header-image">

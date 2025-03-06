@@ -70,7 +70,7 @@ import {
   deleteFriend,
 } from "../../../actions/actions";
 import PostProfile from "../component/Profile/postProfile";
-import CreateModal from "../component/Profile/createModal";
+import CreatePost from "../component/Share/createPost";
 
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default
@@ -672,7 +672,7 @@ const UserProfile = () => {
                               </li>
                             </ul>
                           </Card.Body>
-                          <CreateModal show={show} handleClose={handleClose} profile={profile}/>
+                          <CreatePost show={show} handleClose={handleClose} profile={profile}/>
                         </Card>
                         <Card>
                           <Card.Body>

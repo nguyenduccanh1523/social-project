@@ -12,11 +12,6 @@ import imgp2 from "../../../../assets/images/user/05.jpg";
 import imgp3 from "../../../../assets/images/user/06.jpg";
 import imgp4 from "../../../../assets/images/user/07.jpg";
 import imgp5 from "../../../../assets/images/user/08.jpg";
-import imgp11 from "../../../../assets/images/user/15.jpg";
-import imgp12 from "../../../../assets/images/user/05.jpg";
-import imgp13 from "../../../../assets/images/user/06.jpg";
-import imgp14 from "../../../../assets/images/user/07.jpg";
-import imgp25 from "../../../../assets/images/user/1.jpg";
 import imgp26 from "../../../../assets/images/user/02.jpg";
 import imgp27 from "../../../../assets/images/user/05.jpg";
 import imgp28 from "../../../../assets/images/user/06.jpg";
@@ -33,20 +28,10 @@ import g6 from "../../../../assets/images/page-img/g6.jpg";
 import g7 from "../../../../assets/images/page-img/g7.jpg";
 import g8 from "../../../../assets/images/page-img/g8.jpg";
 import g9 from "../../../../assets/images/page-img/g9.jpg";
-import user9 from "../../../../assets/images/user/1.jpg";
-import small1 from "../../../../assets/images/small/07.png";
-import small2 from "../../../../assets/images/small/08.png";
-import small3 from "../../../../assets/images/small/09.png";
-import small4 from "../../../../assets/images/small/10.png";
-import small5 from "../../../../assets/images/small/11.png";
-import small6 from "../../../../assets/images/small/12.png";
-import small7 from "../../../../assets/images/small/13.png";
-import small8 from "../../../../assets/images/small/14.png";
-import user1 from "../../../../assets/images/user/1.jpg";
 import small07 from "../../../../assets/images/small/07.png";
 import small08 from "../../../../assets/images/small/08.png";
 import small09 from "../../../../assets/images/small/09.png";
-import CreatePostPage from "./createPostPage";
+import CreatePost from "../Share/createPost";
 
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default
@@ -107,7 +92,7 @@ const PageDetail = () => {
 
     fetchPageDetail();
   }, [pageId, initialPageDetail]);
-  
+
   // Lấy thông tin giờ mở cửa
   useEffect(() => {
     if (pageData?.page_open_hour?.documentId) {
@@ -502,7 +487,7 @@ const PageDetail = () => {
                       </li>
                     </ul>
                   </Card.Body>
-                  <CreatePostPage show={show} handleClose={handleClose} page={pageData}/>
+                  <CreatePost show={show} handleClose={handleClose} page={pageData}/>
                 </Card>
                 <Card>
                   <Card.Body>

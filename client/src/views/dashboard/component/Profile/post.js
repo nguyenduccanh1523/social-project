@@ -1,11 +1,14 @@
 /* eslint-disable no-undef */
 // PostItem.js
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { formatDistanceToNow } from "date-fns";
 import { Image, Tag } from "antd";
 import { useQuery } from '@tanstack/react-query'
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
+import { apiGetPostFriend } from "../../../../services/post";
 
 // Images import (you can import them or pass them as props)
 
@@ -25,10 +28,9 @@ import icon6 from "../../../../assets/images/icon/06.png";
 import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
-import { useDispatch, useSelector } from "react-redux";
-import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
 const Post = ({ post }) => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { medias } = useSelector((state) => state.root.media || {});
     const { tags } = useSelector((state) => state.root.tag || {});
     const createdAt = new Date(post?.createdAt);
@@ -38,7 +40,7 @@ const Post = ({ post }) => {
         slide: 0, // Vị trí ảnh hiện tại
     });
 
-    console.log("post", post);
+    //console.log("post", post);
     // Hàm xử lý `onClick` khi click vào ảnh
     const handleImageClick = (index) => {
         setImageController({
@@ -68,6 +70,19 @@ const Post = ({ post }) => {
         : [];
 
     const colors = colorsTag;
+
+
+    const { data: friendsData } = useQuery({
+        queryKey: ['postFriends', post?.post_friends?.map(friend => friend.documentId) ],
+        queryFn: () => Promise.all(post?.post_friends?.map(friend => apiGetPostFriend({ documentId: friend.documentId }))),
+        enabled: !!post?.post_friends,
+    });
+
+    const friends = friendsData?.map(friend => friend?.data?.data) || [];
+
+
+    const friendNames = friends?.map(friend => friend?.users_permissions_user?.username) || [];
+
 
     return (
         <>
@@ -171,7 +186,33 @@ const Post = ({ post }) => {
                     </div>
                 </div>
                 <div className="mt-3">
-                    <p>{post?.content}</p>
+                    {friendNames.length > 0 && (
+                        <div className="d-flex flex-wrap">
+                            {friends.map((friend, index) => (
+                                <Tag
+                                    key={index}
+                                    color="blue"
+                                    className="me-1 mb-1"
+                                    style={{ cursor: 'pointer' }}
+                                >
+                                    <Link to={`/friend-profile/${friend?.users_permissions_user?.documentId}`}
+                                        state={{ friendId: friend?.users_permissions_user }}
+                                        style={{ color: 'inherit', textDecoration: 'none' }}
+                                    >
+                                        @{friend?.users_permissions_user?.username}
+                                    </Link>
+                                </Tag>
+                            ))}
+                        </div>
+                    )}
+                    <p>
+                        {post?.content?.split('\n').map((line, index) => (
+                            <React.Fragment key={index}>
+                                {line}
+                                <br />
+                            </React.Fragment>
+                        ))}
+                    </p>
                 </div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>

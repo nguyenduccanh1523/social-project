@@ -67,6 +67,7 @@ const FriendProfile = () => {
    const {
       friendId
    } = location.state || {};
+   console.log('friendId', friendId);
 
    const [show, setShow] = useState(false);
    const handleClose = () => setShow(false);
@@ -78,7 +79,7 @@ const FriendProfile = () => {
       queryFn: () => apiGetFriendData({ userId: friendId?.documentId }),
    });
    const friendUserData = friendData?.data?.[0] || [];
-   console.log('friendUserData', friendUserData);
+   //console.log('friendUserData', friendUserData);
 
    // Chuyển logic vào useEffect
    useEffect(() => {

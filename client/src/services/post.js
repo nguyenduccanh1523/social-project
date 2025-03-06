@@ -109,6 +109,20 @@ export const getAllPosts = ({ page }) =>
   }); 
 
 
+  export const apiGetPostFriend = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/post-friends/${documentId}?populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  }); 
+
+
 
 
 

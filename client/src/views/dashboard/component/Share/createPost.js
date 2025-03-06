@@ -13,18 +13,15 @@ import { useGeolocated } from "react-geolocated";
 import PlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-places-autocomplete';
 
 import small1 from "../../../../assets/images/small/07.png";
-import small2 from "../../../../assets/images/small/08.png";
-import small3 from "../../../../assets/images/small/09.png";
-import small4 from "../../../../assets/images/small/10.png";
 import small5 from "../../../../assets/images/small/11.png";
 import small6 from "../../../../assets/images/small/12.png";
 import { apiGetTag } from "../../../../services/tag";
 import { apiGetFriendAccepted } from "../../../../services/friend";
-import ButtonPost from "../buttonPost";
+import ButtonPost from "./buttonPost";
 
 const { Option } = Select;
 
-const CreateModal = ({ show, handleClose, profile }) => {
+const CreatePost = ({ show, handleClose, profile, page, group }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [inputText, setInputText] = useState("");
     const [selectedFriends, setSelectedFriends] = useState([]);
@@ -54,9 +51,9 @@ const CreateModal = ({ show, handleClose, profile }) => {
     };
 
     const { data: tags } = useQuery({
-        queryKey: ['tags', profile?.documentId],
-        queryFn: () => apiGetTag(profile?.documentId),
-        enabled: !!profile?.documentId,
+        queryKey: ['tags', profile?.documentId || page?.documentId ],
+        queryFn: () => apiGetTag(profile?.documentId || page?.documentId),
+        enabled: !!profile?.documentId || !!page?.documentId,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
@@ -186,7 +183,7 @@ const CreateModal = ({ show, handleClose, profile }) => {
                             <div className="user-img">
                                 <img
                                     loading="lazy"
-                                    src={profile?.profile_picture}
+                                    src={profile?.profile_picture || page?.profile_picture?.file_path}
                                     alt="userimg"
                                     className="avatar-60 rounded-circle img-fluid"
                                 />
@@ -241,32 +238,34 @@ const CreateModal = ({ show, handleClose, profile }) => {
                                     </label>
                                 </div>
                             </li>
-                            <li className="col-md-6 mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3" style={{ zIndex: 1050 }}>
-                                    <Select
-                                        mode="multiple"
-                                        style={{ width: '100%' }}
-                                        placeholder={
-                                            <span className="d-flex align-items-center">
-                                                <span className="material-symbols-outlined ms-2">people</span> Tag Friends
-                                            </span>
-                                        }
-                                        onChange={handleFriendSelect}
-                                        value={selectedFriends}
-                                        getPopupContainer={trigger => trigger.parentNode}
-                                        showSearch
-                                        filterOption={(input, option) =>
-                                            option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
-                                        }
-                                    >
-                                        {friendData.map((friend) => (
-                                            <Option key={friend.documentId} value={friend.documentId}>
-                                                {friend.username}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </div>
-                            </li>
+                            {profile && !group && (
+                                <li className="col-md-6 mb-3">
+                                    <div className="bg-soft-primary rounded p-2 pointer me-3" style={{ zIndex: 1050 }}>
+                                        <Select
+                                            mode="multiple"
+                                            style={{ width: '100%' }}
+                                            placeholder={
+                                                <span className="d-flex align-items-center">
+                                                    <span className="material-symbols-outlined ms-2">people</span> Tag Friends
+                                                </span>
+                                            }
+                                            onChange={handleFriendSelect}
+                                            value={selectedFriends}
+                                            getPopupContainer={trigger => trigger.parentNode}
+                                            showSearch
+                                            filterOption={(input, option) =>
+                                                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+                                            }
+                                        >
+                                            {friendData.map((friend) => (
+                                                <Option key={friend.documentId} value={friend.documentId}>
+                                                    {friend.username}
+                                                </Option>
+                                            ))}
+                                        </Select>
+                                    </div>
+                                </li>
+                            )}
                             <li className="col-md-6 mb-3">
                                 <div className="bg-soft-primary rounded p-2 pointer me-3" style={{ zIndex: 1050 }}>
                                     <Select
@@ -391,7 +390,7 @@ const CreateModal = ({ show, handleClose, profile }) => {
                                     <div className="user-img me-3">
                                         <img
                                             loading="lazy"
-                                            src={profile?.profile_picture}
+                                            src={profile?.profile_picture || page?.profile_picture?.file_path}
                                             alt="userimg"
                                             className="avatar-60 rounded-circle img-fluid"
                                         />
@@ -451,7 +450,7 @@ const CreateModal = ({ show, handleClose, profile }) => {
                             location,
                             selectedImages,
                             visibility,
-                        }} page={''} group={''} />
+                        }} page={page} group={group} />
                     </form>
                 </Modal.Body>
             </Modal>
@@ -480,4 +479,4 @@ const CreateModal = ({ show, handleClose, profile }) => {
     );
 };
 
-export default CreateModal;
+export default CreatePost;
