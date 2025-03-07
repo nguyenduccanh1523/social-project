@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Container, Dropdown, Modal } from "react-bootstrap";
+import { Row, Col, Container, Dropdown } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Card from "../../../components/Card";
 import CustomToggle from "../../../components/dropdowns";
@@ -11,17 +11,11 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 //image
-import user1 from "../../../assets/images/user/1.jpg";
 import user01 from "../../../assets/images/user/01.jpg";
 import user2 from "../../../assets/images/user/02.jpg";
 import img1 from "../../../assets/images/small/07.png";
 import img2 from "../../../assets/images/small/08.png";
 import img3 from "../../../assets/images/small/09.png";
-import img4 from "../../../assets/images/small/10.png";
-import img5 from "../../../assets/images/small/11.png";
-import img6 from "../../../assets/images/small/12.png";
-import img7 from "../../../assets/images/small/13.png";
-import img8 from "../../../assets/images/small/14.png";
 import s1 from "../../../assets/images/page-img/s1.jpg";
 import s2 from "../../../assets/images/page-img/s2.jpg";
 import s3 from "../../../assets/images/page-img/s3.jpg";
