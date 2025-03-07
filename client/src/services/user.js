@@ -43,7 +43,7 @@ export const apiGetPostByUserId = ({ userId }) => new Promise(async (resolve, re
     try {
         const response = await axiosConfig({
             method: 'get',
-            url: `/posts?filters[$and][0][user_id][documentId][$eq]=${userId}&filters[$and][1][group][id][$null]=true&filters[$and][2][page][page_name][$null]=true&populate=*`,
+            url: `/posts?filters[$and][0][user_id][documentId][$eq]=${userId}&filters[$and][1][group][id][$null]=true&filters[$and][2][page][page_name][$null]=true&sort=createdAt:DESC&populate=*`,
         });
         resolve(response);
     } catch (error) {

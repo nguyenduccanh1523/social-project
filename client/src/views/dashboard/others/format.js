@@ -39,6 +39,23 @@ export const convertToVietnamDate = (dateString) => {
   return formattedDate;
 };
 
+export const convertToDateTime = (dateString) => {
+  const options = {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Ho_Chi_Minh', // Múi giờ Việt Nam
+  };
+
+  const date = new Date(dateString); // Chuyển chuỗi thành đối tượng Date
+  const formattedDate = new Intl.DateTimeFormat('en-GB', options).format(date);
+
+  return formattedDate;
+};
+
+
 export const timeAgo = (dateString) => {
   const now = new Date();
   const date = new Date(dateString);

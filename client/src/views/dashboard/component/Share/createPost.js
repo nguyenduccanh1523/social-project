@@ -5,9 +5,10 @@ import {
     Modal,
 } from "react-bootstrap";
 import { useQuery } from '@tanstack/react-query';
-import { Select, notification } from 'antd';
+import { Select, notification, Upload } from 'antd';
 import { Link } from "react-router-dom";
 import EmojiPicker from 'emoji-picker-react';
+import { CameraOutlined } from '@ant-design/icons';
 import "react-toastify/ReactToastify.css";
 import { useGeolocated } from "react-geolocated";
 import PlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-places-autocomplete';
@@ -32,6 +33,9 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
     const [showConfirm, setShowConfirm] = useState(false);
     const [visibility, setVisibility] = useState('public');
     const pickerRef = useRef(null);
+    const [fileList, setFileList] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const [previewImage, setPreviewImage] = useState(null);
 
     const { coords } = useGeolocated({
         positionOptions: {
@@ -134,19 +138,32 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
         setVisibility(value);
     };
 
-    // const handleSubmit = (e) => {
-    //     e.preventDefault();
-    //     const formData = {
-    //         inputText,
-    //         selectedFriends,
-    //         selectedTags,
-    //         address,
-    //         location,
-    //         selectedImages,
-    //         visibility,
-    //     };
-    //     //console.log('Form Data:', formData);
-    // };
+    const handleBannerUpload = ({ file, fileList }) => {
+        setFileList(fileList);
+
+        if (file.status === 'uploading') {
+            setUploading(true);
+            return;
+        }
+
+        if (file.status === 'done' || file.status === 'error') {
+            setUploading(false);
+        }
+
+        if (file.originFileObj) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                setSelectedImages((prevImages) => [...prevImages, { url: reader.result, name: file.name }]);
+            };
+            reader.readAsDataURL(file.originFileObj);
+        }
+    };
+
+    const dummyRequest = ({ file, onSuccess }) => {
+        setTimeout(() => {
+            onSuccess("ok");
+        }, 0);
+    };
 
     useEffect(() => {
         document.addEventListener("mousedown", handleClickOutside);
@@ -219,23 +236,21 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
                         <ul className="d-flex flex-wrap align-items-center list-inline m-0 p-0">
                             <li className="col-md-6 mb-3">
                                 <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                    <input
-                                        type="file"
+                                    <Upload
                                         accept="image/*"
-                                        style={{ display: "none" }}
-                                        id="upload-image"
-                                        onChange={handleImageChange}
-                                        multiple
-                                    />
-                                    <label htmlFor="upload-image" style={{ cursor: "pointer" }}>
-                                        <img
-                                            loading="lazy"
-                                            src={small1}
-                                            alt="icon"
-                                            className="img-fluid"
-                                        />{" "}
-                                        Photo/Video
-                                    </label>
+                                        showUploadList={false}
+                                        customRequest={dummyRequest}
+                                        onChange={handleBannerUpload}
+                                        fileList={fileList}
+                                        onPreview={() => {}}
+                                    >
+                                        <Button
+                                            icon={<CameraOutlined />}
+                                            className="absolute bottom-2 right-2"
+                                        >
+                                            Photo/Video
+                                        </Button>
+                                    </Upload>
                                 </div>
                             </li>
                             {profile && !group && (
@@ -292,7 +307,50 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
                                     </Select>
                                 </div>
                             </li>
-                            {/* <li className="col-md-6 mb-3">
+                {/* <li className="col-md-6 mb-3">
+                                <div className="bg-soft-primary rounded p-2 pointer me-3">
+                                    <PlacesAutocomplete
+                                        value={address}
+                                        onChange={setAddress}
+                                        onSelect={handleSelect}
+                                    >
+                                        {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
+                                            <div>
+                                                <input
+                                                    {...getInputProps({
+                                                        placeholder: 'Search Places ...',
+                                                        className: 'location-search-input',
+                                                    })}
+                                                    className="form-control"
+                                                />
+                                                <div className="autocomplete-dropdown-container">
+                                                    {loading && <div>Loading...</div>}
+                                                    {suggestions.map(suggestion => {
+                                                        const className = suggestion.active
+                                                            ? 'suggestion-item--active'
+                                                            : 'suggestion-item';
+                                                        // inline style for demonstration purpose
+                                                        const style = suggestion.active
+                                                            ? { backgroundColor: '#fafafa', cursor: 'pointer' }
+                                                            : { backgroundColor: '#ffffff', cursor: 'pointer' };
+                                                        return (
+                                                            <div
+                                                                {...getSuggestionItemProps(suggestion, {
+                                                                    className,
+                                                                    style,
+                                                                })}
+                                                            >
+                                                                <span>{suggestion.description}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </PlacesAutocomplete>
+                                </div>
+                            </li> */}
+            {/* <li className="col-md-6 mb-3">
                                 <div className="bg-soft-primary rounded p-2 pointer me-3">
                                     <PlacesAutocomplete
                                         value={address}
@@ -368,7 +426,7 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
                                 {selectedImages.map((image, index) => (
                                     <div key={index} className="position-relative m-2">
                                         <img
-                                            src={image}
+                                            src={image.url}
                                             alt={`Selected ${index}`}
                                             className="img-fluid rounded"
                                             style={{ maxHeight: "150px" }}
@@ -376,7 +434,7 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
                                         <button
                                             type="button"
                                             className="btn btn-danger btn-sm position-absolute top-0 end-0"
-                                            onClick={() => handleRemoveImage(image)}
+                                            onClick={() => handleRemoveImage(image.url)}
                                         >
                                             X
                                         </button>

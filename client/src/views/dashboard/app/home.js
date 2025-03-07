@@ -31,10 +31,10 @@ import s5 from "../../../assets/images/page-img/s5.jpg";
 import loader from "../../../assets/images/page-img/page-load-loader.gif";
 import { useSelector, useDispatch } from "react-redux";
 
-import PostHome from "../component/Home/postHome";
 import { getAllPosts } from "../../../services/post";
 import { apiGetPageDetail } from "../../../services/page";
 import CreatePost from "../component/Share/createPost";
+import CardPostHome from "../component/Share/cardPostHome";
 const Index = () => {
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state) => state.root.auth || {});
@@ -292,7 +292,7 @@ const Index = () => {
               ) : (
                 <>
                   {displayPosts.map((post, index) => (
-                    <PostHome
+                    <CardPostHome
                       key={`${post?.documentId}-${index}`}
                       post={post}
                       pageInfo={pageInfoMap[post.page?.documentId]}

@@ -1,0 +1,21 @@
+.action {
+    gap: 1rem;
+    margin-top: -10px;
+    margin-bottom: -10px;
+}
+.post-button {
+    padding-left: 4rem;
+    padding-right: 4rem;
+    border-radius: 1rem;
+    jsutify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+}
+.post-button:hover {
+    background-color: #e9ecef; /* Change to gray on hover */
+}
+.custom-modal-width .modal-dialog {
+    max-width: 33%; /* Adjust the width as needed */
+    max-height: 90%;
+    margin-top: 75px;
+} 

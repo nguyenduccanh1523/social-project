@@ -8,7 +8,7 @@ import icon10 from '../assets/images/icon/10.png'
 import icon11 from '../assets/images/icon/11.png'
 import icon12 from '../assets/images/icon/12.png'
 import icon13 from '../assets/images/icon/13.png'
-
+import { FaShare } from 'react-icons/fa'
 
 const ShareOffcanvas = ({ share }) => {
     const [show, setShow] = useState(false);
@@ -19,10 +19,7 @@ const ShareOffcanvas = ({ share }) => {
         <>
             <div className="d-flex align-items-center feather-icon mt-2 mt-md-0">
                 <div style={{cursor: 'pointer', color: 'rgb(80, 154, 208)'}}  to="#" onClick={handleShow} className="d-flex align-items-center">
-                    <span className="material-symbols-outlined md-18">
-                        share
-                    </span>
-                    <span className="ms-1">{share?.length} Share</span>
+                    <span className="ms-1">{share?.length} <FaShare /></span>
                 </div>  
             </div>
             <Offcanvas show={show} onHide={handleClose}  placement='bottom'>

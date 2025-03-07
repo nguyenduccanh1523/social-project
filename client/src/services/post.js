@@ -124,6 +124,26 @@ export const getAllPosts = ({ page }) =>
 
 
 
+export const apiCreatePost = (payload) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/posts",
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+
+  
+
 
 
 

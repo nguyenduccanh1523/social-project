@@ -7,6 +7,9 @@ import {
   Container,
   Image,
   Modal,
+  Accordion,
+  Tooltip,
+  OverlayTrigger,
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -970,7 +973,7 @@ const Header = () => {
                   variant="d-flex align-items-center"
                 >
                   <Badge count={pendingFriends?.length} size="small">
-                    <span style={{color: 'rgb(80, 154, 208)'}} className="material-symbols-outlined">group</span>
+                    <span style={{ color: 'rgb(80, 154, 208)' }} className="material-symbols-outlined">group</span>
                   </Badge>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="sub-drop sub-drop-large">
@@ -1079,9 +1082,8 @@ const Header = () => {
                                       friendData?.profile_picture ||
                                       "default-profile.png"
                                     } // Avatar hoặc ảnh mặc định
-                                    alt={`${
-                                      friendData?.username || "User"
-                                    }'s profile`}
+                                    alt={`${friendData?.username || "User"
+                                      }'s profile`}
                                     loading="lazy"
                                   />
                                   <div className="ms-3">
@@ -1457,9 +1459,10 @@ const Header = () => {
                         </div>
                       </div>
 
-                      <div className=" iq-sub-card">
-                        <h5>Chat Settings</h5>
-                      </div>
+
+                       {/* su dung Collapse */}
+
+
                       <div className="d-flex align-items-center iq-sub-card border-0">
                         <i className="material-symbols-outlined text-success md-14">
                           circle
@@ -1489,15 +1492,7 @@ const Header = () => {
                 </Dropdown.Menu>
               </Dropdown>
 
-              {/*  <Nav.Item as="li" className="d-lg-none">
-              <Link
-                to="/dashboard/app/profile"
-                className="dropdown-toggle d-flex align-items-center"
-              >
-                <span className="material-symbols-outlined">person</span>
-                <span className="mobile-text  ms-3">Profile</span>
-              </Link>
-      </Nav.Item>*/}
+              
             </ul>
           </Container>
         </Nav>

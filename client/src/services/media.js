@@ -23,3 +23,26 @@ export const apiGetPostMedia = ({ postId }) =>
       reject(error);
     }
   });
+
+export const uploadToMediaLibrary = ({ file }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const formData = new FormData();
+      formData.append("files", file); // Ensure the key is "files"
+      console.log("FormData content:", formData.get("files"));
+
+      const response = await axiosConfig({
+        method: "post",
+        url: "/upload",
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log("Upload response:", response);
+      resolve(response);
+    } catch (error) {
+      console.error("Error uploading file:", error.response || error);
+      reject(error);
+    }
+  });

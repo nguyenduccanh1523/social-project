@@ -57,3 +57,22 @@ export const apiGetTag = (payload) =>
     }
   });
 
+
+export const apiCreatePostTag = (payload) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/post-tags",
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+

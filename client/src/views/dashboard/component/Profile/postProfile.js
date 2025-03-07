@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import Card from "../../../../components/Card";
  
 import { apiGetPostByUserId } from "../../../../services/user";
-import Post from "./post";
+import CardPost from "../Share/cardPost";
 
 
 const PostProfile = ({ userId }) => {
@@ -26,7 +26,7 @@ const PostProfile = ({ userId }) => {
         <>
             {postData.map((post, index) => (
             <Card className="card-block card-stretch card-height" key={index}>
-                <Post post={post} />
+                <CardPost post={post} />
             </Card>
             ))}
         </>
