@@ -31,7 +31,7 @@ import icon6 from "../../../../assets/images/icon/06.png";
 import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
-const CardPostHome = ({ post, pageInfo, newPost, reloadPosts }) => {
+const CardPostHome = ({ post, pageInfo}) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
@@ -63,17 +63,7 @@ const CardPostHome = ({ post, pageInfo, newPost, reloadPosts }) => {
         dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
     }, [post, dispatch]);
 
-    useEffect(() => {
-        if (newPost) {
-            dispatch(fetchPostMedia(newPost.documentId));
-            dispatch(fetchPostTag(newPost.documentId));
-            reloadPosts(); // Reload posts when a new post is created
-            notification.success({
-                message: 'Post Created',
-                description: 'Your post has been created successfully.',
-            });
-        }
-    }, [newPost, dispatch, reloadPosts]);
+
 
     const postMedia = medias[post?.documentId] || [];
     const postTag = tags[post?.documentId] || [];
@@ -491,17 +481,6 @@ const CardPostHome = ({ post, pageInfo, newPost, reloadPosts }) => {
                                                     </OverlayTrigger>
                                                     <OverlayTrigger
                                                         placement="top"
-                                                        overlay={<Tooltip>Happy</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon3}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
                                                         overlay={<Tooltip>HaHa</Tooltip>}
                                                         className="me-2"
                                                     >
@@ -513,33 +492,11 @@ const CardPostHome = ({ post, pageInfo, newPost, reloadPosts }) => {
                                                     </OverlayTrigger>
                                                     <OverlayTrigger
                                                         placement="top"
-                                                        overlay={<Tooltip>Think</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon5}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
                                                         overlay={<Tooltip>Sade</Tooltip>}
                                                         className="me-2"
                                                     >
                                                         <img
                                                             src={icon6}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Lovely</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon7}
                                                             className="img-fluid me-2"
                                                             alt=""
                                                         />
@@ -622,17 +579,6 @@ const CardPostHome = ({ post, pageInfo, newPost, reloadPosts }) => {
                                                     </OverlayTrigger>
                                                     <OverlayTrigger
                                                         placement="top"
-                                                        overlay={<Tooltip>Happy</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon3}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
                                                         overlay={<Tooltip>HaHa</Tooltip>}
                                                         className="me-2"
                                                     >
@@ -644,33 +590,11 @@ const CardPostHome = ({ post, pageInfo, newPost, reloadPosts }) => {
                                                     </OverlayTrigger>
                                                     <OverlayTrigger
                                                         placement="top"
-                                                        overlay={<Tooltip>Think</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon5}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
                                                         overlay={<Tooltip>Sade</Tooltip>}
                                                         className="me-2"
                                                     >
                                                         <img
                                                             src={icon6}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Lovely</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon7}
                                                             className="img-fluid me-2"
                                                             alt=""
                                                         />
