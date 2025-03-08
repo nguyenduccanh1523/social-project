@@ -24,13 +24,7 @@ import { colorsTag, convertToDateTime } from "../../others/format";
 //image
 import user2 from "../../../../assets/images/user/02.jpg";
 import user3 from "../../../../assets/images/user/03.jpg";
-import icon3 from "../../../../assets/images/icon/03.png";
-import icon4 from "../../../../assets/images/icon/04.png";
-import icon5 from "../../../../assets/images/icon/05.png";
-import icon6 from "../../../../assets/images/icon/06.png";
-import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
-import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
 import { ListLike, ListComment } from "./listLikeComment";
 import ActionLike from "./actionLike";
 const CardPost = ({ post, pageInfo }) => {
@@ -99,21 +93,30 @@ const CardPost = ({ post, pageInfo }) => {
 
     //console.log("post", post);
 
-    const [selectedReaction, setSelectedReaction] = useState(null);
+    // const [selectedReaction, setSelectedReaction] = useState(null);
 
-    const handleReactionSelect = (reaction) => {
-        if (selectedReaction === reaction) {
-            setSelectedReaction(null);
-            // Remove the reaction from the post
-            post.reactions = post.reactions.filter(r => r !== reaction);
-        } else {
-            if (selectedReaction) {
-                // Remove the previous reaction
-                post.reactions = post.reactions.filter(r => r !== selectedReaction);
-            }
-            setSelectedReaction(reaction);
-            // Add the new reaction to the post
-            post.reactions.push(reaction);
+    // const handleReactionSelect = (reaction) => {
+    //     if (selectedReaction === reaction) {
+    //         setSelectedReaction(null);
+    //         // Remove the reaction from the post
+    //         post.reactions = post.reactions.filter(r => r !== reaction);
+    //     } else {
+    //         if (selectedReaction) {
+    //             // Remove the previous reaction
+    //             post.reactions = post.reactions.filter(r => r !== selectedReaction);
+    //         }
+    //         setSelectedReaction(reaction);
+    //         // Add the new reaction to the post
+    //         post.reactions.push(reaction);
+    //     }
+    // };
+    const [reactionCount, setReactionCount] = useState(post?.reactions?.length || 0);
+
+    const handleReactionSelect = (reaction, change) => {
+        if (change === 1) {
+            setReactionCount(reactionCount + 1);
+        } else if (change === -1) {
+            setReactionCount(reactionCount - 1);
         }
     };
 
@@ -481,7 +484,7 @@ const CardPost = ({ post, pageInfo }) => {
                                 <div className="total-like-block ms-2 me-3">
                                     <Dropdown>
                                         <Dropdown.Toggle as={CustomToggle} id="post-option">
-                                            {post?.reactions?.length}
+                                            {reactionCount}
                                         </Dropdown.Toggle>
                                         <ListLike listLike={post?.reactions} />
                                     </Dropdown>
