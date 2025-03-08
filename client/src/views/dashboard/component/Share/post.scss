@@ -15,7 +15,12 @@
     background-color: #e9ecef; /* Change to gray on hover */
 }
 .custom-modal-width .modal-dialog {
-    max-width: 42%; /* Adjust the width as needed */
+    @media (min-width: 1536px) { /* PC screen */
+        max-width: 33%;
+    }
+    @media (max-width: 1535px) { /* Desktop screen */
+        max-width: 42%;
+    }
     max-height: 90%;
     margin-top: 75px;
-} 
+}

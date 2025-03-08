@@ -15,6 +15,7 @@ import { convertToVietnamDate } from "../others/format";
 import { colorsTag } from "../others/format";
 import { fetchTag } from "../../../actions/actions/tag";
 import { useDispatch, useSelector } from "react-redux";
+import Loader from "../icons/uiverse/Loading";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -24,7 +25,7 @@ const BlogList = () => {
   const { tags } = useSelector((state) => state.root.tag || {});
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [pageParam, setPageParam] = useState(1);
   const [savedBlogs, setSavedBlogs] = useState([]);
   const [allBlogs, setAllBlogs] = useState([]);
@@ -207,221 +208,229 @@ const BlogList = () => {
               </Card>
             </Col>
           </Row>
-          <Row>
-            {currentPageData.map((blog, blogIndex) => (
-              <Col lg="12" key={blog.id}>
-                <Card
-                  className={`card-block card-stretch card-height blog-list ${blogIndex % 2 !== 0 ? "list-even" : ""
-                    }`}
-                >
-                  <Card.Body>
-                    <Row className="align-items-center">
-                      {blogIndex % 2 === 0 ? (
-                        <>
-                          <Col md="6">
-                            <div className="image-block">
-                              <Image
-                                src={blog?.media?.file_path || blog6}
-                                className="img-fluid rounded w-100"
-                                alt="blog-img"
-                              />
-                            </div>
-                          </Col>
-                          <Col md="6">
-                            <div className="blog-description rounded p-2">
-                              <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                                <div className="date">
-                                  <Link to="#" tabIndex="-1">
-                                    {convertToVietnamDate(blog?.createdAt)}
-                                  </Link>
+          {isLoading ? (
+            <div className="col-sm-12 text-center">
+              <Loader />
+            </div>
+          ) : (
+            <>
+              <Row>
+                {currentPageData.map((blog, blogIndex) => (
+                  <Col lg="12" key={blog.id}>
+                    <Card
+                      className={`card-block card-stretch card-height blog-list ${blogIndex % 2 !== 0 ? "list-even" : ""
+                        }`}
+                    >
+                      <Card.Body>
+                        <Row className="align-items-center">
+                          {blogIndex % 2 === 0 ? (
+                            <>
+                              <Col md="6">
+                                <div className="image-block">
+                                  <Image
+                                    src={blog?.media?.file_path || blog6}
+                                    className="img-fluid rounded w-100"
+                                    alt="blog-img"
+                                  />
                                 </div>
-                                <div
-                                  className="bookmark-icon"
-                                  onClick={() => handleSaveBlog(blog.id)}
-                                  style={{
-                                    cursor: "pointer",
-                                    fontSize: "20px",
-                                    color: "#1890ff",
-                                  }}
-                                >
-                                  {savedBlogs.includes(blog.id) ? (
-                                    <StarFilled />
-                                  ) : (
-                                    <StarOutlined />
-                                  )}
-                                </div>
-                              </div>
-                              <h5
-                                className="mb-2"
-                                onClick={() => handleBlogClick(blog)}
-                                style={{ cursor: "pointer" }}
-                              >
-                                {blog?.title}
-                              </h5>
-                              <p>{blog?.description}</p>
-                              <div className="blog-tags mb-2">
-                                {blogTags[blog?.documentId]?.data?.map((tagItem) => (
-                                  <Tag
-                                    key={tagItem?.tag_id?.id}
-                                    color={colorsTag[blogIndex % colorsTag.length]}
-                                    style={{ marginBottom: '5px' }}
+                              </Col>
+                              <Col md="6">
+                                <div className="blog-description rounded p-2">
+                                  <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
+                                    <div className="date">
+                                      <Link to="#" tabIndex="-1">
+                                        {convertToVietnamDate(blog?.createdAt)}
+                                      </Link>
+                                    </div>
+                                    <div
+                                      className="bookmark-icon"
+                                      onClick={() => handleSaveBlog(blog.id)}
+                                      style={{
+                                        cursor: "pointer",
+                                        fontSize: "20px",
+                                        color: "#1890ff",
+                                      }}
+                                    >
+                                      {savedBlogs.includes(blog.id) ? (
+                                        <StarFilled />
+                                      ) : (
+                                        <StarOutlined />
+                                      )}
+                                    </div>
+                                  </div>
+                                  <h5
+                                    className="mb-2"
+                                    onClick={() => handleBlogClick(blog)}
+                                    style={{ cursor: "pointer" }}
                                   >
-                                    {tagItem?.tag_id?.name}
-                                  </Tag>
-                                ))}
-                              </div>
-                              <Link
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleBlogClick(blog);
-                                }}
-                                to="#"
-                                tabIndex="-1"
-                                className="d-flex align-items-center"
-                              >
-                                Read More{" "}
-                                <i className="material-symbols-outlined md-14 filled">
-                                  arrow_forward_ios
-                                </i>
-                              </Link>
-                              <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                                <div className="iq-media-group d-flex align-items-center">
-                                  <Link to="#" className="iq-media">
-                                    <Image
-                                      className="img-fluid rounded-circle avatar-50"
-                                      src={
-                                        blog?.author?.profile_picture || blog6
-                                      }
-                                      alt="avatar"
-                                    />
-                                  </Link>
-                                  <span className="ms-2">
-                                    {blog?.author?.username || "Anonymous"}
-                                  </span>
-                                </div>
-                                <div className="comment d-flex align-items-center">
-                                  <i className="material-symbols-outlined me-2 md-18">
-                                    chat_bubble_outline
-                                  </i>
-                                  {blog?.commentCount || 0} comments
-                                </div>
-                              </div>
-                            </div>
-                          </Col>
-                        </>
-                      ) : (
-                        <>
-                          <Col md="6">
-                            <div className="blog-description rounded p-2">
-                              <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                                <div
-                                  className="bookmark-icon"
-                                  onClick={() => handleSaveBlog(blog.id)}
-                                  style={{
-                                    cursor: "pointer",
-                                    fontSize: "20px",
-                                    color: "#1890ff",
-                                  }}
-                                >
-                                  {savedBlogs.includes(blog.id) ? (
-                                    <StarFilled />
-                                  ) : (
-                                    <StarOutlined />
-                                  )}
-                                </div>
-                                <div className="date">
-                                  <Link to="#" tabIndex="-1">
-                                    {convertToVietnamDate(blog?.createdAt)}
-                                  </Link>
-                                </div>
-                              </div>
-                              <h5
-                                className="mb-2"
-                                onClick={() => handleBlogClick(blog)}
-                                style={{ cursor: "pointer" }}
-                              >
-                                {blog?.title}
-                              </h5>
-                              <p>{blog?.description}</p>
-                              <div className="blog-tags mb-2">
-                                {blogTags[blog?.documentId]?.data?.map((tagItem) => (
-                                  <Tag
-                                    key={tagItem?.tag_id?.id}
-                                    color={colorsTag[blogIndex % colorsTag.length]}
-                                    style={{ marginBottom: '5px' }}
+                                    {blog?.title}
+                                  </h5>
+                                  <p>{blog?.description}</p>
+                                  <div className="blog-tags mb-2">
+                                    {blogTags[blog?.documentId]?.data?.map((tagItem) => (
+                                      <Tag
+                                        key={tagItem?.tag_id?.id}
+                                        color={colorsTag[blogIndex % colorsTag.length]}
+                                        style={{ marginBottom: '5px' }}
+                                      >
+                                        {tagItem?.tag_id?.name}
+                                      </Tag>
+                                    ))}
+                                  </div>
+                                  <Link
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleBlogClick(blog);
+                                    }}
+                                    to="#"
+                                    tabIndex="-1"
+                                    className="d-flex align-items-center"
                                   >
-                                    {tagItem?.tag_id?.name}
-                                  </Tag>
-                                ))}
-                              </div>
-                              <Link
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  handleBlogClick(blog);
-                                }}
-                                to="#"
-                                tabIndex="-1"
-                              >
-                                Read More{" "}
-                                <i className="material-symbols-outlined md-14 filled">
-                                  arrow_forward_ios
-                                </i>
-                              </Link>
-                              <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
-                                <div className="iq-media-group d-flex align-items-center">
-                                  <Link to="#" className="iq-media">
-                                    <Image
-                                      className="img-fluid rounded-circle avatar-50"
-                                      src={
-                                        blog?.author?.profile_picture || blog6
-                                      }
-                                      alt="avatar"
-                                    />
+                                    Read More{" "}
+                                    <i className="material-symbols-outlined md-14 filled">
+                                      arrow_forward_ios
+                                    </i>
                                   </Link>
-                                  <span className="ms-2">
-                                    {blog?.author?.username || "Anonymous"}
-                                  </span>
+                                  <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
+                                    <div className="iq-media-group d-flex align-items-center">
+                                      <Link to="#" className="iq-media">
+                                        <Image
+                                          className="img-fluid rounded-circle avatar-50"
+                                          src={
+                                            blog?.author?.profile_picture || blog6
+                                          }
+                                          alt="avatar"
+                                        />
+                                      </Link>
+                                      <span className="ms-2">
+                                        {blog?.author?.username || "Anonymous"}
+                                      </span>
+                                    </div>
+                                    <div className="comment d-flex align-items-center">
+                                      <i className="material-symbols-outlined me-2 md-18">
+                                        chat_bubble_outline
+                                      </i>
+                                      {blog?.commentCount || 0} comments
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="comment d-flex align-items-center">
-                                  <i className="material-symbols-outlined me-2 md-18">
-                                    chat_bubble_outline
-                                  </i>
-                                  {blog?.commentCount || 0} comments
+                              </Col>
+                            </>
+                          ) : (
+                            <>
+                              <Col md="6">
+                                <div className="blog-description rounded p-2">
+                                  <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
+                                    <div
+                                      className="bookmark-icon"
+                                      onClick={() => handleSaveBlog(blog.id)}
+                                      style={{
+                                        cursor: "pointer",
+                                        fontSize: "20px",
+                                        color: "#1890ff",
+                                      }}
+                                    >
+                                      {savedBlogs.includes(blog.id) ? (
+                                        <StarFilled />
+                                      ) : (
+                                        <StarOutlined />
+                                      )}
+                                    </div>
+                                    <div className="date">
+                                      <Link to="#" tabIndex="-1">
+                                        {convertToVietnamDate(blog?.createdAt)}
+                                      </Link>
+                                    </div>
+                                  </div>
+                                  <h5
+                                    className="mb-2"
+                                    onClick={() => handleBlogClick(blog)}
+                                    style={{ cursor: "pointer" }}
+                                  >
+                                    {blog?.title}
+                                  </h5>
+                                  <p>{blog?.description}</p>
+                                  <div className="blog-tags mb-2">
+                                    {blogTags[blog?.documentId]?.data?.map((tagItem) => (
+                                      <Tag
+                                        key={tagItem?.tag_id?.id}
+                                        color={colorsTag[blogIndex % colorsTag.length]}
+                                        style={{ marginBottom: '5px' }}
+                                      >
+                                        {tagItem?.tag_id?.name}
+                                      </Tag>
+                                    ))}
+                                  </div>
+                                  <Link
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      handleBlogClick(blog);
+                                    }}
+                                    to="#"
+                                    tabIndex="-1"
+                                  >
+                                    Read More{" "}
+                                    <i className="material-symbols-outlined md-14 filled">
+                                      arrow_forward_ios
+                                    </i>
+                                  </Link>
+                                  <div className="group-smile mt-4 d-flex flex-wrap align-items-center justify-content-between position-right-side">
+                                    <div className="iq-media-group d-flex align-items-center">
+                                      <Link to="#" className="iq-media">
+                                        <Image
+                                          className="img-fluid rounded-circle avatar-50"
+                                          src={
+                                            blog?.author?.profile_picture || blog6
+                                          }
+                                          alt="avatar"
+                                        />
+                                      </Link>
+                                      <span className="ms-2">
+                                        {blog?.author?.username || "Anonymous"}
+                                      </span>
+                                    </div>
+                                    <div className="comment d-flex align-items-center">
+                                      <i className="material-symbols-outlined me-2 md-18">
+                                        chat_bubble_outline
+                                      </i>
+                                      {blog?.commentCount || 0} comments
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            </div>
-                          </Col>
-                          <Col md="6">
-                            <div className="image-block">
-                              <Image
-                                src={blog?.media?.file_path || blog6}
-                                className="img-fluid rounded w-100"
-                                alt="blog-img"
-                              />
-                            </div>
-                          </Col>
-                        </>
-                      )}
-                    </Row>
-                  </Card.Body>
-                </Card>
-              </Col>
-            ))}
-          </Row>
+                              </Col>
+                              <Col md="6">
+                                <div className="image-block">
+                                  <Image
+                                    src={blog?.media?.file_path || blog6}
+                                    className="img-fluid rounded w-100"
+                                    alt="blog-img"
+                                  />
+                                </div>
+                              </Col>
+                            </>
+                          )}
+                        </Row>
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
 
-          <Row className="mt-4 mb-4">
-            <Col lg="12" className="d-flex justify-content-end">
-              <Pagination
-                current={pageParam}
-                total={filteredBlogs.length}
-                pageSize={10}
-                onChange={(page) => setPageParam(page)}
-                showSizeChanger={false}
-                disabled={isLoading}
-                style={{ marginBottom: "20px" }}
-              />
-            </Col>
-          </Row>
+              <Row className="mt-4 mb-4">
+                <Col lg="12" className="d-flex justify-content-end">
+                  <Pagination
+                    current={pageParam}
+                    total={filteredBlogs.length}
+                    pageSize={10}
+                    onChange={(page) => setPageParam(page)}
+                    showSizeChanger={false}
+                    disabled={isLoading}
+                    style={{ marginBottom: "20px" }}
+                  />
+                </Col>
+              </Row>
+            </>
+          )}
         </Container>
       </div>
       <BlogDetail

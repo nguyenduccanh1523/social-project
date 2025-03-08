@@ -5,6 +5,7 @@ import React from "react";
 import { useQuery } from '@tanstack/react-query'
 
 import Card from "../../../../components/Card";
+import Loader from "../../icons/uiverse/Loading";
  
 import { apiGetPostByUserId } from "../../../../services/user";
 import CardPost from "../Share/cardPost";
@@ -18,7 +19,7 @@ const PostProfile = ({ userId }) => {
     });
     const postData = post?.data?.data || [];
 
-    if (isLoading) return <p>Loading...</p>;
+    if (isLoading) return <Loader />;
     if (error) return <p>Error fetching post: {error.message}</p>;
     
 

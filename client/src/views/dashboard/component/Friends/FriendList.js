@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { Input, Pagination } from 'antd';
 //profile-header
 import ProfileHeader from '../../../../components/profile-header'
+import Loader from "../../icons/uiverse/Loading";
 
 // image
 import img1 from '../../../../assets/images/page-img/profile-bg2.jpg'
@@ -40,11 +41,13 @@ const FriendList = () => {
     const [friendList, setFriendList] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(true);
     const pageSize = 88;
     useEffect(() => {
         const fetchFriendList = async () => {
             const response = await apiGetFriendAccepted({ documentId });
             setFriendList(response.data);
+            setIsLoading(false);
         };
         fetchFriendList();
     }, [documentId]);
@@ -109,87 +112,95 @@ const FriendList = () => {
                             </Card>
                         </Col>
                     </Row>
-                    <Row>
-                        {getCurrentPageFriendList()?.map((friend, index) => {
-                            // Kiểm tra documentId và lấy friend_id hoặc user_id tương ứng
-                            const friendData = friend?.user_id?.documentId === documentId ? friend?.friend_id : friend?.user_id;
+                    {isLoading ? (
+                        <div className="col-sm-12 text-center">
+                            <Loader />
+                        </div>
+                    ) : (
+                        <>
+                            <Row>
+                                {getCurrentPageFriendList()?.map((friend, index) => {
+                                    // Kiểm tra documentId và lấy friend_id hoặc user_id tương ứng
+                                    const friendData = friend?.user_id?.documentId === documentId ? friend?.friend_id : friend?.user_id;
 
-                            return (
-                                <Col md={6} key={friendData?.documentId}>
-                                    <Card className="card-block card-stretch card-height">
-                                        <Card.Body className="profile-page p-0">
-                                            <div className="profile-header-image">
-                                                <div className="cover-container">
-                                                    <img loading="lazy" src={images[index % images.length]} alt="profile-bg" className="rounded img-fluid w-100" />
-                                                </div>
-                                                <div className="profile-info p-4">
-                                                    <div className="user-detail">
-                                                        <div className="d-flex flex-wrap justify-content-between align-items-start">
-                                                            <div className="profile-detail d-flex">
-                                                                <div className="profile-img pe-4">
-                                                                    <img loading="lazy" src={friendData?.profile_picture} alt="profile-img" className="avatar-130 img-fluid" />
-                                                                </div>
-                                                                <div className="user-data-block">
-                                                                    <h4>
-                                                                        <Link to={`/friend-profile/${friendData?.documentId}`}
-                                                                            state={{
-                                                                                friendId: friendData
-                                                                            }}
-                                                                        >{friendData?.username || 'Unknown'}</Link>
-                                                                    </h4>
-                                                                    <h6>@{friendData?.username || 'unknown'}</h6>
-                                                                    <p>{friendData?.bio}</p>
-                                                                </div>
-                                                            </div>
+                                    return (
+                                        <Col md={6} key={friendData?.documentId}>
+                                            <Card className="card-block card-stretch card-height">
+                                                <Card.Body className="profile-page p-0">
+                                                    <div className="profile-header-image">
+                                                        <div className="cover-container">
+                                                            <img loading="lazy" src={images[index % images.length]} alt="profile-bg" className="rounded img-fluid w-100" />
+                                                        </div>
+                                                        <div className="profile-info p-4">
+                                                            <div className="user-detail">
+                                                                <div className="d-flex flex-wrap justify-content-between align-items-start">
+                                                                    <div className="profile-detail d-flex">
+                                                                        <div className="profile-img pe-4">
+                                                                            <img loading="lazy" src={friendData?.profile_picture} alt="profile-img" className="avatar-130 img-fluid" />
+                                                                        </div>
+                                                                        <div className="user-data-block">
+                                                                            <h4>
+                                                                                <Link to={`/friend-profile/${friendData?.documentId}`}
+                                                                                    state={{
+                                                                                        friendId: friendData
+                                                                                    }}
+                                                                                >{friendData?.username || 'Unknown'}</Link>
+                                                                            </h4>
+                                                                            <h6>@{friendData?.username || 'unknown'}</h6>
+                                                                            <p>{friendData?.bio}</p>
+                                                                        </div>
+                                                                    </div>
 
-                                                            <div className="card-header-toolbar d-flex align-items-center">
-                                                                <Dropdown>
-                                                                    <Dropdown.Toggle variant="secondary me-2 d-flex align-items-center">
-                                                                        <i className="material-symbols-outlined me-2">
-                                                                            done
-                                                                        </i>
-                                                                        Friend
-                                                                    </Dropdown.Toggle>
-                                                                    <Dropdown.Menu className="dropdown-menu-right">
-                                                                        <Dropdown.Item href="#">
-                                                                            Get Notification
-                                                                        </Dropdown.Item>
-                                                                        <Dropdown.Item href="#">
-                                                                            Close Friend
-                                                                        </Dropdown.Item>
-                                                                        <Dropdown.Item href="#">
-                                                                            Unfollow
-                                                                        </Dropdown.Item>
-                                                                        <Dropdown.Item href="#">
-                                                                            Unfriend
-                                                                        </Dropdown.Item>
-                                                                        <Dropdown.Item href="#">
-                                                                            Block
-                                                                        </Dropdown.Item>
-                                                                    </Dropdown.Menu>
-                                                                </Dropdown>
+                                                                    <div className="card-header-toolbar d-flex align-items-center">
+                                                                        <Dropdown>
+                                                                            <Dropdown.Toggle variant="secondary me-2 d-flex align-items-center">
+                                                                                <i className="material-symbols-outlined me-2">
+                                                                                    done
+                                                                                </i>
+                                                                                Friend
+                                                                            </Dropdown.Toggle>
+                                                                            <Dropdown.Menu className="dropdown-menu-right">
+                                                                                <Dropdown.Item href="#">
+                                                                                    Get Notification
+                                                                                </Dropdown.Item>
+                                                                                <Dropdown.Item href="#">
+                                                                                    Close Friend
+                                                                                </Dropdown.Item>
+                                                                                <Dropdown.Item href="#">
+                                                                                    Unfollow
+                                                                                </Dropdown.Item>
+                                                                                <Dropdown.Item href="#">
+                                                                                    Unfriend
+                                                                                </Dropdown.Item>
+                                                                                <Dropdown.Item href="#">
+                                                                                    Block
+                                                                                </Dropdown.Item>
+                                                                            </Dropdown.Menu>
+                                                                        </Dropdown>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </Card.Body>
-                                    </Card>
+                                                </Card.Body>
+                                            </Card>
+                                        </Col>
+                                    );
+                                })}
+                            </Row>
+                            <Row className="mt-3 mb-3">
+                                <Col lg="12" className="d-flex justify-content-end">
+                                    <Pagination
+                                        current={currentPage}
+                                        total={filteredFriendList?.length || 0}
+                                        pageSize={pageSize}
+                                        onChange={setCurrentPage}
+                                        showSizeChanger={false}
+                                    />
                                 </Col>
-                            );
-                        })}
-                    </Row>
-                    <Row className="mt-3 mb-3">
-                        <Col lg="12" className="d-flex justify-content-end">
-                            <Pagination
-                                current={currentPage}
-                                total={filteredFriendList?.length || 0}
-                                pageSize={pageSize}
-                                onChange={setCurrentPage}
-                                showSizeChanger={false}
-                            />
-                        </Col>
-                    </Row>
+                            </Row>
+                        </>
+                    )}
                 </Container>
             </div>
         </>

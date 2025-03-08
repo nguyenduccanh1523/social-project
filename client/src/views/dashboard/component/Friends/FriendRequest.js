@@ -12,11 +12,11 @@ import Swal from "sweetalert2";
 import {
   apiGetFriendRequest,
   apiGetFriendAccepted,
-  
 } from "../../../../services/friend";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 import FriendMore from "./FriendMore";
+import Loader from "../../icons/uiverse/Loading";
 
 const FriendRequest = () => {
   const { profile } = useSelector((state) => state.root.user || {});
@@ -31,7 +31,6 @@ const FriendRequest = () => {
     queryFn: () => apiGetFriendRequest({ documentId }),
     enabled: !!documentId,
   });
-
 
   const friendRequestData = friendRequest?.data?.data || [];
 
@@ -59,9 +58,9 @@ const FriendRequest = () => {
   }, [friendRequestData]);
 
   // Kiểm tra trạng thái loading và error
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <Loader />;
   if (error) return <div>Error fetching friend requests</div>;
-  
+
   console.log("userFriendCounts", userFriendCounts);
 
   const questionAlert = () => {

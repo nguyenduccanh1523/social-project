@@ -29,7 +29,7 @@ export const uploadToMediaLibrary = ({ file }) =>
     try {
       const formData = new FormData();
       formData.append("files", file); // Ensure the key is "files"
-      console.log("FormData content:", formData.get("files"));
+      //console.log("FormData content:", formData.get("files"));
 
       const response = await axiosConfig({
         method: "post",
@@ -39,10 +39,48 @@ export const uploadToMediaLibrary = ({ file }) =>
           "Content-Type": "multipart/form-data",
         },
       });
-      console.log("Upload response:", response);
+      //console.log("Upload response:", response);
       resolve(response);
     } catch (error) {
       console.error("Error uploading file:", error.response || error);
       reject(error);
     }
   });
+
+export const createMedia = (payload) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/medias",
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      //console.log("Create Media response:", response);
+      resolve(response);
+    } catch (error) {
+      console.error("Error creating media:", error.response || error);
+      reject(error);
+    }
+  });
+
+  export const createPostMedia = (payload) =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const response = await axiosConfig({
+          method: "post",
+          url: "/post-medias",
+          data: payload,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        //console.log("Create Media response:", response);
+        resolve(response);
+      } catch (error) {
+        console.error("Error creating media:", error.response || error);
+        reject(error);
+      }
+    });

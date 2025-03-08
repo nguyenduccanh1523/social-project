@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip, Modal } from "react-bootstrap";
 import { formatDistanceToNow } from "date-fns";
-import { Image, Tag } from "antd";
+import { Image, Tag, notification } from "antd";
 import { useQuery } from '@tanstack/react-query'
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
@@ -31,7 +31,7 @@ import icon6 from "../../../../assets/images/icon/06.png";
 import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
-const CardPost = ({ post, pageInfo }) => {
+const CardPost = ({ post, pageInfo, newPost, reloadPosts }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
@@ -58,10 +58,23 @@ const CardPost = ({ post, pageInfo }) => {
         });
     };
 
+
     useEffect(() => {
         dispatch(fetchPostMedia(post?.documentId)); // Truyền đúng giá trị groupId
         dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
     }, [post, dispatch]);
+
+    useEffect(() => {
+        if (newPost) {
+            dispatch(fetchPostMedia(newPost.documentId));
+            dispatch(fetchPostTag(newPost.documentId));
+            notification.success({
+                message: 'Post Created',
+                description: 'Your post has been created successfully.',
+            });
+            reloadPosts(); // Reload posts when a new post is created
+        }
+    }, [newPost, dispatch, reloadPosts]);
 
     const postMedia = medias[post?.documentId] || [];
     const postTag = tags[post?.documentId] || [];
@@ -134,11 +147,11 @@ const CardPost = ({ post, pageInfo }) => {
                                                             pageDetail: pageInfo?.data
                                                         }
                                             }
-                                            style={{ textDecoration: "none", color: "black" }}>
-                                            {post?.user_id
+                                            style={{ textDecoration: "none" }}>
+                                            <h6>{post?.user_id
                                                 ? post?.user_id?.username
                                                 : pageInfo?.data?.page_name || 'Unknown Page'
-                                            }
+                                            }</h6>
                                         </Link>
                                         {pageInfo?.data?.is_verified && (
                                             <i
@@ -236,7 +249,7 @@ const CardPost = ({ post, pageInfo }) => {
                         </div>
                     </div>
                 </div >
-                <div className="mt-3">
+                <div className="mt-2">
                     {friendNames.length > 0 && (
                         <div className="d-flex flex-wrap">
                             {friends.map((friend, index) => (
@@ -256,7 +269,7 @@ const CardPost = ({ post, pageInfo }) => {
                             ))}
                         </div>
                     )}
-                    <p>
+                    <p className="mt-2">
                         {post?.content?.split('\n').map((line, index) => (
                             <React.Fragment key={index}>
                                 {line}
@@ -285,7 +298,7 @@ const CardPost = ({ post, pageInfo }) => {
                                 alt="post1"
                                 style={{
                                     width: "600px",
-                                    height: "400px",
+                                    height: "auto",
                                     objectFit: "fill",
                                     borderRadius: "8px",
                                     cursor: "pointer",
@@ -306,8 +319,8 @@ const CardPost = ({ post, pageInfo }) => {
                                         alt={`post${index + 1}`}
                                         style={{
                                             width: "100%",
-                                            height: "200px", // Đặt chiều cao cố định
-                                            objectFit: "cover", // Đảm bảo giữ tỷ lệ ảnh
+                                            height: "300px", // Đặt chiều cao cố định
+                                            objectFit: "fill", // Đảm bảo giữ tỷ lệ ảnh
                                             borderRadius: "8px",
                                             cursor: "pointer",
                                         }}

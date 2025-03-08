@@ -13,7 +13,7 @@ import img6 from '../../../assets/images/page-img/profile-bg6.jpg'
 import { apiGetEvent, apiGetEventUser } from '../../../services/event';
 import { getMonthAndDay } from '../others/format';
 import { useSelector } from 'react-redux';
-
+import Loader from "../icons/uiverse/Loading";
 
 const { Search } = Input;
 
@@ -22,6 +22,7 @@ const Events = () => {
     const [eventUser, setEventUser] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(true);
     const pageSize = 9;
 
     const { profile } = useSelector((state) => state.root.user || {});
@@ -36,6 +37,7 @@ const Events = () => {
             } catch (error) {
                 console.error("Error fetching events:", error);
             }
+            setIsLoading(false);
         };
         fetchEvents();
     }, [document]);
@@ -104,72 +106,80 @@ const Events = () => {
                             </Card>
                         </Col>
                     </Row>
-                    <div className="d-grid gap-3 d-grid-template-1fr-19">
-                        {getCurrentPageEvents().map((event) => (
-                            <div key={event.id}>
-                                <Card className="rounded mb-0">
-                                    <div className="image-container" style={{ height: '200px', overflow: 'hidden' }}>
-                                        <div className="event-image-wrapper">
-                                            <Image
-                                                src={event?.banner_id?.file_path}
-                                                className="w-100 h-100"
-                                                style={{
-                                                    height: '100%',
-                                                    width: '100%',
-                                                    objectFit: 'fill'
-                                                }}
-                                                preview={false}
-                                                alt="Event banner"
-                                            />
-                                        </div>
-                                    </div>
-                                    <Card.Body>
-                                        <div className="d-flex">
-                                            <div className="date-of-event">
-                                                <span>{getMonthAndDay(event?.start_time)?.month}</span>
-                                                <h5>{getMonthAndDay(event?.start_time)?.day}</h5>
+                    {isLoading ? (
+                        <div className="col-sm-12 text-center">
+                            <Loader />
+                        </div>
+                    ) : (
+                        <>
+                            <div className="d-grid gap-3 d-grid-template-1fr-19">
+                                {getCurrentPageEvents().map((event) => (
+                                    <div key={event.id}>
+                                        <Card className="rounded mb-0">
+                                            <div className="image-container" style={{ height: '200px', overflow: 'hidden' }}>
+                                                <div className="event-image-wrapper">
+                                                    <Image
+                                                        src={event?.banner_id?.file_path}
+                                                        className="w-100 h-100"
+                                                        style={{
+                                                            height: '100%',
+                                                            width: '100%',
+                                                            objectFit: 'fill'
+                                                        }}
+                                                        preview={false}
+                                                        alt="Event banner"
+                                                    />
+                                                </div>
                                             </div>
-                                            <div className="events-detail ms-3">
-                                                <h5><Link to={`/event-detail/${event?.documentId}`} state={{ eventDetail: event }}>{event?.name}</Link></h5>
-                                                <p>{event?.description}</p>
-                                                <span className="text-dark">+{event?.event_members?.length || 0} members</span>
-                                                <div className="event-member">
-                                                    <div className="d-flex align-items-center justify-content-between mt-2 gap-2">
-                                                        <div className="d-flex gap-2">
-                                                            <button className="btn btn-soft-primary btn-sm d-flex align-items-center gap-2">
-                                                                <span className="material-symbols-outlined">
-                                                                    star_outline
-                                                                </span>
-                                                                Interested
-                                                            </button>
-                                                            <button className="btn btn-primary btn-sm d-flex align-items-center gap-2">
-                                                                <span className="material-symbols-outlined">
-                                                                    person_add_alt
-                                                                </span>
-                                                                Invite
-                                                            </button>
+                                            <Card.Body>
+                                                <div className="d-flex">
+                                                    <div className="date-of-event">
+                                                        <span>{getMonthAndDay(event?.start_time)?.month}</span>
+                                                        <h5>{getMonthAndDay(event?.start_time)?.day}</h5>
+                                                    </div>
+                                                    <div className="events-detail ms-3">
+                                                        <h5><Link to={`/event-detail/${event?.documentId}`} state={{ eventDetail: event }}>{event?.name}</Link></h5>
+                                                        <p>{event?.description}</p>
+                                                        <span className="text-dark">+{event?.event_members?.length || 0} members</span>
+                                                        <div className="event-member">
+                                                            <div className="d-flex align-items-center justify-content-between mt-2 gap-2">
+                                                                <div className="d-flex gap-2">
+                                                                    <button className="btn btn-soft-primary btn-sm d-flex align-items-center gap-2">
+                                                                        <span className="material-symbols-outlined">
+                                                                            star_outline
+                                                                        </span>
+                                                                        Interested
+                                                                    </button>
+                                                                    <button className="btn btn-primary btn-sm d-flex align-items-center gap-2">
+                                                                        <span className="material-symbols-outlined">
+                                                                            person_add_alt
+                                                                        </span>
+                                                                        Invite
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </Card.Body>
-                                </Card>
+                                            </Card.Body>
+                                        </Card>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
 
-                    <Row className="mt-3 mb-3">
-                        <Col lg="12" className="d-flex justify-content-end">
-                            <Pagination
-                                current={currentPage}
-                                total={filteredEvents?.length || 0}
-                                pageSize={pageSize}
-                                onChange={setCurrentPage}
-                                showSizeChanger={false}
-                            />
-                        </Col>
-                    </Row>
+                            <Row className="mt-3 mb-3">
+                                <Col lg="12" className="d-flex justify-content-end">
+                                    <Pagination
+                                        current={currentPage}
+                                        total={filteredEvents?.length || 0}
+                                        pageSize={pageSize}
+                                        onChange={setCurrentPage}
+                                        showSizeChanger={false}
+                                    />
+                                </Col>
+                            </Row>
+                        </>
+                    )}
                 </Container>
             </div>
         </>

@@ -22,7 +22,7 @@ import ButtonPost from "./buttonPost";
 
 const { Option } = Select;
 
-const CreatePost = ({ show, handleClose, profile, page, group }) => {
+const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) => {
     const [showPicker, setShowPicker] = useState(false);
     const [inputText, setInputText] = useState("");
     const [selectedFriends, setSelectedFriends] = useState([]);
@@ -55,7 +55,7 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
     };
 
     const { data: tags } = useQuery({
-        queryKey: ['tags', profile?.documentId || page?.documentId ],
+        queryKey: ['tags', profile?.documentId || page?.documentId],
         queryFn: () => apiGetTag(profile?.documentId || page?.documentId),
         enabled: !!profile?.documentId || !!page?.documentId,
         staleTime: 600000, // 10 minutes
@@ -103,11 +103,12 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
         }
     };
 
-    const handleRemoveImage = (image) => {
-        setSelectedImages((prevImages) => prevImages.filter((img) => img !== image));
+    const handleRemoveImage = (imageUrl) => {
+        setSelectedImages((prevImages) => prevImages.filter((img) => img.url !== imageUrl));
+        setFileList((prevFileList) => prevFileList.filter((file) => file.thumbUrl !== imageUrl));
         // Delay revoking the object URL to ensure it can be re-added
         setTimeout(() => {
-            URL.revokeObjectURL(image);
+            URL.revokeObjectURL(imageUrl);
         }, 100);
     };
 
@@ -140,6 +141,11 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
 
     const handleBannerUpload = ({ file, fileList }) => {
         setFileList(fileList);
+
+        if (file.status === 'removed') {
+            setSelectedImages((prevImages) => prevImages.filter((img) => img.name !== file.name));
+            return;
+        }
 
         if (file.status === 'uploading') {
             setUploading(true);
@@ -242,12 +248,15 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
                                         customRequest={dummyRequest}
                                         onChange={handleBannerUpload}
                                         fileList={fileList}
-                                        onPreview={() => {}}
+                                        onRemove={(file) => handleRemoveImage(file.thumbUrl)}
+                                        onPreview={() => { }}
                                     >
                                         <Button
-                                            icon={<CameraOutlined />}
-                                            className="absolute bottom-2 right-2"
+                                            className="absolute bottom-2 right-2 gap-2 d-flex"
                                         >
+                                            <span className="material-symbols-outlined">
+                                                image
+                                            </span>
                                             Photo/Video
                                         </Button>
                                     </Upload>
@@ -307,50 +316,8 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
                                     </Select>
                                 </div>
                             </li>
-                {/* <li className="col-md-6 mb-3">
-                                <div className="bg-soft-primary rounded p-2 pointer me-3">
-                                    <PlacesAutocomplete
-                                        value={address}
-                                        onChange={setAddress}
-                                        onSelect={handleSelect}
-                                    >
-                                        {({ getInputProps, suggestions, getSuggestionItemProps, loading }) => (
-                                            <div>
-                                                <input
-                                                    {...getInputProps({
-                                                        placeholder: 'Search Places ...',
-                                                        className: 'location-search-input',
-                                                    })}
-                                                    className="form-control"
-                                                />
-                                                <div className="autocomplete-dropdown-container">
-                                                    {loading && <div>Loading...</div>}
-                                                    {suggestions.map(suggestion => {
-                                                        const className = suggestion.active
-                                                            ? 'suggestion-item--active'
-                                                            : 'suggestion-item';
-                                                        // inline style for demonstration purpose
-                                                        const style = suggestion.active
-                                                            ? { backgroundColor: '#fafafa', cursor: 'pointer' }
-                                                            : { backgroundColor: '#ffffff', cursor: 'pointer' };
-                                                        return (
-                                                            <div
-                                                                {...getSuggestionItemProps(suggestion, {
-                                                                    className,
-                                                                    style,
-                                                                })}
-                                                            >
-                                                                <span>{suggestion.description}</span>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </PlacesAutocomplete>
-                                </div>
-                            </li> */}
-            {/* <li className="col-md-6 mb-3">
+                            
+                            {/* <li className="col-md-6 mb-3">
                                 <div className="bg-soft-primary rounded p-2 pointer me-3">
                                     <PlacesAutocomplete
                                         value={address}
@@ -508,7 +475,7 @@ const CreatePost = ({ show, handleClose, profile, page, group }) => {
                             location,
                             selectedImages,
                             visibility,
-                        }} page={page} group={group} />
+                        }} page={page} group={group} handleClose={handleClose} onPostCreated={onPostCreated} />
                     </form>
                 </Modal.Body>
             </Modal>

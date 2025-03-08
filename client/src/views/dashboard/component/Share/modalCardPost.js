@@ -92,8 +92,17 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
     return (
         <>
             <Modal size='lg' className="custom-modal-width" scrollable={true} show={show} onHide={handleClose}>
-                <Modal.Header closeButton>
+                <Modal.Header>
                     <Modal.Title > {post?.user_id?.username || page?.data?.page_name}'s Post </Modal.Title>
+                    <button
+                        type="button"
+                        className="btn btn-secondary lh-1"
+                        onClick={handleClose}
+                    >
+                        <span className="material-symbols-outlined">
+                            close
+                        </span>
+                    </button>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="user-post-data">
@@ -128,8 +137,11 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                                 pageDetail: page?.data
                                                             }
                                                 }
-                                                style={{ textDecoration: "none", color: "black" }}>
-                                                {post?.user_id?.username || page?.data?.page_name}
+                                                style={{ textDecoration: "none"}}>
+                                                <h6>{post?.user_id
+                                                    ? post?.user_id?.username
+                                                    : page?.data?.page_name || 'Unknown Page'
+                                                }</h6>
                                             </Link>
                                         </h5>
                                         <div className="d-flex gap-2">

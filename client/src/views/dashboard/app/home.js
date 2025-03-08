@@ -29,13 +29,15 @@ import { getAllPosts } from "../../../services/post";
 import { apiGetPageDetail } from "../../../services/page";
 import CreatePost from "../component/Share/createPost";
 import CardPostHome from "../component/Share/cardPostHome";
+import Loader from "../icons/uiverse/Loading";
+
 const Index = () => {
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state) => state.root.auth || {});
   const { profile } = useSelector((state) => state.root.user || {});
 
   const [show, setShow] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [displayPosts, setDisplayPosts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -83,6 +85,8 @@ const Index = () => {
         setDisplayPosts(shuffledPosts);
       } catch (error) {
         console.error("Error fetching initial posts:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -281,8 +285,8 @@ const Index = () => {
               </Col>
               {isLoading ? (
                 <div className="col-sm-12 text-center">
-                  <img src={loader} alt="loader" style={{ height: "100px" }} />
-                        </div>
+                  <Loader />
+                </div>
               ) : (
                 <>
                   {displayPosts.map((post, index) => (
@@ -295,11 +299,7 @@ const Index = () => {
 
                   {loadingMore && (
                     <div className="col-sm-12 text-center">
-                      <img
-                        src={loader}
-                        alt="loader"
-                        style={{ height: "100px" }}
-                      />
+                      <Loader />
                     </div>
                   )}
 

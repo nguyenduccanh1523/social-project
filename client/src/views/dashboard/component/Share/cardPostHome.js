@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip, Modal } from "react-bootstrap";
 import { formatDistanceToNow } from "date-fns";
-import { Image, Tag } from "antd";
+import { Image, Tag, notification } from "antd";
 import { useQuery } from '@tanstack/react-query'
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
@@ -31,7 +31,7 @@ import icon6 from "../../../../assets/images/icon/06.png";
 import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
-const CardPostHome = ({ post, pageInfo }) => {
+const CardPostHome = ({ post, pageInfo, newPost, reloadPosts }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
@@ -62,6 +62,18 @@ const CardPostHome = ({ post, pageInfo }) => {
         dispatch(fetchPostMedia(post?.documentId)); // Truyền đúng giá trị groupId
         dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
     }, [post, dispatch]);
+
+    useEffect(() => {
+        if (newPost) {
+            dispatch(fetchPostMedia(newPost.documentId));
+            dispatch(fetchPostTag(newPost.documentId));
+            reloadPosts(); // Reload posts when a new post is created
+            notification.success({
+                message: 'Post Created',
+                description: 'Your post has been created successfully.',
+            });
+        }
+    }, [newPost, dispatch, reloadPosts]);
 
     const postMedia = medias[post?.documentId] || [];
     const postTag = tags[post?.documentId] || [];
@@ -136,10 +148,10 @@ const CardPostHome = ({ post, pageInfo }) => {
                                                                 }
                                                     }
                                                     style={{ textDecoration: "none", color: "black" }}>
-                                                    {post?.user_id
+                                                    <h6>{post?.user_id
                                                         ? post?.user_id?.username
                                                         : pageInfo?.data?.page_name || 'Unknown Page'
-                                                    }
+                                                    }</h6>
                                                 </Link>
                                                 {pageInfo?.data?.is_verified && (
                                                     <i

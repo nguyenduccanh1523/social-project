@@ -91,3 +91,20 @@ export const apiGetFriendMore = ({ documentId }) =>
       reject(error);
     }
   });
+
+export const apiCreatePostFriend = (payload) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/post-friends",
+        data: payload,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });

@@ -13,7 +13,7 @@ import img6 from '../../../../assets/images/page-img/profile-bg6.jpg'
 import { apiGetEventUser, apiGetEventDetail } from '../../../../services/event';
 import { getMonthAndDay } from '../../others/format';
 import { useSelector } from 'react-redux';
-
+import Loader from "../../icons/uiverse/Loading";
 
 const { Search } = Input;
 
@@ -23,6 +23,7 @@ const ProfileEvents = () => {
     const [eventDetail, setEventDetail] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(true);
     const pageSize = 9;
 
     const document = profile?.documentId;
@@ -34,20 +35,19 @@ const ProfileEvents = () => {
                 setEvents(response.data);
             } catch (error) {
                 console.error("Error fetching events:", error);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchEvents();
     }, [document]);
 
-    //console.log("events", events);
     useEffect(() => {
         const fetchEventDetail = async () => {
             if (events && events.data && Array.isArray(events.data)) {
-                //console.log("events", events);
                 const eventDetails = await Promise.all(events.data.map(event =>
                     apiGetEventDetail({ eventId: event?.event_id?.documentId })
                 ));
-                //console.log("eventDetails", eventDetails);
                 setEventDetail(eventDetails);
             } else {
                 console.error("Invalid events structure", events);
@@ -55,7 +55,6 @@ const ProfileEvents = () => {
         };
         fetchEventDetail();
     }, [events]);
-
 
     // Lọc tags theo searchText
     const filteredEvents = eventDetail?.filter(event => {
@@ -75,6 +74,8 @@ const ProfileEvents = () => {
         setSearchText(value);
         setCurrentPage(1); // Reset về trang 1 khi search
     };
+
+    if (isLoading) return <Loader />;
 
     return (
         <>
@@ -171,7 +172,6 @@ const ProfileEvents = () => {
             </div>
         </>
     )
-
 }
 
 export default ProfileEvents;
