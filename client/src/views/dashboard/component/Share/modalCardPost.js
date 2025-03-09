@@ -27,6 +27,7 @@ import icon6 from "../../../../assets/images/icon/06.png";
 import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
+import ActionComment from "./actionComment";
 
 const ModalCardPost = ({ show, handleClose, post, page }) => {
     const dispatch = useDispatch();
@@ -668,51 +669,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
 
                         </div>
                         <hr />
-                        <ul className="post-comments list-inline p-0 m-0">
-                            <li className="mb-2">
-                                <div className="d-flex">
-                                    <div className="user-img">
-                                        <img
-                                            src={user2}
-                                            alt="user1"
-                                            className="avatar-35 rounded-circle img-fluid"
-                                        />
-                                    </div>
-                                    <div className="comment-data-block ms-3">
-                                        <h6>Monty Carlo</h6>
-                                        <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                                        <div className="d-flex flex-wrap align-items-center comment-activity">
-                                            <Link to="#">like</Link>
-                                            <Link to="#">reply</Link>
-                                            <Link to="#">translate</Link>
-                                            <span> 5 min </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                            <li>
-                                <div className="d-flex">
-                                    <div className="user-img">
-                                        <img
-                                            src={user3}
-                                            alt="user1"
-                                            className="avatar-35 rounded-circle img-fluid"
-                                        />
-                                    </div>
-                                    <div className="comment-data-block ms-3">
-                                        <h6>Paul Molive</h6>
-                                        <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                                        <div className="d-flex flex-wrap align-items-center comment-activity">
-                                            <Link to="#">like</Link>
-                                            <Link to="#">reply</Link>
-                                            <Link to="#">translate</Link>
-                                            <span> 5 min </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        </ul>
-
+                        <ActionComment post={post} />
                     </div>
                 </Modal.Body>
                 <form className="comment-text d-flex align-items-center m-2">
