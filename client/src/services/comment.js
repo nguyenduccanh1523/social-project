@@ -84,7 +84,7 @@ export const apiGetPostComment = ({ postId }) =>
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/comments?populate=*&sort=id:DESC&filters[$and][0][post_id][documentId][$eq]=${postId}&filters[$and][1][parent_id][documentId][$null]=true`,
+        url: `/comments?populate=*&sort=createdAt:DESC&filters[$and][0][post_id][documentId][$eq]=${postId}&filters[$and][1][parent_id][documentId][$null]=true`,
       });
       resolve(response);
     } catch (error) {
@@ -97,10 +97,63 @@ export const apiGetPostCommentParent = ({ postId, parentId }) =>
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/comments?populate=*&sort=id:ASC&filters[$and][0][post_id][documentId][$eq]=${postId}&filters[$and][1][parent_id][documentId][$eq]=${parentId}`,
+        url: `/comments?populate=*&sort=createdAt:ASC&filters[$and][0][post_id][documentId][$eq]=${postId}&filters[$and][1][parent_id][documentId][$eq]=${parentId}`,
       });
       resolve(response);
     } catch (error) {
+      reject(error);
+    }
+  });
+
+export const apiCreatePostComment = (payload) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/comments",
+        data: payload,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      //console.log("Post Comment response:", response);
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+export const apiUpdatePostComment = ({ documentId, payload }) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "put",
+        url: `/comments/${documentId}`,
+        data: payload,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      //console.log("Update Comment response:", response);
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+export const apiDeletePostComment = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "delete",
+        url: `/comments/${documentId}`,
+      });
+      console.log("Delete Comment response:", response);
+      resolve(response);
+    } catch (error) {
+      console.error("Error fetching group members:", error.response || error);
       reject(error);
     }
   });

@@ -2,10 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import EmojiPicker from 'emoji-picker-react';
 import Send from "../ShareActionComment/Send";
+import Edit from "./Edit";
 
-const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
+const ReplyEdit = ({  handleReplyEditClose, commentId, inputText}) => {
   const { profile } = useSelector((state) => state.root.user || {});
-  const [comment, setComment] = useState((nested ? `@${nested?.user_id?.username} ` : ''));
+  const [comment, setComment] = useState(inputText);
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef(null);
 
@@ -35,15 +36,17 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
   const handleSendClick = async () => {
     // Logic for sending the comment
     // You can call the Send component's handleSendClick function here if needed
+    setComment(''); // Clear the form data after sending the comment
+    inputText = ''; // Clear the input text after sending the comment
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Add your submit logic here
-    setComment(nested ? `@${nested?.user_id?.username} ` : ''); // Reset the comment
+    setComment(inputText); // Reset the comment
     setShowPicker(false); // Close the emoji picker
     await handleSendClick(); // Call the send function
-    handleReplyFormClose(); // Close the reply form
+    handleReplyEditClose(); // Close the reply form
   };
 
   useEffect(() => {
@@ -109,9 +112,9 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
             >
               emoji_emotions
             </span>
-            <Send formData={{
+            <Edit formData={{
               inputText: comment,
-            }} post={post} parent={parent} nested={nested} profile={profile} handleClose={handleReplyFormClose} />
+            }} handleClose={handleReplyEditClose} commentId={commentId}/>
           </div>
         </form>
       </div>
@@ -124,4 +127,4 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
   );
 };
 
-export default Reply;
+export default ReplyEdit;

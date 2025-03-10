@@ -3,6 +3,7 @@
     margin-top: -10px;
     margin-bottom: -10px;
 }
+
 .post-button {
     padding-left: 4rem;
     padding-right: 4rem;
@@ -11,16 +12,24 @@
     align-items: center;
     gap: 0.2rem;
 }
+
 .post-button:hover {
-    background-color: #e9ecef; /* Change to gray on hover */
+    background-color: #e9ecef;
+    /* Change to gray on hover */
 }
+
 .custom-modal-width .modal-dialog {
-    @media (min-width: 1536px) { /* PC screen */
+    @media (min-width: 1536px) {
+        /* PC screen */
         max-width: 33%;
     }
-    @media (max-width: 1535px) { /* Desktop screen */
+
+    @media (max-width: 1535px) {
+        /* Desktop screen */
         max-width: 42%;
     }
+
     max-height: 90%;
     margin-top: 75px;
 }
+
