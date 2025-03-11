@@ -114,7 +114,7 @@ const MarkPost = () => {
             }));
         }
     }
-    console.log('markPost', markPost);
+    //console.log('markPost', markPost);
 
     // Tính toán tags cho trang hiện tại từ danh sách đã lọc
     const getCurrentPagePostMark = () => {

@@ -76,3 +76,17 @@ export const apiCreatePostTag = (payload) => {
   });
 }
 
+export const apiDeletePostTag = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "delete",
+        url: `/post-tags/${documentId}`,
+      });
+      resolve(response);
+    } catch (error) {
+      console.error("Error deleting post tag:", error.response || error);
+      reject(error);
+    }
+  });
+

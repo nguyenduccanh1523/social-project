@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip, Modal } from "react-bootstrap";
 import { formatDistanceToNow } from "date-fns";
@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
 import { apiGetPostFriend } from "../../../../services/post";
 import { FaRegComment, FaShare } from "react-icons/fa6";
+import EmojiPicker from 'emoji-picker-react';
 // Images import (you can import them or pass them as props)
 
 import { Col } from "react-bootstrap";
@@ -28,6 +29,7 @@ import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
 import ActionComment from "./actionComment";
+import Send from "../ShareActionComment/Send";
 
 const ModalCardPost = ({ show, handleClose, post, page }) => {
     const dispatch = useDispatch();
@@ -36,6 +38,58 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
     const { medias } = useSelector((state) => state.root.media || {});
     const { tags } = useSelector((state) => state.root.tag || {});
     const createdAt = new Date(post?.createdAt);
+
+    const [comment, setComment] = useState((''));
+    const [showPicker, setShowPicker] = useState(false);
+    const pickerRef = useRef(null);
+
+    //console.log("Reply component props:", post, parent, nested);
+
+    const onEmojiClick = (emoji) => {
+        setComment(prevComment => prevComment + emoji.emoji);
+    };
+
+    const handleCommentChange = (e) => {
+        setComment(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            setComment(prevComment => prevComment + '\n');
+        }
+    };
+
+    const handleClickOutside = (event) => {
+        if (pickerRef.current && !pickerRef.current.contains(event.target)) {
+            setShowPicker(false);
+        }
+    };
+
+    const handleSendClick = async () => {
+        // Logic for sending the comment
+        // You can call the Send component's handleSendClick function here if needed
+        setComment(''); // Reset the comment after sending
+    };
+
+    const handleSendSuccess = () => {
+        setComment(''); // Reset the comment after successful send
+    };
+
+    const handleSubmit = async (e) => {
+        console.log('Form data:', comment);
+        e.preventDefault();
+        // Add your submit logic here
+        await handleSendClick(); // Call the send function
+        setShowPicker(false); // Close the emoji picker
+    };
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
 
     const [imageController, setImageController] = useState({
         toggler: false, // Kiểm soát hiển thị gallery
@@ -138,7 +192,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                                 pageDetail: page?.data
                                                             }
                                                 }
-                                                style={{ textDecoration: "none"}}>
+                                                style={{ textDecoration: "none" }}>
                                                 <h6>{post?.user_id
                                                     ? post?.user_id?.username
                                                     : page?.data?.page_name || 'Unknown Page'
@@ -672,25 +726,44 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                         <ActionComment post={post} />
                     </div>
                 </Modal.Body>
-                <form className="comment-text d-flex align-items-center m-2">
-                    <input
-                        type="text"
-                        className="form-control rounded"
-                        placeholder="Enter Your Comment"
-                    />
-                    <div className="comment-attagement d-flex">
-                        <Link to="#">
-                            <i className="ri-link me-3"></i>
-                        </Link>
-                        <Link to="#">
-                            <i className="ri-user-smile-line me-3"></i>
-                        </Link>
-                        <Link to="#">
-                            <i className="ri-camera-line me-3"></i>
-                        </Link>
+                <div className="d-flex justify-content-center align-items-center">
+                    <div className="user-img">
+                        <img
+                            src={profile.profile_picture}
+                            alt="user1"
+                            className="avatar-45 rounded-circle img-fluid"
+                        />
                     </div>
-                </form>
+                    <form className="comment-text d-flex align-items-center m-2" onSubmit={handleSubmit}>
+                        <textarea
+                            className="form-control rounded replyText"
+                            placeholder="Enter Your Comment"
+                            value={comment}
+                            onChange={handleCommentChange}
+                            onKeyDown={handleKeyDown}
+                            rows="3"
+                            style={{ width: "450px", height: "30px", boxShadow: "none", resize: "none" }}
+                        />
+                        <div className="d-flex align-items-center m-1 replyEmoSend gap-2">
+                            <span
+                                className="material-symbols-outlined ms-2"
+                                onClick={() => setShowPicker(!showPicker)}
+                                style={{ cursor: "pointer" }}
+                            >
+                                emoji_emotions
+                            </span>
+                            <Send formData={{
+                                inputText: comment,
+                            }} post={post} profile={profile} onSend={handleSendSuccess} />
+                        </div>
+                    </form>
 
+                </div>
+                {showPicker && (
+                    <div ref={pickerRef} className="replyPicker">
+                        <EmojiPicker onEmojiClick={onEmojiClick} style={{ height: '400px' }} />
+                    </div>
+                )}
             </Modal>
         </>
     );

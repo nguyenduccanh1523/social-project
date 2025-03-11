@@ -150,7 +150,7 @@ export const apiDeletePostComment = ({ documentId }) =>
         method: "delete",
         url: `/comments/${documentId}`,
       });
-      console.log("Delete Comment response:", response);
+      //console.log("Delete Comment response:", response);
       resolve(response);
     } catch (error) {
       console.error("Error fetching group members:", error.response || error);

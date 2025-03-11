@@ -4,7 +4,7 @@ import { apiCreatePostComment, apiUpdatePostComment } from '../../../../services
 import { notification } from 'antd'; // Import notification from antd
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient from react-query
 
-const Send = ({ formData, post, parent, nested, profile, handleClose }) => {
+const Send = ({ formData, post, parent, nested, profile, handleClose, onSend }) => {
   const queryClient = useQueryClient(); // Initialize queryClient
 
   // console.log('Form data:', formData);
@@ -39,6 +39,48 @@ const Send = ({ formData, post, parent, nested, profile, handleClose }) => {
           description: 'Your comment has been created successfully.',
         });
 
+        // Call the onSend callback function
+        if (typeof onSend === 'function') {
+          onSend();
+        }
+        
+        // Close the modal or form if handleClose is a function
+        if (typeof handleClose === 'function') {
+          handleClose();
+        }
+        
+
+        // Invalidate the post query to refresh the data
+        queryClient.invalidateQueries('parentComments');
+      } catch (error) {
+        console.error('Error creating comment:', error);
+      }
+    } else if (post && !parent && !nested ) {
+      // Logic for when only post is present
+      // console.log('Case 3: Only post present');
+      // console.log('Form data:', formData);
+      // console.log('Post:', post);
+      const payload = {
+        data: {
+          post_id: post?.documentId,
+          user_id: profile?.documentId,
+          content: formData.inputText,
+        }
+      };
+      try {
+        const response = await apiCreatePostComment(payload);
+        //console.log('Comment created:', response);
+
+        // Show success notification
+        notification.success({
+          message: 'Comment Created',
+          description: 'Your comment has been created successfully.',
+        });
+
+        // Call the onSend callback function
+        if (typeof onSend === 'function') {
+          onSend();
+        }
         
         // Close the modal or form if handleClose is a function
         if (typeof handleClose === 'function') {
@@ -50,11 +92,6 @@ const Send = ({ formData, post, parent, nested, profile, handleClose }) => {
       } catch (error) {
         console.error('Error creating comment:', error);
       }
-    } else if (post && !parent && !nested ) {
-      // Logic for when only post is present
-      console.log('Case 3: Only post present');
-      console.log('Form data:', formData);
-      console.log('Post:', post);
     } else {
       // Handle other cases if necessary
       console.log('Other case');

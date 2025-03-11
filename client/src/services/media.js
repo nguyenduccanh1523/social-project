@@ -66,21 +66,35 @@ export const createMedia = (payload) =>
     }
   });
 
-  export const createPostMedia = (payload) =>
+export const createPostMedia = (payload) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/post-medias",
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      //console.log("Create Media response:", response);
+      resolve(response);
+    } catch (error) {
+      console.error("Error creating media:", error.response || error);
+      reject(error);
+    }
+  });
+
+  export const apiDeletePostMeida = ({ documentId }) =>
     new Promise(async (resolve, reject) => {
       try {
         const response = await axiosConfig({
-          method: "post",
-          url: "/post-medias",
-          data: payload,
-          headers: {
-            'Content-Type': 'application/json'
-          }
+          method: "delete",
+          url: `/post-medias/${documentId}`,
         });
-        //console.log("Create Media response:", response);
         resolve(response);
       } catch (error) {
-        console.error("Error creating media:", error.response || error);
+        console.error("Error deleting post tag:", error.response || error);
         reject(error);
       }
     });

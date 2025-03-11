@@ -4,15 +4,18 @@ import { CaretDownOutlined, CaretUpOutlined } from "@ant-design/icons";
 import { useQuery } from "@tanstack/react-query";
 import { Dropdown } from "react-bootstrap";
 import {
+  apiDeletePostComment,
   apiGetPostComment,
   apiGetPostCommentParent,
 } from "../../../../services/comment";
 
 import "./post.scss";
-import Reply from "./Reply";
+import Reply from "../ShareActionComment/Reply";
 import { useSelector } from "react-redux";
 import ReplyEdit from "../ShareActionComment/ReplyEdit";
 import { formatDistanceToNow } from "date-fns";
+import { notification, Modal } from 'antd'; // Import notification and Modal from antd
+import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient from react-query
 
 const ActionComment = ({ post }) => {
   const { profile } = useSelector((state) => state.root.user || {});
@@ -21,6 +24,8 @@ const ActionComment = ({ post }) => {
   const [showReplyEdit, setShowReplyEdit] = useState({});
   const [currentParentId, setCurrentParentId] = useState(null); // Quản lý parentId hiện tại
   const [inputText, setInputText] = useState(""); // Add this state to manage input text
+  const queryClient = useQueryClient(); // Initialize queryClient
+
 
   // Fetch parent comments (Cấp 1)
   const { data: parentComments = { data: { data: [] } } } = useQuery({
@@ -97,6 +102,27 @@ const ActionComment = ({ post }) => {
 
   //console.log('ShowReplyFormShowReplyForm:', profile);
 
+  const handleDeleteComment = async (commentId) => {
+    Modal.confirm({
+      title: 'Are you sure you want to delete this comment?',
+      content: 'This action cannot be undone.',
+      onOk: async () => {
+        try {
+          await apiDeletePostComment({ documentId: commentId });
+          // Show success notification
+          notification.success({
+            message: 'Deleted Created',
+            description: 'Your comment has been Deleted successfully.',
+          });
+
+          // Invalidate the post query to refresh the data
+          queryClient.invalidateQueries('parentComments');
+        } catch (error) {
+          console.error("Error deleting reaction:", error);
+        }
+      },
+    });
+  };
 
   return (
     <ul className="post-comments list-inline p-0 m-0">
@@ -148,7 +174,9 @@ const ActionComment = ({ post }) => {
                           </div>
                         </div>
                       </Dropdown.Item>
-                      <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (comment?.user_id?.documentId === profile?.documentId || post?.user_id?.documentId === profile?.documentId) ? 'block' : 'none' }}>
+                      <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (comment?.user_id?.documentId === profile?.documentId || post?.user_id?.documentId === profile?.documentId) ? 'block' : 'none' }}
+                        onClick={() => handleDeleteComment(comment.documentId)}
+                      >
                         <div className="d-flex align-items-top">
                           <i className="material-symbols-outlined">delete</i>
                           <div className="data ms-2">
@@ -264,7 +292,9 @@ const ActionComment = ({ post }) => {
                                         </div>
                                       </div>
                                     </Dropdown.Item>
-                                    <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (nestedComment?.user_id?.documentId === profile?.documentId || post?.user_id?.documentId === profile?.documentId) ? 'block' : 'none' }}>
+                                    <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (nestedComment?.user_id?.documentId === profile?.documentId || post?.user_id?.documentId === profile?.documentId) ? 'block' : 'none' }}
+                                      onClick={() => handleDeleteComment(nestedComment.documentId)}
+                                    >
                                       <div className="d-flex align-items-top">
                                         <i className="material-symbols-outlined">delete</i>
                                         <div className="data ms-2">

@@ -141,6 +141,22 @@ export const apiCreatePost = (payload) =>
     }
   });
 
+export const apiUpdatePost = ({ documentId, payload }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "put",
+        url: `/posts/${documentId}`,
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
 
   
 

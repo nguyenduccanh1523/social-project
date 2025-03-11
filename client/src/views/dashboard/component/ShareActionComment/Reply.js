@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import EmojiPicker from 'emoji-picker-react';
-import Send from "../ShareActionComment/Send";
+import Send from "./Send";
 
-const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
+const Reply = ({ post, parent, nested, handleReplyFormClose }) => {
   const { profile } = useSelector((state) => state.root.user || {});
   const [comment, setComment] = useState((nested ? `@${nested?.user_id?.username} ` : ''));
   const [showPicker, setShowPicker] = useState(false);
@@ -60,8 +60,8 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
         {`
           .replyPicker {
             position: absolute;
-            bottom: 190px;
-            right: 100px;
+            bottom: 150px; /* Adjusted to move below the emoji button */
+            right: 10px; /* Adjusted to align with the emoji button */
             z-index: 1000;
           }
           .replyText {
@@ -73,7 +73,7 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
             height: 30px;
           }
           .replyForm {
-            width: 100%;
+            width: 400px;
             border: 1px solid #e0e0e0;
             border-radius: 20px;
             padding-right: 10px;
@@ -81,6 +81,7 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
           .replyEmoSend {
             display: flex;
             justify-content: space-between;
+            position: relative; /* Added to position the picker relative to this div */
           }
         `}
       </style>
@@ -101,6 +102,7 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
             onKeyDown={handleKeyDown}
             rows="3"
           />
+
           <div className="d-flex align-items-center m-1 replyEmoSend">
             <span
               className="material-symbols-outlined ms-2"
@@ -109,17 +111,20 @@ const Reply = ({ post, parent, nested, handleReplyFormClose}) => {
             >
               emoji_emotions
             </span>
+            {showPicker && (
+              <div ref={pickerRef} className="replyPicker">
+                <EmojiPicker onEmojiClick={onEmojiClick} style={{ height: '400px'}} />
+              </div>
+            )}
             <Send formData={{
               inputText: comment,
             }} post={post} parent={parent} nested={nested} profile={profile} handleClose={handleReplyFormClose} />
           </div>
+
         </form>
+
       </div>
-      {showPicker && (
-        <div ref={pickerRef} className="replyPicker">
-          <EmojiPicker onEmojiClick={onEmojiClick} style={{ height: '400px' }} />
-        </div>
-      )}
+
     </>
   );
 };

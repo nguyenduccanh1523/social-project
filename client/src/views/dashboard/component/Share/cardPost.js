@@ -27,11 +27,13 @@ import user3 from "../../../../assets/images/user/03.jpg";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import { ListLike, ListComment } from "./listLikeComment";
 import ActionLike from "./actionLike";
+import { apiGetPostMedia } from "../../../../services/media";
+import Mark from "./ComponentCardPost/mark";
+import EditPostModal from "./ComponentCardPost/editPost";
 const CardPost = ({ post, pageInfo }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
-    const { medias } = useSelector((state) => state.root.media || {});
     const { tags } = useSelector((state) => state.root.tag || {});
     const createdAt = new Date(post?.createdAt);
 
@@ -41,9 +43,12 @@ const CardPost = ({ post, pageInfo }) => {
     });
 
     const [showCommentModal, setShowCommentModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const handleOpenCommentModal = () => setShowCommentModal(true);
     const handleCloseCommentModal = () => setShowCommentModal(false);
+    const handleOpenEditModal = () => setShowEditModal(true);
+    const handleCloseEditModal = () => setShowEditModal(false);
 
     //console.log("post", post);
     // Hàm xử lý `onClick` khi click vào ảnh
@@ -56,13 +61,20 @@ const CardPost = ({ post, pageInfo }) => {
 
 
     useEffect(() => {
-        dispatch(fetchPostMedia(post?.documentId)); // Truyền đúng giá trị groupId
         dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
     }, [post, dispatch]);
 
+    const { data: postMediaData } = useQuery({
+        queryKey: ['postMedia', post?.documentId],
+        queryFn: () => apiGetPostMedia({ postId: post?.documentId }),
+        enabled: !!post?.documentId,
+        cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
+    });
 
 
-    const postMedia = medias[post?.documentId] || [];
+    const postMedia = postMediaData?.data || [];
+
+
     const postTag = tags[post?.documentId] || [];
 
     const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
@@ -122,7 +134,6 @@ const CardPost = ({ post, pageInfo }) => {
 
     return (
         <>
-
             <Card.Body>
                 <div className="user-post-data">
                     <div className="d-flex justify-content-between">
@@ -207,18 +218,8 @@ const CardPost = ({ post, pageInfo }) => {
                                             </span>
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                            <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                <div className="d-flex align-items-top">
-                                                    <i className="material-symbols-outlined">save</i>
-                                                    <div className="data ms-2">
-                                                        <h6>Save Post</h6>
-                                                        <p className="mb-0">
-                                                            Add this to your saved items
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item className="dropdown-item p-3" to="#">
+                                            <Mark post={post} profile={profile} />
+                                            <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
                                                 <div className="d-flex align-items-top">
                                                     <i className="material-symbols-outlined">edit</i>
                                                     <div className="data ms-2">
@@ -495,7 +496,7 @@ const CardPost = ({ post, pageInfo }) => {
                                     <Dropdown.Toggle as={CustomToggle} id="post-option">
                                         {post?.comments?.length} <FaRegComment />
                                     </Dropdown.Toggle>
-                                    <ListComment listComment={post?.comments} />
+                                    <ListComment listComment={post} />
                                 </Dropdown>
                             </div>
                         </div>
@@ -583,6 +584,15 @@ const CardPost = ({ post, pageInfo }) => {
                 </div>
             </Card.Body >
             <ModalCardPost show={showCommentModal} handleClose={handleCloseCommentModal} post={post} page={pageInfo} />
+            <EditPostModal
+                show={showEditModal}
+                handleClose={handleCloseEditModal}
+                post={post}
+                page={pageInfo}
+                friends={friends}
+                validTags={validTags}
+                validSources={validSources}
+            />
         </>
     );
 };

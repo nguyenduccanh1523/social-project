@@ -39,18 +39,26 @@ const ListLike = ({ listLike }) => {
 };
 
 const ListComment = ({ listComment }) => {
+    //console.log("ListComment:", listComment);
     const { data: commentsData, isLoading: isCommentsLoading } = useQuery({
         queryKey: ['commentsData', listComment],
         queryFn: async () => {
-            const data = await Promise.all(
-                listComment.map((comment) => apiGetPostComment({ documentId: comment.documentId }))
-            );
-            return data.map(response => response.data);
+            const response = await apiGetPostComment({ postId: listComment.documentId });
+            //console.log("Comments data:", response);
+            return response.data?.data;
         },
-        enabled: !!listComment.length,
+        enabled: !!listComment.documentId,
         staleTime: 5 * 60 * 1000, // 5 minutes
         cacheTime: 10 * 60 * 1000, // 10 minutes
     });
+    //console.log("Comments data:", commentsData);
+
+    // Filter out duplicate comments based on user_id.documentId
+    const uniqueComments = commentsData?.filter((comment, index, self) =>
+        index === self.findIndex((c) => (
+            c?.user_id?.documentId === comment?.user_id?.documentId
+        ))
+    );
 
     return (
         <Dropdown.Menu>
@@ -58,10 +66,10 @@ const ListComment = ({ listComment }) => {
                 <Dropdown.Item href="#">
                     Loading...
                 </Dropdown.Item>
-            ) : commentsData && commentsData.length > 0 ? (
-                commentsData.map((comment, index) => (
+            ) : uniqueComments && uniqueComments.length > 0 ? (
+                uniqueComments?.map((comment, index) => (
                     <Dropdown.Item key={index} href="#">
-                        {comment?.data?.user_id?.username}
+                        {comment?.user_id?.username}
                     </Dropdown.Item>
                 ))
             ) : (
