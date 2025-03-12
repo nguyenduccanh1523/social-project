@@ -19,17 +19,12 @@ import { colorsTag, convertToDateTime } from "../../others/format";
 import "./post.scss";
 
 //image
-import user2 from "../../../../assets/images/user/02.jpg";
-import user3 from "../../../../assets/images/user/03.jpg";
-import icon3 from "../../../../assets/images/icon/03.png";
-import icon4 from "../../../../assets/images/icon/04.png";
-import icon5 from "../../../../assets/images/icon/05.png";
-import icon6 from "../../../../assets/images/icon/06.png";
-import icon7 from "../../../../assets/images/icon/07.png";
+
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
-import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
 import ActionComment from "./actionComment";
 import Send from "../ShareActionComment/Send";
+import ActionLike from "./actionLike";
+import { ListComment, ListLike } from "./listLikeComment";
 
 const ModalCardPost = ({ show, handleClose, post, page }) => {
     const dispatch = useDispatch();
@@ -144,6 +139,16 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
 
     const friendNames = friends?.map(friend => friend?.users_permissions_user?.username) || [];
 
+    const [reactionCount, setReactionCount] = useState(post?.reactions?.length || 0);
+
+    const handleReactionSelect = (reaction, change) => {
+        if (change === 1) {
+            setReactionCount(reactionCount + 1);
+        } else if (change === -1) {
+            setReactionCount(reactionCount - 1);
+        }
+    };
+
     return (
         <>
             <Modal size='lg' className="custom-modal-width" scrollable={true} show={show} onHide={handleClose}>
@@ -219,65 +224,6 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                         </div>
                                     </div>
 
-                                    <div className="card-post-toolbar">
-                                        <Dropdown>
-                                            <Dropdown.Toggle variant="bg-transparent">
-                                                <span className="material-symbols-outlined">
-                                                    more_horiz
-                                                </span>
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                                <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                    <div className="d-flex align-items-top">
-                                                        <i className="material-symbols-outlined">save</i>
-                                                        <div className="data ms-2">
-                                                            <h6>Save Post</h6>
-                                                            <p className="mb-0">
-                                                                Add this to your saved items
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                    <div className="d-flex align-items-top">
-                                                        <i className="material-symbols-outlined">edit</i>
-                                                        <div className="data ms-2">
-                                                            <h6>Edit Post</h6>
-                                                            <p className="mb-0">
-                                                                Update your post and saved items
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                    <div className="d-flex align-items-top">
-                                                        <i className="material-symbols-outlined">
-                                                            delete
-                                                        </i>
-                                                        <div className="data ms-2">
-                                                            <h6>Delete</h6>
-                                                            <p className="mb-0">
-                                                                Remove thids Post on Timeline
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                    <div className="d-flex align-items-top">
-                                                        <i className="material-symbols-outlined">
-                                                            report_problem
-                                                        </i>
-                                                        <div className="data ms-2">
-                                                            <h6>Report</h6>
-                                                            <p className="mb-0">
-                                                                Report this post
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -322,12 +268,13 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                         ))}
                     </div>
                     <div className="user-post mt-3">
-                        <Image.PreviewGroup>
+                        <Image.PreviewGroup preview={false}>
                             {Array.isArray(validSources) && validSources.length === 1 && (
                                 // 1 ảnh full chiều rộng
                                 <Image
                                     src={validSources[0]}
                                     alt="post1"
+                                    preview={false} // Disable preview
                                     style={{
                                         width: "600px",
                                         height: "400px",
@@ -349,6 +296,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                             key={index}
                                             src={src}
                                             alt={`post${index + 1}`}
+                                            preview={false} // Disable preview
                                             style={{
                                                 width: "100%",
                                                 height: "200px", // Đặt chiều cao cố định
@@ -377,6 +325,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                             key={index}
                                             src={src}
                                             alt={`post${index + 1}`}
+                                            preview={false} // Disable preview
                                             style={{
                                                 width: "100%",
                                                 height: "100%", // Đảm bảo chiều cao được tự động giãn
@@ -421,7 +370,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                             }}
                                         >
                                             <Image
-                                                preview={false} // Tắt preview mặc định
+                                                preview={false} // Disable preview
                                                 src={src}
                                                 alt={`post${index + 1}`}
                                                 style={{
@@ -498,120 +447,23 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                             <Dropdown.Toggle as={CustomToggle}>
                                                 <img src={icon1} className="img-fluid" alt="" />
                                             </Dropdown.Toggle>
-                                            <Dropdown.Menu className=" py-2">
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Like</Tooltip>}
-                                                    className="ms-2 me-2"
-                                                >
-                                                    <img
-                                                        src={icon1}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Love</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon2}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Happy</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon3}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>HaHa</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon4}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Think</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon5}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Sade</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon6}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Lovely</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon7}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                            </Dropdown.Menu>
                                         </Dropdown>
                                     </div>
                                     <div className="total-like-block ms-2 me-3">
                                         <Dropdown>
                                             <Dropdown.Toggle as={CustomToggle} id="post-option">
-                                                140
+                                                {reactionCount}
                                             </Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item href="#">Max Emum</Dropdown.Item>
-                                                <Dropdown.Item href="#">Bill Yerds</Dropdown.Item>
-                                                <Dropdown.Item href="#">
-                                                    Hap E. Birthday
-                                                </Dropdown.Item>
-                                                <Dropdown.Item href="#">Tara Misu</Dropdown.Item>
-                                                <Dropdown.Item href="#">Midge Itz</Dropdown.Item>
-                                                <Dropdown.Item href="#">Sal Vidge</Dropdown.Item>
-                                                <Dropdown.Item href="#">Other</Dropdown.Item>
-                                            </Dropdown.Menu>
+                                            <ListLike listLike={post?.reactions} />
                                         </Dropdown>
                                     </div>
                                 </div>
                                 <div className="total-comment-block">
                                     <Dropdown>
                                         <Dropdown.Toggle as={CustomToggle} id="post-option">
-                                            20 <FaRegComment />
+                                            {post?.comments?.length} <FaRegComment />
                                         </Dropdown.Toggle>
-                                        <Dropdown.Menu>
-                                            <Dropdown.Item href="#">Max Emum</Dropdown.Item>
-                                            <Dropdown.Item href="#">Bill Yerds</Dropdown.Item>
-                                            <Dropdown.Item href="#">Hap E. Birthday</Dropdown.Item>
-                                            <Dropdown.Item href="#">Tara Misu</Dropdown.Item>
-                                            <Dropdown.Item href="#">Midge Itz</Dropdown.Item>
-                                            <Dropdown.Item href="#">Sal Vidge</Dropdown.Item>
-                                            <Dropdown.Item href="#">Other</Dropdown.Item>
-                                        </Dropdown.Menu>
+                                        <ListComment listComment={post} />
                                     </Dropdown>
                                 </div>
                             </div>
@@ -621,96 +473,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
 
                         <div className="d-flex justify-content-between align-items-center flex-wrap action">
                             <div className="like-block position-relative d-flex align-items-center">
-                                <div className="d-flex align-items-center ">
-                                    <div className="like-data">
-                                        <Dropdown>
-                                            <Dropdown.Toggle as={CustomToggle}>
-                                                <button className="btn btn-white d-flex align-items-center post-button">
-                                                    <span className="material-symbols-outlined">thumb_up</span> <h6>Like</h6>
-                                                </button>
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu className=" py-2">
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Like</Tooltip>}
-                                                    className="ms-2 me-2"
-                                                >
-                                                    <img
-                                                        src={icon1}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Love</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon2}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Happy</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon3}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>HaHa</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon4}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Think</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon5}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Sade</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon6}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                                <OverlayTrigger
-                                                    placement="top"
-                                                    overlay={<Tooltip>Lovely</Tooltip>}
-                                                    className="me-2"
-                                                >
-                                                    <img
-                                                        src={icon7}
-                                                        className="img-fluid me-2"
-                                                        alt=""
-                                                    />
-                                                </OverlayTrigger>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    </div>
-                                </div>
+                                <ActionLike post={post} onSelect={handleReactionSelect} />
                                 <div className="total-comment-block">
                                     <button className="btn btn-white d-flex align-items-center post-button" onClick={handleOpenCommentModal}>
                                         <FaRegComment /> <h6>Comment</h6>
@@ -720,7 +483,6 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                     <FaShare /> <h6>Share</h6>
                                 </button>
                             </div>
-
                         </div>
                         <hr />
                         <ActionComment post={post} />
@@ -765,6 +527,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                     </div>
                 )}
             </Modal>
+
         </>
     );
 };

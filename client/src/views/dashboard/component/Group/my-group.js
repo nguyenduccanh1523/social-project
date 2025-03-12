@@ -1,26 +1,26 @@
 import React, { useEffect } from "react";
 import { Container } from "react-bootstrap";
-import Card from "../../../components/Card";
+import Card from "../../../../components/Card";
 import { Link } from "react-router-dom";
-import ProfileHeader from "../../../components/profile-header";
+import ProfileHeader from "../../../../components/profile-header";
 
 // images
-import user05 from "../../../assets/images/user/05.jpg";
-import img1 from "../../../assets/images/page-img/profile-bg1.jpg";
-import img2 from "../../../assets/images/page-img/profile-bg2.jpg";
-import img3 from "../../../assets/images/page-img/profile-bg3.jpg";
-import img4 from "../../../assets/images/page-img/profile-bg4.jpg";
-import img5 from "../../../assets/images/page-img/profile-bg5.jpg";
-import img6 from "../../../assets/images/page-img/profile-bg6.jpg";
-import img7 from "../../../assets/images/page-img/profile-bg7.jpg";
-import img9 from "../../../assets/images/page-img/profile-bg9.jpg";
+import user05 from "../../../../assets/images/user/05.jpg";
+import img1 from "../../../../assets/images/page-img/profile-bg1.jpg";
+import img2 from "../../../../assets/images/page-img/profile-bg2.jpg";
+import img3 from "../../../../assets/images/page-img/profile-bg3.jpg";
+import img4 from "../../../../assets/images/page-img/profile-bg4.jpg";
+import img5 from "../../../../assets/images/page-img/profile-bg5.jpg";
+import img6 from "../../../../assets/images/page-img/profile-bg6.jpg";
+import img7 from "../../../../assets/images/page-img/profile-bg7.jpg";
+import img9 from "../../../../assets/images/page-img/profile-bg9.jpg";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
   fetchFindOneGroup,
   fetchGroupMembers,
   fetchMyGroup,
-} from "../../../actions/actions";
+} from "../../../../actions/actions";
 
 const MyGroups = () => {
   const dispatch = useDispatch();
@@ -94,7 +94,7 @@ const MyGroups = () => {
                         <h4>
                           <Link
                             to={`/group-detail/${groupId}`}
-                            state={{ oldData: groupDetailsAvailable }}
+                            state={{ documentId: groupDetailsAvailable?.documentId }}
                           >
                             {groupName}
                           </Link>

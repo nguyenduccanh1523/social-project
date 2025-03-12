@@ -5,10 +5,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip, Modal } from "react-bootstrap";
 import { formatDistanceToNow } from "date-fns";
 import { Image, Tag, notification } from "antd";
-import { useQuery } from '@tanstack/react-query'
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
-import { apiGetPostFriend } from "../../../../services/post";
+import { apiDeletePost, apiGetPostFriend } from "../../../../services/post";
 import { FaRegComment, FaShare } from "react-icons/fa6";
 import ModalCardPost from "./modalCardPost";
 import "./post.scss";
@@ -22,14 +21,16 @@ import ShareOffcanvas from "../../../../components/share-offcanvas";
 import { colorsTag, convertToDateTime } from "../../others/format";
 
 //image
-import user2 from "../../../../assets/images/user/02.jpg";
-import user3 from "../../../../assets/images/user/03.jpg";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import { ListLike, ListComment } from "./listLikeComment";
 import ActionLike from "./actionLike";
 import { apiGetPostMedia } from "../../../../services/media";
 import Mark from "./ComponentCardPost/mark";
 import EditPostModal from "./ComponentCardPost/editPost";
+import { apiGetPostComment } from "../../../../services/comment";
+import { Modal as AntdModal } from 'antd';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+
 const CardPost = ({ post, pageInfo }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -49,6 +50,9 @@ const CardPost = ({ post, pageInfo }) => {
     const handleCloseCommentModal = () => setShowCommentModal(false);
     const handleOpenEditModal = () => setShowEditModal(true);
     const handleCloseEditModal = () => setShowEditModal(false);
+    const queryClient = useQueryClient();
+
+    
 
     //console.log("post", post);
     // Hàm xử lý `onClick` khi click vào ảnh
@@ -71,6 +75,11 @@ const CardPost = ({ post, pageInfo }) => {
         cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
     });
 
+    const { data: parentComments = { data: { data: [] } } } = useQuery({
+        queryKey: ["parentComments", post.documentId],
+        queryFn: () => apiGetPostComment({ postId: post.documentId }),
+        enabled: !!post.documentId,
+    });
 
     const postMedia = postMediaData?.data || [];
 
@@ -103,25 +112,6 @@ const CardPost = ({ post, pageInfo }) => {
 
     const friendNames = friends?.map(friend => friend?.users_permissions_user?.username) || [];
 
-    //console.log("post", post);
-
-    // const [selectedReaction, setSelectedReaction] = useState(null);
-
-    // const handleReactionSelect = (reaction) => {
-    //     if (selectedReaction === reaction) {
-    //         setSelectedReaction(null);
-    //         // Remove the reaction from the post
-    //         post.reactions = post.reactions.filter(r => r !== reaction);
-    //     } else {
-    //         if (selectedReaction) {
-    //             // Remove the previous reaction
-    //             post.reactions = post.reactions.filter(r => r !== selectedReaction);
-    //         }
-    //         setSelectedReaction(reaction);
-    //         // Add the new reaction to the post
-    //         post.reactions.push(reaction);
-    //     }
-    // };
     const [reactionCount, setReactionCount] = useState(post?.reactions?.length || 0);
 
     const handleReactionSelect = (reaction, change) => {
@@ -131,6 +121,25 @@ const CardPost = ({ post, pageInfo }) => {
             setReactionCount(reactionCount - 1);
         }
     };
+
+    const handleDeletePost = async () => {
+        AntdModal.confirm({
+            title: 'Are you sure you want to delete this post?',
+            onOk: async () => {
+                try {
+                    await apiDeletePost({ documentId: post?.documentId });
+                    notification.success({
+                        message: "Delete Post",
+                        description: "Post deleted successfully",
+                    });
+                    queryClient.invalidateQueries('post');
+
+                } catch (error) {
+                    console.error('Error deleting friend:', error);
+                }
+            },
+        });
+    }
 
     return (
         <>
@@ -230,7 +239,7 @@ const CardPost = ({ post, pageInfo }) => {
                                                     </div>
                                                 </div>
                                             </Dropdown.Item>
-                                            <Dropdown.Item className="dropdown-item p-3" to="#">
+                                            <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleDeletePost}>
                                                 <div className="d-flex align-items-top">
                                                     <i className="material-symbols-outlined">
                                                         delete
@@ -519,67 +528,59 @@ const CardPost = ({ post, pageInfo }) => {
                     </div>
 
                     <hr />
+
                     <ul className="post-comments list-inline p-0 m-0">
-                        <li className="mb-2">
-                            <div className="d-flex">
-                                <div className="user-img">
-                                    <img
-                                        src={user2}
-                                        alt="user1"
-                                        className="avatar-35 rounded-circle img-fluid"
-                                    />
-                                </div>
-                                <div className="comment-data-block ms-3">
-                                    <h6>Monty Carlo</h6>
-                                    <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                                    <div className="d-flex flex-wrap align-items-center comment-activity">
-                                        <Link to="#">like</Link>
-                                        <Link to="#">reply</Link>
-                                        <Link to="#">translate</Link>
-                                        <span> 5 min </span>
+                        {parentComments.data.data.length === 0 ? (
+                            <li className="mb-2 text-center">
+                                <p>No comments available.</p>
+                            </li>
+                        ) : (
+                            parentComments.data.data.slice(0, 2).map((comment) => (
+                                <li className="mb-2" key={comment.documentId}>
+                                    <div className="d-flex">
+                                        <div className="user-img">
+                                            <img
+                                                src={comment.user_id.profile_picture}
+                                                alt="user1"
+                                                className="avatar-35 rounded-circle img-fluid"
+                                            />
+                                        </div>
+                                        <div className="comment-data-block ms-3">
+                                            <h6>{comment.user_id.username}</h6>
+                                            <div className="d-flex flex-wrap align-items-center">
+                                                <p className="mb-0">
+                                                    {comment.content.split("\n").map((line, index) => (
+                                                        <React.Fragment key={index}>
+                                                            {line}
+                                                            <br />
+                                                        </React.Fragment>
+                                                    ))}
+                                                </p>
+                                            </div>
+
+                                            <div className="d-flex flex-wrap align-items-center comment-activity">
+
+                                                <Link to="#" onClick={handleOpenCommentModal}>
+                                                    Reply
+                                                </Link>
+                                                <span>
+                                                    {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                                                </span>
+                                            </div>
+
+
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        </li>
-                        <li>
-                            <div className="d-flex">
-                                <div className="user-img">
-                                    <img
-                                        src={user3}
-                                        alt="user1"
-                                        className="avatar-35 rounded-circle img-fluid"
-                                    />
-                                </div>
-                                <div className="comment-data-block ms-3">
-                                    <h6>Paul Molive</h6>
-                                    <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                                    <div className="d-flex flex-wrap align-items-center comment-activity">
-                                        <Link to="#">like</Link>
-                                        <Link to="#">reply</Link>
-                                        <Link to="#">translate</Link>
-                                        <span> 5 min </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
+                                </li>
+                            ))
+                        )}
                     </ul>
-                    <form className="comment-text d-flex align-items-center mt-3">
+                    <form className="comment-text d-flex align-items-center mt-3" onClick={handleOpenCommentModal}>
                         <input
                             type="text"
                             className="form-control rounded"
                             placeholder="Enter Your Comment"
                         />
-                        <div className="comment-attagement d-flex">
-                            <Link to="#">
-                                <i className="ri-link me-3"></i>
-                            </Link>
-                            <Link to="#">
-                                <i className="ri-user-smile-line me-3"></i>
-                            </Link>
-                            <Link to="#">
-                                <i className="ri-camera-line me-3"></i>
-                            </Link>
-                        </div>
                     </form>
                 </div>
             </Card.Body >

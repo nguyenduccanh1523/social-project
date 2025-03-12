@@ -158,6 +158,19 @@ export const apiUpdatePost = ({ documentId, payload }) =>
     }
   });
 
+export const apiDeletePost = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "delete",
+        url: `/posts/${documentId}`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
   
 
 
