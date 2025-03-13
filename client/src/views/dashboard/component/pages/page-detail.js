@@ -571,7 +571,7 @@ const PageDetail = () => {
                   </Card>
                 )}
                 {postPage.map((post, index) => (
-                  <Card className="card-block card-stretch card-height" key={index}>
+                  <Card key={index}>
                     <CardPost post={post} />
                   </Card>
                 ))}
