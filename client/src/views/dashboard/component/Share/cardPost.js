@@ -32,6 +32,7 @@ import { Modal as AntdModal } from 'antd';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 const CardPost = ({ post, pageInfo }) => {
+    console.log("post", post);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
@@ -53,8 +54,6 @@ const CardPost = ({ post, pageInfo }) => {
     const queryClient = useQueryClient();
 
     
-
-    //console.log("post", post);
     // Hàm xử lý `onClick` khi click vào ảnh
     const handleImageClick = (index) => {
         setImageController({

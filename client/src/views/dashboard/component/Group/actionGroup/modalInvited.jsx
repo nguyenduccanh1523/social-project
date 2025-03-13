@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Button, Form, ListGroup, Row, Col } from 'react-bootstrap';
 import { Input, notification } from 'antd';
 import { apiGetFriendAccepted } from '../../../../../services/friend';
-import { apiCreateGroupInvited, apiGetGroupFriend } from '../../../../../services/group';
+import { apiCreateGroupInvited, apiGetGroupFriend, apiGetGroupInvationFriend, apiEditGroupInvited } from '../../../../../services/groupServices/group';
 
 const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
     const [selectedFriends, setSelectedFriends] = useState([]);
@@ -67,19 +67,38 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
     };
 
     const handleSendInvitation = async () => {
-        const payloads = selectedFriends.map(friend => ({
-            data: {
-                group_id: oldData.documentId,
-                invited_by: profile.documentId,
-                invited_to: friend.documentId,
-                invitaion_status: 'pending',
-            }
-        }));
-
         try {
-            await Promise.all(payloads.map(payload => apiCreateGroupInvited(payload)));
+            await Promise.all(selectedFriends.map(async (friend) => {
+                const response = await apiGetGroupInvationFriend({
+                    groupId: oldData.documentId,
+                    userId: profile.documentId,
+                    friendId: friend.documentId
+                });
+
+                if (response.data?.data?.length > 0) {
+                    const invitationId = response.data.data[0].documentId;
+                    const payload = {
+                        data: {
+                            status_action: 'w1t6ex59sh5auezhau5e2ovu'
+                        }
+                    };
+                    await apiEditGroupInvited({
+                        documentId: invitationId,
+                        payload: payload
+                    });
+                } else {
+                    await apiCreateGroupInvited({
+                        data: {
+                            group_id: oldData.documentId,
+                            invited_by: profile.documentId,
+                            invited_to: friend.documentId,
+                            status_action: 'w1t6ex59sh5auezhau5e2ovu',
+                        }
+                    });
+                }
+            }));
+
             const invitedFriendNames = selectedFriends.map(friend => friend.username).join(', ');
-            console.log('Friends invited:', selectedFriends);
             notification.success({
                 message: 'Success',
                 description: `Friends have been successfully invited: ${invitedFriendNames}`
@@ -140,7 +159,6 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
                         <Col>
                             <h5>Selected Friends</h5>
                             <ListGroup>
-                                {console.log('sss', selectedFriends)}
                                 {selectedFriends.map((friendData) => (
                                     <ListGroup.Item key={friendData?.documentId} className="d-flex justify-content-between align-items-center">
                                         {friendData.username}
@@ -161,9 +179,11 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
                 <Button variant="secondary" onClick={handleClose}>
                     Cancel
                 </Button>
-                <Button variant="primary" onClick={handleSendInvitation}>
-                    Send invitation
-                </Button>
+                {selectedFriends.length > 0 && (
+                    <Button variant="primary" onClick={handleSendInvitation}>
+                        Send invitation
+                    </Button>
+                )}
             </Modal.Footer>
         </Modal>
     );

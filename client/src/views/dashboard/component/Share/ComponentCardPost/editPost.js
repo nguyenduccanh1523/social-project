@@ -7,7 +7,6 @@ import {
 } from "react-bootstrap";
 import { Select, notification, Upload } from 'antd';
 import EmojiPicker from 'emoji-picker-react';
-import { CameraOutlined } from '@ant-design/icons';
 import "react-toastify/ReactToastify.css";
 import { useGeolocated } from "react-geolocated";
 import PlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-places-autocomplete';

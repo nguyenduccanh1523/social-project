@@ -8,6 +8,8 @@ import img7 from "../../../assets/images/page-img/profile-bg1.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTag } from "../../../actions/actions/tag";
 import { tagIcons, tagColorMap } from "../icons/frontendIcon.js/iconTags";
+import { apiGetPageTag } from "../../../services/tag";
+import { useQuery } from '@tanstack/react-query';
 
 const { Search } = Input;
 
@@ -28,6 +30,30 @@ const Pages = () => {
     const searchLower = searchText.toLowerCase().trim();
     return !searchText || tag?.name?.toLowerCase().includes(searchLower);
   });
+
+  const { data: pageCounts, refetch: refetchPageCounts } = useQuery({
+    queryKey: ['pageCounts', filteredTags],
+    queryFn: async () => {
+      const counts = {};
+      if (filteredTags) {
+        for (const tag of filteredTags) {
+          try {
+            const response = await apiGetPageTag({ tagId: tag.documentId });
+            counts[tag.documentId] = response.data?.data.length;
+          } catch (error) {
+            console.error("Error fetching page count for tag:", tag.name, error);
+          }
+        }
+      }
+      return counts;
+    },
+    enabled: !!filteredTags
+  });
+
+
+  useEffect(() => {
+    refetchPageCounts();
+  }, [filteredTags, refetchPageCounts]);
 
   // Tính toán tags cho trang hiện tại từ danh sách đã lọc
   const getCurrentPageTags = () => {
@@ -54,7 +80,7 @@ const Pages = () => {
 
   // Xử lý click vào tag
   const handleTagClick = (tag) => {
-    console.log("Tag clicked:", tag);
+    //console.log("Tag clicked:", tag);
     if (!tag?.id) {
       console.error('Tag ID is missing');
       return;
@@ -133,7 +159,7 @@ const Pages = () => {
                         </div>
                         <small className="mt-2 d-block">
                           <span>
-                            <span>{tag.pageCount || 0}</span>+ pages
+                            <span>{pageCounts?.[tag.documentId] || 0}</span>+ pages
                           </span>
                         </small>
                       </Card.Body>

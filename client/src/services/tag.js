@@ -90,3 +90,16 @@ export const apiDeletePostTag = ({ documentId }) =>
     }
   });
 
+
+export const apiGetPageTag = ({ tagId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/post-tags?filters[$and][0][page_id][documentId][$notNull]=true&filters[$and][1][tag_id][documentId][$eq]=${tagId}&populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });

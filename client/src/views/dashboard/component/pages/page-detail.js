@@ -4,9 +4,11 @@ import { Container, Row, Col, Modal, Button, Dropdown } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import CustomToggle from "../../../../components/dropdowns";
 import ReactFsLightbox from "fslightbox-react";
-import { apiGetPageDetail, apiGetPageHour } from "../../../../services/page";
+import { apiGetPageDetail, apiGetPageHour, apiGetCheckFollowPage, apiCreatePageMember, apiDeletePageMember, apiGetPageMember, apiGetPostPage } from "../../../../services/page";
 import loader from "../../../../assets/images/page-img/page-load-loader.gif";
 import BioDetailModal from "./bio-detail-modal";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { message } from "antd";
 
 import imgp2 from "../../../../assets/images/user/05.jpg";
 import imgp3 from "../../../../assets/images/user/06.jpg";
@@ -32,6 +34,9 @@ import small07 from "../../../../assets/images/small/07.png";
 import small08 from "../../../../assets/images/small/08.png";
 import small09 from "../../../../assets/images/small/09.png";
 import CreatePost from "../Share/createPost";
+import { useSelector } from "react-redux";
+import Loader from "../../icons/uiverse/Loading";
+import CardPost from "../Share/cardPost";
 
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default
@@ -60,6 +65,62 @@ const PageDetail = () => {
   const [showBioModal, setShowBioModal] = useState(false);
 
   const [pageHour, setPageHour] = useState(null);
+
+  const queryClient = useQueryClient();
+  const { profile } = useSelector((state) => state.root.user || {});
+
+  const { data: followStatus, isLoading: isFollowStatusLoading } = useQuery({
+    queryKey: ["followStatus", pageId, profile?.documentId],
+    queryFn: async () => {
+      const response = await apiGetCheckFollowPage({ pageId, userId: profile?.documentId });
+      return response.data?.data?.length > 0;
+    },
+    enabled: !!pageId && !!profile?.documentId,
+  });
+
+  const { data: pageMembers, isLoading: isPageMembersLoading } = useQuery({
+    queryKey: ["pageMembers", pageId],
+    queryFn: async () => {
+      const response = await apiGetPageMember({ pageId });
+      return response.data?.data || [];
+    },
+    enabled: !!pageId,
+  });
+
+  const handleUnfollow = async () => {
+    try {
+      const response = await apiGetCheckFollowPage({ pageId, userId: profile?.documentId });
+      const memberId = response.data?.data?.[0]?.documentId;
+
+      if (memberId) {
+        await apiDeletePageMember({ documentId: memberId });
+        message.success("Unfollowed successfully");
+        queryClient.invalidateQueries(["followStatus", pageId, profile?.documentId]);
+      } else {
+        message.error("Failed to unfollow");
+      }
+    } catch (error) {
+      console.error("Error unfollowing page:", error);
+      message.error("Failed to unfollow");
+    }
+  };
+
+  const handleFollow = async () => {
+    try {
+      const payload = {
+        data: {
+          page: pageId,
+          user_id: profile?.documentId,
+        }
+      };
+      await apiCreatePageMember(payload);
+      message.success("Followed successfully");
+      queryClient.invalidateQueries(["followStatus", pageId, profile?.documentId]);
+    } catch (error) {
+      console.error("Error following page:", error);
+      message.error("Failed to follow");
+    }
+  };
 
   function imageOnSlide(number) {
     setImageController({
@@ -120,11 +181,23 @@ const PageDetail = () => {
       </div>
     );
   };
+  //console.log("pageData", pageData);
 
-  if (loading)
+  const { data: post, error, isLoading } = useQuery({
+    queryKey: ['postPage', pageId],
+    queryFn: () => apiGetPostPage({ pageId }),
+    enabled: !!pageId,
+  });
+  const postPage = post?.data?.data || [];
+  console.log("postPage", postPage);
+
+  if (isLoading) return <Loader />;
+  if (error) return <p>Error fetching post: {error.message}</p>;
+
+  if (loading || isFollowStatusLoading || isPageMembersLoading)
     return (
       <div className="col-sm-12 text-center">
-        <img src={loader} alt="loader" style={{ height: "100px" }} />
+        <Loader />
       </div>
     );
 
@@ -174,7 +247,7 @@ const PageDetail = () => {
                               )}
                             </h4>
                             <span>
-                              {pageData?.followers_count || 0} followers
+                              {pageData?.page_members.length || 0} followers
                             </span>
                           </div>
                           <div className="item4 ms-1">
@@ -187,12 +260,20 @@ const PageDetail = () => {
                               </div>
                               <button
                                 type="button"
-                                className="btn btn-primary ms-2 btn-sm d-flex align-items-center"
+                                className={`btn ms-2 btn-sm d-flex align-items-center ${followStatus ? "btn-secondary" : "btn-primary"}`}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (followStatus) {
+                                    handleUnfollow();
+                                  } else {
+                                    handleFollow();
+                                  }
+                                }}
                               >
                                 <span className="material-symbols-outlined md-16">
-                                  add
+                                  {followStatus ? "done_outline" : "add"}
                                 </span>
-                                Follow
+                                {followStatus ? "Unfollow" : "Follow"}
                               </button>
                             </div>
                           </div>
@@ -233,22 +314,20 @@ const PageDetail = () => {
                                 </h6>
                               </div>
                               <div className="iq-media-group ms-2">
-                                {[imgp2, imgp3, imgp4, imgp5].map(
-                                  (img, index) => (
-                                    <Link
-                                      to="#"
-                                      className="iq-media"
-                                      key={index}
-                                    >
-                                      <img
-                                        loading="lazy"
-                                        className="img-fluid avatar-40 rounded-circle"
-                                        src={img}
-                                        alt=""
-                                      />
-                                    </Link>
-                                  )
-                                )}
+                                {pageMembers?.map((item, index) => (
+                                  <Link
+                                    to="#"
+                                    className="iq-media"
+                                    key={index}
+                                  >
+                                    <img
+                                      loading="lazy"
+                                      className="img-fluid avatar-40 rounded-circle"
+                                      src={item?.user_id?.profile_picture}
+                                      alt=""
+                                    />
+                                  </Link>
+                                ))}
                               </div>
                             </div>
                           </Col>
@@ -417,199 +496,86 @@ const PageDetail = () => {
                 </Card>
               </Col>
               <Col lg="8">
-                <Card id="post-modal-data">
-                  <div className="card-header d-flex justify-content-between">
-                    <div className="header-title">
-                      <h4 className="card-title">Create Post</h4>
-                    </div>
-                  </div>
-                  <Card.Body>
-                    <div className="d-flex align-items-center">
-                      <div className="user-img">
-                        <img
-                          loading="lazy"
-                          src={pageData?.profile_picture?.file_path}
-                          alt="userimg"
-                          className="avatar-60 rounded-circle"
-                        />
+                {pageData?.author?.documentId === profile?.documentId && (
+                  <Card id="post-modal-data">
+                    <div className="card-header d-flex justify-content-between">
+                      <div className="header-title">
+                        <h4 className="card-title">Create Post</h4>
                       </div>
-                      <form
-                        className="post-text ms-3 w-100 "
-                        onClick={handleShow}
-                      >
-                        <input
-                          type="text"
-                          className="form-control rounded"
-                          placeholder="Write something here..."
-                          style={{ border: "none" }}
-                        />
-                      </form>
                     </div>
-                    <hr />
-                    <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap" onClick={handleShow}>
-                      <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
-                        <img
-                          loading="lazy"
-                          src={small07}
-                          alt="icon"
-                          className="img-fluid me-2"
-                        />{" "}
-                        Photo/Video
-                      </li>
-                      <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
-                        <img
-                          loading="lazy"
-                          src={small08}
-                          alt="icon"
-                          className="img-fluid me-2"
-                        />{" "}
-                        Tag Friend
-                      </li>
-                      <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3">
-                        <img
-                          loading="lazy"
-                          src={small09}
-                          alt="icon"
-                          className="img-fluid me-2"
-                        />{" "}
-                        Feeling/Activity
-                      </li>
-                      <li className="bg-soft-primary rounded p-2 pointer text-center">
-                        <div className="card-header-toolbar d-flex align-items-center">
-                          <Dropdown>
-                            <Dropdown.Toggle as={CustomToggle} id="post-option">
-                              <span className="material-symbols-outlined">
-                                more_horiz
-                              </span>
-                            </Dropdown.Toggle>
-                          </Dropdown>
+                    <Card.Body>
+                      <div className="d-flex align-items-center">
+                        <div className="user-img">
+                          <img
+                            loading="lazy"
+                            src={pageData?.profile_picture?.file_path}
+                            alt="userimg"
+                            className="avatar-60 rounded-circle"
+                          />
                         </div>
-                      </li>
-                    </ul>
-                  </Card.Body>
-                  <CreatePost show={show} handleClose={handleClose} page={pageData}/>
-                </Card>
-                <Card>
-                  <Card.Body>
-                    <ul className="post-comments p-0 m-0">
-                      <li className="mb-2">
-                        <div className="d-flex justify-content-between">
-                          <div className="user-img">
-                            <img
-                              loading="lazy"
-                              src={imgp26}
-                              alt="userimg"
-                              className="avatar-60 me-3 rounded-circle img-fluid"
-                            />
+                        <form
+                          className="post-text ms-3 w-100 "
+                          onClick={handleShow}
+                        >
+                          <input
+                            type="text"
+                            className="form-control rounded"
+                            placeholder="Write something here..."
+                            style={{ border: "none" }}
+                          />
+                        </form>
+                      </div>
+                      <hr />
+                      <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap" onClick={handleShow}>
+                        <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
+                          <img
+                            loading="lazy"
+                            src={small07}
+                            alt="icon"
+                            className="img-fluid me-2"
+                          />{" "}
+                          Photo/Video
+                        </li>
+                        <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
+                          <img
+                            loading="lazy"
+                            src={small08}
+                            alt="icon"
+                            className="img-fluid me-2"
+                          />{" "}
+                          Tag Friend
+                        </li>
+                        <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3">
+                          <img
+                            loading="lazy"
+                            src={small09}
+                            alt="icon"
+                            className="img-fluid me-2"
+                          />{" "}
+                          Feeling/Activity
+                        </li>
+                        <li className="bg-soft-primary rounded p-2 pointer text-center">
+                          <div className="card-header-toolbar d-flex align-items-center">
+                            <Dropdown>
+                              <Dropdown.Toggle as={CustomToggle} id="post-option">
+                                <span className="material-symbols-outlined">
+                                  more_horiz
+                                </span>
+                              </Dropdown.Toggle>
+                            </Dropdown>
                           </div>
-                          <div className="w-100 text-margin">
-                            <h5>Mathilda Gvarliana</h5>
-                            <small className=" d-flex align-items-center ">
-                              {" "}
-                              <i className="material-symbols-outlined md-14 me-1">
-                                schedule
-                              </i>{" "}
-                              March 14, 23:00
-                            </small>
-                            <p>
-                              Hi, I am flying to Los Angeles to attend #VSFS2020
-                              castings. I hope it will happen and my dream comes
-                              true. Wish me luck.{" "}
-                            </p>
-                            <hr />
-                            <div className="d-flex justify-content-between align-items-center flex-wrap">
-                              <div className="d-flex justify-content-between align-items-center">
-                                <div className="d-flex align-items-center me-3">
-                                  <span className="material-symbols-outlined md-18">
-                                    favorite_border
-                                  </span>
-                                  <span className="card-text-1 ms-1">
-                                    Love it
-                                  </span>
-                                </div>
-                                <div className="d-flex align-items-center me-3">
-                                  <span className="material-symbols-outlined md-18">
-                                    comment
-                                  </span>
-                                  <span className="card-text-1 ms-1">
-                                    Comment
-                                  </span>
-                                </div>
-                                <div className="d-flex align-items-center">
-                                  <span className="material-symbols-outlined md-18">
-                                    share
-                                  </span>
-                                  <span className="card-text-1 ms-1">
-                                    Share
-                                  </span>
-                                </div>
-                              </div>
-                              <span className="card-text-2">
-                                5.2k people love it
-                              </span>
+                        </li>
+                      </ul>
+                    </Card.Body>
+                    <CreatePost show={show} handleClose={handleClose} page={pageData} />
+                  </Card>
+                )}
+                {postPage.map((post, index) => (
+                  <Card className="card-block card-stretch card-height" key={index}>
+                    <CardPost post={post} />
+                  </Card>
+                ))}
 
-                              <div className="d-flex justify-content-between align-items-center">
-                                <span className="card-text-1 me-1">
-                                  5.2k people love it
-                                </span>
-                                <div className="iq-media-group ms-2">
-                                  <Link to="#" className="iq-media ">
-                                    <img
-                                      loading="lazy"
-                                      className="img-fluid avatar-30 rounded-circle"
-                                      src={imgp27}
-                                      alt=""
-                                    />
-                                  </Link>
-                                  <Link to="#" className="iq-media ">
-                                    <img
-                                      loading="lazy"
-                                      className="img-fluid avatar-30 rounded-circle"
-                                      src={imgp28}
-                                      alt=""
-                                    />
-                                  </Link>
-                                  <Link to="#" className="iq-media ">
-                                    <img
-                                      loading="lazy"
-                                      className="img-fluid avatar-30 rounded-circle"
-                                      src={imgp29}
-                                      alt=""
-                                    />
-                                  </Link>
-                                  <Link to="#" className="iq-media ">
-                                    <img
-                                      loading="lazy"
-                                      className="img-fluid avatar-30 rounded-circle"
-                                      src={imgp30}
-                                      alt=""
-                                    />
-                                  </Link>
-                                </div>
-                              </div>
-                            </div>
-                            <form
-                              className="d-flex align-items-center mt-3"
-                              action="#"
-                            >
-                              <input
-                                type="text"
-                                className="form-control rounded"
-                                placeholder="Write your comment"
-                              />
-                              <div className="comment-attagement d-flex align-items-center me-4">
-                                <span className="material-symbols-outlined md-18 me-1">
-                                  comment
-                                </span>
-                                <h6 className="card-text-1">Comment</h6>
-                              </div>
-                            </form>
-                          </div>
-                        </div>
-                      </li>
-                    </ul>
-                  </Card.Body>
-                </Card>
               </Col>
             </Row>
           </Container>

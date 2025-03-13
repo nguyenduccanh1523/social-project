@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Drawer, Button, Space, Upload, Input, message } from 'antd'; // Ensure you have antd installed
 import ImgCrop from 'antd-img-crop'; // Ensure you have antd-img-crop installed
 import { createMedia, uploadToMediaLibrary } from '../../../../services/media';
-import { apiEditGroup } from '../../../../services/group';
+import { apiEditGroup } from '../../../../services/groupServices/group';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import styled from 'styled-components';
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Container } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import { Link } from "react-router-dom";
@@ -21,6 +21,7 @@ import {
   fetchGroupMembers,
   fetchMyGroup,
 } from "../../../../actions/actions";
+import { apiGetGroupRequest } from "../../../../services/groupServices/groupRequest";
 
 const MyGroups = () => {
   const dispatch = useDispatch();
@@ -31,6 +32,7 @@ const MyGroups = () => {
   const images = [img1, img2, img3, img4, img5, img6, img7, img9];
 
   const document = profile?.documentId;
+  const [groupRequests, setGroupRequests] = useState({});
 
   useEffect(() => {
     if (document) {
@@ -50,6 +52,24 @@ const MyGroups = () => {
     });
   }, [mygroups, document, dispatch]);
 
+  useEffect(() => {
+    const fetchGroupRequests = async () => {
+      const requests = {};
+      for (const group of mygroups[document]?.data || []) {
+        const groupId = group?.group_id?.documentId;
+        //console.log("groupId", groupId);
+        const response = await apiGetGroupRequest({ groupId: groupId });
+        //console.log("response", response);
+        requests[groupId] = response.data?.data.length;
+      }
+      setGroupRequests(requests);
+    };
+
+    if (mygroups[document]?.data?.length > 0) {
+      fetchGroupRequests();
+    }
+  }, [mygroups, document]);
+
   return (
     <>
       <ProfileHeader img={img7} title="Groups" />
@@ -63,6 +83,7 @@ const MyGroups = () => {
                 const groupName = group?.group_id?.group_name;
                 const groupDescription = group?.group_id?.description;
                 const groupDetails = findgroup[groupId]?.data; // Lấy thông tin chi tiết nhóm
+                //console.log("groupDetails", groupDetails);
 
                 const groupDetailsAvailable = groupDetails || {};
 
@@ -77,19 +98,13 @@ const MyGroups = () => {
                   <Card className="mb-0" key={groupId}>
                     <div className="top-bg-image">
                       <img
-                        src={images[index % images.length]}
+                        src={groupDetails?.media?.file_path}
                         className="img-fluid w-100"
                         alt="group-bg"
+                        style={{ height: "350px" }}
                       />
                     </div>
                     <Card.Body className="text-center">
-                      <div className="group-icon">
-                        <img
-                          src={groupImage}
-                          alt="profile-img"
-                          className="rounded-circle img-fluid avatar-120"
-                        />
-                      </div>
                       <div className="group-info pt-3 pb-3">
                         <h4>
                           <Link
@@ -100,7 +115,14 @@ const MyGroups = () => {
                           </Link>
                         </h4>
                         <p>{groupDescription}</p>
+                        <div className="d-flex align-items-center justify-content-center gap-2">
+                          <span className="material-symbols-outlined">
+                            {groupDetails?.type?.name === "private" ? "lock" : "public"}
+                          </span>
+                          {groupDetails?.type?.name === "private" ? " Private Group" : " Public Group"}
+                        </div>
                       </div>
+
                       <div className="group-details d-inline-block pb-3">
                         <ul className="d-flex align-items-center justify-content-between list-inline m-0 p-0">
                           <li className="pe-3 ps-3">
@@ -115,9 +137,7 @@ const MyGroups = () => {
                           </li>
                           <li className="pe-3 ps-3">
                             <p className="mb-0">Request</p>
-                            <h6>
-                              {groupDetailsAvailable?.requests?.length || 0}
-                            </h6>
+                            <h6>{groupRequests[groupId] || 0}</h6>
                           </li>
                         </ul>
                       </div>
@@ -138,12 +158,16 @@ const MyGroups = () => {
                             ))}
                         </div>
                       </div>
-                      <button
-                        type="submit"
-                        className="btn btn-secondary d-block w-100"
-                      >
-                        Joined
-                      </button>
+                      <Link
+                        to={`/group-detail/${groupId}`}
+                        state={{ documentId: groupDetailsAvailable?.documentId }}>
+                        <button
+                          type="submit"
+                          className="btn btn-primary d-block w-100"
+                        >
+                          Access
+                        </button>
+                      </Link>
                     </Card.Body>
                   </Card>
                 );

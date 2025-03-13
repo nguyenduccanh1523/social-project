@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Container,
   Row,
@@ -26,7 +26,6 @@ import img12 from "../../../../assets/images/page-img/profile-bg6.jpg";
 import img13 from "../../../../assets/images/page-img/profile-bg7.jpg";
 import img14 from "../../../../assets/images/page-img/profile-bg9.jpg";
 
-import { fetchGroupMembers, fetchGroupPost } from "../../../../actions/actions";
 import { useDispatch, useSelector } from "react-redux";
 import CreatePost from "../Share/createPost";
 import ActionGroup from "./actionGroup";
@@ -34,8 +33,12 @@ import { convertToVietnamDate } from "../../others/format";
 import { formatDistanceToNow } from "date-fns";
 import IconEdit from "../../icons/uiverse/iconEdit";
 import EditGroup from "./editGroup";
-import { apiFindOneGroup } from "../../../../services/group";
 import InviteFriendsModal from "./actionGroup/modalInvited";
+import MemberRequest from "./actionGroup/memberRequest";
+import { apiGetGroupMembers } from "../../../../services/groupServices/groupMembers";
+import { apiGetGroupPost } from "../../../../services/groupServices/groupPost";
+import { apiGetGroupRequest } from "../../../../services/groupServices/groupRequest";
+import { apiFindOneGroup } from "../../../../services/groupServices/group";
 
 
 const GroupDetail = () => {
@@ -45,8 +48,6 @@ const GroupDetail = () => {
   const handleShow = () => setShow(true);
   const location = useLocation();
   const { documentId } = location?.state || {};
-  const { members } = useSelector((state) => state.root.group || {});
-  const { posts } = useSelector((state) => state.root.post || {});
   const { profile } = useSelector((state) => state.root.user || {});
   const images = [img12, img13, img14, img15, img16];
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -63,22 +64,41 @@ const GroupDetail = () => {
   //console.log("GroupDatas", GroupDatas);
   const oldData = GroupDatas?.data?.data || {};
 
+  const { data: groupMembersData } = useQuery({
+    queryKey: ['groupMembers', oldData?.documentId],
+    queryFn: () => apiGetGroupMembers({ groupId: oldData.documentId }),
+    enabled: !!oldData?.documentId,
+    staleTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
 
-  useEffect(() => {
-    if (oldData?.documentId) {
-      dispatch(fetchGroupMembers(oldData.documentId)); // Truyền đúng giá trị groupId
-      dispatch(fetchGroupPost(oldData.documentId)); // Truyền đúng giá trị groupId
-    }
-  }, [oldData?.documentId, dispatch]);
+  const { data: groupPostsData } = useQuery({
+    queryKey: ['groupPosts', oldData?.documentId],
+    queryFn: () => apiGetGroupPost({ groupId: oldData.documentId }),
+    enabled: !!oldData?.documentId,
+    staleTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
 
-  // Lấy thành viên của nhóm hiện tại từ Redux
-  const groupMembers = members[oldData?.documentId]?.data || [];
-  const groupPosts = posts[oldData?.documentId] || [];
-  // Đảm bảo groupMembers là mảng trước khi gọi .slice()
+  const {data: groupRequestsData} = useQuery({
+    queryKey: ['groupRequests', oldData?.documentId],
+    queryFn: () => apiGetGroupRequest({ groupId: oldData.documentId }),
+    enabled: !!oldData?.documentId,
+    staleTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
+
+
+
+  const groupMembers = groupMembersData?.data?.data || [];
+  const groupPosts = groupPostsData?.data?.data || [];
+  const groupRequests = groupRequestsData?.data?.data || [];
   const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
-  //console.log("groupMembers: ", groupPosts);
 
 
+   //console.log("oldData  ", groupRequests);
+  // console.log("groupMembers", groupMembers);
+  // console.log("groupPosts", groupPosts);
 
   return (
     <>
@@ -397,7 +417,7 @@ const GroupDetail = () => {
                       </Card>
                       <Card>
                         <Card.Body>
-                          {groupPosts?.data?.map((post, index) => (
+                          {groupPosts?.map((post, index) => (
                             <PostItem
                               key={post?.documentId || index} // Use post documentId or index as key
                               post={post}
@@ -471,6 +491,7 @@ const GroupDetail = () => {
                   </Row>
                 </Tab.Pane>
                 <Tab.Pane eventKey="f2">
+                  {groupRequests.length > 0 && oldData?.admin_id?.documentId === profile?.documentId && <MemberRequest requests={groupRequests} />}
                   <Row>
                     {oldData?.admin_id && (
                       <Col md={6}>

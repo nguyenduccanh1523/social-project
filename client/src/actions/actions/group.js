@@ -1,5 +1,6 @@
+import { apiFindOneGroup, apiGetGroup, apiGetMyGroup } from "../../services/groupServices/group";
+import { apiGetGroupMembers } from "../../services/groupServices/groupMembers";
 import actionTypes from "./actionTypes";
-import { apiGetGroup, apiGetGroupMembers, apiGetMyGroup, apiFindOneGroup } from "../../services/group";
 
 export const fetchGroup = () => async (dispatch) => {
   try {

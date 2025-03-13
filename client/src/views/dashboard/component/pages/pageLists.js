@@ -3,15 +3,18 @@ import { Row, Col, Container } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import { Link, useLocation } from "react-router-dom";
 import ProfileHeader from "../../../../components/profile-header";
-import { Empty, Input } from "antd";
+import { Empty, Input, message } from "antd";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 // image
 
 import img8 from "../../../../assets/images/page-img/profile-bg8.jpg";
 import img9 from "../../../../assets/images/page-img/profile-bg9.jpg";
 import user05 from "../../../../assets/images/user/05.jpg";
-import { apiGetPagesTags, apiGetPageDetailTag } from "../../../../services/page";
+import { apiGetPagesTags, apiGetPageDetailTag, apiGetCheckFollowPage, apiDeletePageMember, apiCreatePageMember } from "../../../../services/page";
 import loader from "../../../../assets/images/page-img/page-load-loader.gif";
+import Loader from "../../icons/uiverse/Loading";
+import { useSelector } from "react-redux";
 
 const { Search } = Input;
 
@@ -27,10 +30,13 @@ const cardHoverStyle = {
 const PageLists = () => {
   const location = useLocation();
   const { selectedTag, tagName, tagId } = location.state || {};
+  const { profile } = useSelector((state) => state.root.user || {});
   const [pages, setPages] = useState([]);
   const [pageDetails, setPageDetails] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [pageIds, setPageIds] = useState([]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchPages = async () => {
@@ -45,6 +51,7 @@ const PageLists = () => {
         // Lấy chi tiết của từng page
         const pageIds =
           response.data?.data?.map((page) => page.page_id?.documentId) || [];
+        setPageIds(pageIds);
         const pageDetailsPromises = pageIds.map((pageId) =>
           apiGetPageDetailTag({ pageId })
             .then((res) => ({ [pageId]: res.data?.data?.[0] }))
@@ -68,8 +75,65 @@ const PageLists = () => {
     };
 
     fetchPages();
-  }, [tagId]);
-  //console.log("pageDetails", pageDetails);
+  }, [tagId, profile?.documentId]);
+
+  const { data: followStatusMap, isLoading: isFollowStatusLoading } = useQuery({
+    queryKey: ["followStatus", pageIds, profile?.documentId],
+    queryFn: async () => {
+      const followStatusPromises = pageIds.map((pageId) =>
+        apiGetCheckFollowPage({ pageId, userId: profile?.documentId })
+          .then((res) => ({
+            [pageId]: res.data?.data?.length > 0,
+          }))
+          .catch((err) => {
+            console.error(`Error checking follow status for ${pageId}:`, err);
+            return { [pageId]: false };
+          })
+      );
+
+      const followStatusResults = await Promise.all(followStatusPromises);
+      return followStatusResults.reduce(
+        (acc, curr) => ({ ...acc, ...curr }),
+        {}
+      );
+    },
+    enabled: !!pageIds.length && !!profile?.documentId,
+  });
+
+  const handleUnfollow = async (pageId) => {
+    try {
+      const response = await apiGetCheckFollowPage({ pageId, userId: profile?.documentId });
+      const memberId = response.data?.data?.[0]?.documentId;
+
+      if (memberId) {
+        await apiDeletePageMember({ documentId: memberId });
+        message.success("Unfollowed successfully");
+        queryClient.invalidateQueries("followStatus");
+      } else {
+        message.error("Failed to unfollow");
+      }
+    } catch (error) {
+      console.error("Error unfollowing page:", error);
+      message.error("Failed to unfollow");
+    }
+  };
+
+  const handleFollow = async (pageId) => {
+    try {
+      const payload = {
+        data: {
+          page: pageId,
+          user_id: profile?.documentId,
+        }
+      };
+      await apiCreatePageMember(payload);
+      message.success("Followed successfully");
+      queryClient.invalidateQueries("followStatus");
+    } catch (error) {
+      console.error("Error following page:", error);
+      message.error("Failed to follow");
+    }
+  };
 
   // Lọc pages theo tên từ pageDetails
   const filteredPages = pages?.data?.filter((page) => {
@@ -82,6 +146,7 @@ const PageLists = () => {
   const handleSearch = (value) => {
     setSearchTerm(value);
   };
+
 
   return (
     <>
@@ -106,9 +171,9 @@ const PageLists = () => {
               />
             </Col>
 
-            {isLoading ? (
+            {isLoading || isFollowStatusLoading ? (
               <div className="col-sm-12 text-center">
-                <img src={loader} alt="loader" style={{ height: "100px" }} />
+                <Loader />
               </div>
             ) : !filteredPages?.length ? (
               <Col xs={12}>
@@ -136,6 +201,7 @@ const PageLists = () => {
             ) : (
               filteredPages?.map((page) => {
                 const pageDetail = pageDetails[page?.page_id?.documentId];
+                const isFollowed = followStatusMap?.[page?.page_id?.documentId];
                 return (
                   <Col md={6} key={page.id}>
                     <Card
@@ -212,26 +278,33 @@ const PageLists = () => {
                                         group
                                       </i>
                                       <span>
-                                        {pageDetail?.followers_count || 0}{" "}
+                                        {pageDetail?.page_members?.length || 0}{" "}
                                         followers
                                       </span>
+                                      <span className="material-symbols-outlined" style={{ marginLeft: "10px", color: "gold" }}>
+                                        star
+                                      </span>
+                                      {pageDetail?.rate || 0}
                                     </div>
                                   </div>
                                 </div>
-                                <button
-                                  type="button"
-                                  className="btn btn-primary rounded-pill px-4"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    // Xử lý follow/unfollow
-                                  }}
-                                >
-                                  {pageDetail?.is_followed
-                                    ? "Unfollow"
-                                    : "Follow"}
-                                </button>
                               </div>
                             </div>
+
+                            <button
+                              type="button"
+                              className={`btn rounded-pill px-4 ${isFollowed ? "btn-secondary" : "btn-primary"}`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (isFollowed) {
+                                  handleUnfollow(page.page_id?.documentId);
+                                } else {
+                                  handleFollow(page.page_id?.documentId);
+                                }
+                              }}
+                            >
+                              {isFollowed ? "Unfollow" : "Follow"}
+                            </button>
                           </div>
                         </div>
                       </Card.Body>
