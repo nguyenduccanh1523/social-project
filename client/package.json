@@ -25,6 +25,7 @@
     "fullcalendar-interaction": "^5.3.3",
     "jquery": "^3.6.0",
     "leaflet": "^1.7.1",
+    "moment": "^2.30.1",
     "react": "^18.2.0",
     "react-apexcharts": "^1.7.0",
     "react-bootstrap": "^2.7.0",

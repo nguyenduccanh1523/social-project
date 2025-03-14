@@ -578,11 +578,11 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${location.pathname === "/dashboard/blog/blog-list"
+                  className={`${location.pathname === "/my-blogs"
                     ? "active"
                     : ""
                     } nav-link`}
-                  to="/dashboard/blog/blog-list"
+                  to="/my-blogs"
                 >
                   <i className="icon">
                     <svg

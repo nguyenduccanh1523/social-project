@@ -32,7 +32,7 @@ import { Modal as AntdModal } from 'antd';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 
 const CardPost = ({ post, pageInfo }) => {
-    console.log("post", post);
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
@@ -151,7 +151,7 @@ const CardPost = ({ post, pageInfo }) => {
                                     src={
                                         post?.user_id
                                             ? post?.user_id?.profile_picture
-                                            : pageInfo?.data?.profile_picture?.file_path
+                                            : pageInfo?.profile_picture?.file_path
                                     }
                                     alt="userimg"
                                     className="avatar-60 rounded-circle"
@@ -167,7 +167,7 @@ const CardPost = ({ post, pageInfo }) => {
                                                 ? `/user-profile`
                                                 : post?.user_id
                                                     ? `/friend-profile/${post?.user_id?.documentId}`
-                                                    : `/page/${pageInfo?.data?.page_name}`
+                                                    : `/page/${pageInfo?.page_name}`
                                         }
                                             state={
                                                 post?.user_id?.documentId === profile?.documentId
@@ -175,14 +175,14 @@ const CardPost = ({ post, pageInfo }) => {
                                                     : post?.user_id
                                                         ? { friendId: post?.user_id }
                                                         : {
-                                                            pageId: pageInfo?.data?.documentId,
-                                                            pageDetail: pageInfo?.data
+                                                            pageId: pageInfo?.documentId,
+                                                            pageDetail: pageInfo
                                                         }
                                             }
                                             style={{ textDecoration: "none" }}>
                                             <h6>{post?.user_id
                                                 ? post?.user_id?.username
-                                                : pageInfo?.data?.page_name || 'Unknown Page'
+                                                : pageInfo?.page_name || 'Unknown Page'
                                             }</h6>
                                         </Link>
                                         {pageInfo?.data?.is_verified && (

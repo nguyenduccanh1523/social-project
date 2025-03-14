@@ -34,9 +34,8 @@ export const apiGetBlogList = ({
       // Gọi API với URL đã được truyền đúng groupId
       const response = await axiosConfig({
         method: "get",
-        url: `/document-shares?sort=${sortQuery}&pagination[page]=${pageParam}&pagination[pageSize]=10&populate=*${
-          searchText ? `&filters[title][$contains]=${searchText}` : ""
-        }`,
+        url: `/document-shares?sort=${sortQuery}&pagination[page]=${pageParam}&pagination[pageSize]=10&populate=*${searchText ? `&filters[title][$contains]=${searchText}` : ""
+          }`,
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve({
@@ -56,6 +55,21 @@ export const apiGetBlogDetail = ({ documentId }) =>
       const response = await axiosConfig({
         method: "get",
         url: `/document-shares/${documentId}?populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      console.error("Error fetching blog detail:", error.response || error);
+      reject(error);
+    }
+  });
+
+
+export const apiGetMyBlog = ({ userId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/document-shares?populate=*&filters[$and][0][author][documentId][$eq]=${userId}`,
       });
       resolve(response);
     } catch (error) {

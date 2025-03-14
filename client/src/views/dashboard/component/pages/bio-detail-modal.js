@@ -44,9 +44,9 @@ const BioDetailModal = ({ show, onHide, pageData }) => {
     <Modal show={show} onHide={onHide} size="lg" style={{ marginTop: "70px" }}>
       <Modal.Header className="d-flex justify-content-between">
         <h5 className="modal-title">{pageData?.page_name}</h5>
-        <Link className="lh-1" to="#" onClick={onHide}>
+        <button className="lh-1" onClick={onHide}>
           <span className="material-symbols-outlined">close</span>
-        </Link>
+        </button>
       </Modal.Header>
       <Modal.Body>
         <div className="d-flex flex-column">
@@ -72,7 +72,7 @@ const BioDetailModal = ({ show, onHide, pageData }) => {
                   location_on
                 </span>
                 <span className="ms-2">
-                  {pageData?.lives_in ||
+                  {pageData?.nation?.name ||
                     "Tầng 4, Tòa Luxury Park Views, Lô 32, Cầu Giấy, Hanoi, Vietnam"}
                 </span>
               </div>

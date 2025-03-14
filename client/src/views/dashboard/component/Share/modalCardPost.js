@@ -153,7 +153,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
         <>
             <Modal size='lg' className="custom-modal-width" scrollable={true} show={show} onHide={handleClose}>
                 <Modal.Header>
-                    <Modal.Title > {post?.user_id?.username || page?.data?.page_name}'s Post </Modal.Title>
+                    <Modal.Title > {post?.user_id?.username || page?.page_name}'s Post </Modal.Title>
                     <button
                         type="button"
                         className="btn btn-secondary lh-1"
@@ -170,7 +170,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                             <div className="me-3">
                                 <div className="user-img">
                                     <img
-                                        src={post?.user_id?.profile_picture || page?.data?.profile_picture?.file_path}
+                                        src={post?.user_id?.profile_picture || page?.profile_picture?.file_path}
                                         alt="userimg"
                                         className="avatar-60 rounded-circle"
                                     />
@@ -185,7 +185,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                     ? `/user-profile`
                                                     : post?.user_id
                                                         ? `/friend-profile/${post?.user_id?.documentId}`
-                                                        : `/page/${page?.data?.page_name}`
+                                                        : `/page/${page?.page_name}`
                                             }
                                                 state={
                                                     post?.user_id?.documentId === profile?.documentId
@@ -193,14 +193,14 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                         : post?.user_id
                                                             ? { friendId: post?.user_id }
                                                             : {
-                                                                pageId: page?.data?.documentId,
-                                                                pageDetail: page?.data
+                                                                pageId: page?.documentId,
+                                                                pageDetail: page
                                                             }
                                                 }
                                                 style={{ textDecoration: "none" }}>
                                                 <h6>{post?.user_id
                                                     ? post?.user_id?.username
-                                                    : page?.data?.page_name || 'Unknown Page'
+                                                    : page?.page_name || 'Unknown Page'
                                                 }</h6>
                                             </Link>
                                         </h5>

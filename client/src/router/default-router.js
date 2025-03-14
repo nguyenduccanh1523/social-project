@@ -26,6 +26,7 @@ import ListBlog from "../views/dashboard/component/MarkPost/ListBlog"
 import FriendList from "../views/dashboard/component/Friends/FriendList"
 import FriendRequest from "../views/dashboard/component/Friends/FriendRequest"
 import FriendProfile from "../views/dashboard/component/Friends/FriendProfile"
+import MyBlog from "../views/dashboard/component/Blog/MyBlog";
 export const DefaultRouter = [
   {
     path: "/",
@@ -62,6 +63,10 @@ export const DefaultRouter = [
   {
     path:"/blogs",
     element:<Blog />
+  },
+  {
+    path:"my-blogs",
+    element:<MyBlog />
   },
   {
     path:"/pages",

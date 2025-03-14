@@ -5,20 +5,11 @@ import Card from "../../../../components/Card";
 import CustomToggle from "../../../../components/dropdowns";
 import ReactFsLightbox from "fslightbox-react";
 import { apiGetPageDetail, apiGetPageHour, apiGetCheckFollowPage, apiCreatePageMember, apiDeletePageMember, apiGetPageMember, apiGetPostPage } from "../../../../services/page";
-import loader from "../../../../assets/images/page-img/page-load-loader.gif";
 import BioDetailModal from "./bio-detail-modal";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
 
-import imgp2 from "../../../../assets/images/user/05.jpg";
-import imgp3 from "../../../../assets/images/user/06.jpg";
-import imgp4 from "../../../../assets/images/user/07.jpg";
-import imgp5 from "../../../../assets/images/user/08.jpg";
-import imgp26 from "../../../../assets/images/user/02.jpg";
-import imgp27 from "../../../../assets/images/user/05.jpg";
-import imgp28 from "../../../../assets/images/user/06.jpg";
-import imgp29 from "../../../../assets/images/user/07.jpg";
-import imgp30 from "../../../../assets/images/user/08.jpg";
+
 import ProfileHeader from "../../../../components/profile-header";
 import bg3 from "../../../../assets/images/page-img/profile-bg3.jpg";
 import g1 from "../../../../assets/images/page-img/g1.jpg";
@@ -37,6 +28,9 @@ import CreatePost from "../Share/createPost";
 import { useSelector } from "react-redux";
 import Loader from "../../icons/uiverse/Loading";
 import CardPost from "../Share/cardPost";
+import IconEdit from "../../icons/uiverse/iconEdit";
+import EditPage from "./editPage";
+
 
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default
@@ -47,12 +41,20 @@ const PageDetail = () => {
   const location = useLocation();
   const {
     pageId,
-    pageDetail: initialPageDetail,
     pageInfo,
   } = location.state || {};
-  const [pageData, setPageData] = useState(initialPageDetail || null);
+  const { data: pageDetails, isLoading: isPageDetailLoading } = useQuery({
+    queryKey: ["pageDetais", pageId],
+    queryFn: async () => {
+      const response = await apiGetPageDetail({ pageId });
+      return response.data?.data || [];
+    },
+    enabled: !!pageId,
+  });
+  //console.log("pageDetails", pageDetails);
+  const [pageData, setPageData] = useState(pageDetails || null);
   const [loading, setLoading] = useState(false);
-
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
@@ -63,11 +65,14 @@ const PageDetail = () => {
   });
 
   const [showBioModal, setShowBioModal] = useState(false);
+  const handleCloseBioModal = () => setShowBioModal(false);
 
   const [pageHour, setPageHour] = useState(null);
 
   const queryClient = useQueryClient();
   const { profile } = useSelector((state) => state.root.user || {});
+
+
 
   const { data: followStatus, isLoading: isFollowStatusLoading } = useQuery({
     queryKey: ["followStatus", pageId, profile?.documentId],
@@ -129,30 +134,33 @@ const PageDetail = () => {
     });
   }
 
-
   useEffect(() => {
-    const fetchPageDetail = async () => {
-      if (!pageId || typeof pageId !== "string") {
-        console.error("Invalid pageId:", pageId);
-        return; // Ngừng thực hiện nếu pageId không hợp lệ
-      }
+    setPageData(pageDetails || null);
+  }, [pageDetails]);
 
-      setLoading(true);
-      try {
-        // Fetch lại data mới nhất nếu cần
-        const response = await apiGetPageDetail(pageId);
-        setPageData(response.data?.data?.[0] || initialPageDetail);
-      } catch (error) {
-        console.error("Error fetching page detail:", error);
-        // Giữ lại data cũ nếu fetch thất bại
-        setPageData(initialPageDetail);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchPageDetail = async () => {
+  //     if (!pageId || typeof pageId !== "string") {
+  //       console.error("Invalid pageId:", pageId);
+  //       return; // Ngừng thực hiện nếu pageId không hợp lệ
+  //     }
 
-    fetchPageDetail();
-  }, [pageId, initialPageDetail]);
+  //     setLoading(true);
+  //     try {
+  //       // Fetch lại data mới nhất nếu cần
+  //       const response = await apiGetPageDetail(pageId);
+  //       setPageData(response.data?.data?.[0] ||  pageDetails);
+  //     } catch (error) {
+  //       console.error("Error fetching page detail:", error);
+  //       // Giữ lại data cũ nếu fetch thất bại
+  //       setPageData(initialPageDetail);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchPageDetail();
+  // }, [pageId, initialPageDetail]);
 
   // Lấy thông tin giờ mở cửa
   useEffect(() => {
@@ -189,12 +197,12 @@ const PageDetail = () => {
     enabled: !!pageId,
   });
   const postPage = post?.data?.data || [];
-  console.log("postPage", postPage);
+  //console.log("postPage", postPage);
 
   if (isLoading) return <Loader />;
   if (error) return <p>Error fetching post: {error.message}</p>;
 
-  if (loading || isFollowStatusLoading || isPageMembersLoading)
+  if (loading || isFollowStatusLoading || isPageMembersLoading || isPageDetailLoading)
     return (
       <div className="col-sm-12 text-center">
         <Loader />
@@ -331,6 +339,14 @@ const PageDetail = () => {
                               </div>
                             </div>
                           </Col>
+                          {pageData?.author?.documentId === profile?.documentId && (
+                            <Col lg="1" className="d-flex align-items-center">
+                              <div onClick={() => setDrawerOpen(true)}>
+                                <IconEdit />
+                              </div>
+                            </Col>
+                          )}
+                          <EditPage pageData={pageData} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
                         </Row>
                       </Col>
                     </Row>
@@ -347,10 +363,10 @@ const PageDetail = () => {
                     </div>
                     <div className="d-flex align-items-center">
                       <p className="m-0">
-                        <Link to="#" onClick={() => setShowBioModal(true)}>
+                        <Button onClick={() => setShowBioModal(true)}>
                           {" "}
                           Know More{" "}
-                        </Link>
+                        </Button>
                       </p>
                     </div>
                   </div>
@@ -373,7 +389,7 @@ const PageDetail = () => {
                           location_on
                         </span>
                         <span className="ms-2">
-                          {pageData?.lives_in ||
+                          {pageData?.nation?.name ||
                             "Tầng 4, Tòa Luxury Park Views, Lô 32, Cầu Giấy, Hanoi, Vietnam"}
                         </span>
                       </div>
@@ -572,7 +588,7 @@ const PageDetail = () => {
                 )}
                 {postPage.map((post, index) => (
                   <Card key={index}>
-                    <CardPost post={post} />
+                    <CardPost post={post} pageInfo={pageData} />
                   </Card>
                 ))}
 
@@ -583,7 +599,7 @@ const PageDetail = () => {
       </div>
       <BioDetailModal
         show={showBioModal}
-        onHide={() => setShowBioModal(false)}
+        onHide={handleCloseBioModal}
         pageData={pageData}
       />
     </>

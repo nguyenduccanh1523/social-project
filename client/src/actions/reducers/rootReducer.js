@@ -13,6 +13,7 @@ import tagReducer from "./tagReducer";
 import converReducer from "./converReducer";
 import participantReducer from "./participantReducer";
 import supportReducer from "./supportReducer";
+import nationReducer from "./nationReducer";
 
 const commonConfig = {
     storage,
@@ -36,7 +37,8 @@ const rootReducer = combineReducers({
     tag: tagReducer,
     conversation: converReducer,
     participant: participantReducer,
-    support: supportReducer
+    support: supportReducer,
+    nation: nationReducer
 })
 
 export default rootReducer

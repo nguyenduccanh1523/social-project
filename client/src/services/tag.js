@@ -26,11 +26,7 @@ export const apiGetPostTag = ({ postId }) =>
 
 export const apiGetDocumentTag = ({ documentId }) =>
   new Promise(async (resolve, reject) => {
-    try {
-      // Kiểm tra documentId trước khi dùng trong URL
-      if (typeof documentId !== "string") {
-        return reject(new Error("documentId should be a string"));
-      }
+    try {     
 
       const response = await axiosConfig({
         method: "get",

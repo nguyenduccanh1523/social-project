@@ -24,7 +24,7 @@ export const apiGetPagesTags = ({ tagId }) =>
         }
     });
 
-export const apiGetPageDetail = (pageId) =>
+export const apiGetPageDetail = ({pageId}) =>
     new Promise(async (resolve, reject) => {
         try {
             if (typeof pageId !== "string") {
@@ -71,14 +71,7 @@ export const apiGetPageDetailTag = ({ pageId }) =>
 export const apiGetPageHour = ({ pageId }) =>
     new Promise(async (resolve, reject) => {
         try {
-            // Kiểm tra groupId trước khi dùng trong URL
-            if (typeof pageId !== "string") {
-                //console.error("Invalid groupId:", groupId);
-                return reject(new Error("pageId should be a string"));
-            }
-
-            //console.log("Fetching group members for groupId:", groupId);
-
+            
             // Gọi API với URL đã được truyền đúng groupId
             const response = await axiosConfig({
                 method: "get",
@@ -91,6 +84,27 @@ export const apiGetPageHour = ({ pageId }) =>
             reject(error);
         }
     });
+
+
+    export const apiEditPageHour = ({ documentId, payload }) => {
+        return new Promise(async (resolve, reject) => {
+            try {
+                const response = await axiosConfig({
+                    method: "put",
+                    url: `/page-open-hours/${documentId}`,
+                    data: payload,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                resolve(response);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    }
+
+
 
 export const apiGetPage = (payload) =>
     new Promise(async (resolve, reject) => {
@@ -207,3 +221,22 @@ export const apiGetPostPage = ({ pageId }) =>
             reject(error);
         }
     });
+
+
+export const apiEditPage = ({ documentId, payload }) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "put",
+                url: `/pages/${documentId}`,
+                data: payload,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
