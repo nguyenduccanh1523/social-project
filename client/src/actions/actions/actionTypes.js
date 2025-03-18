@@ -64,6 +64,9 @@ const actionTypes = {
     NATION_SUCCESS: 'NATION_SUCCESS',
     NATION_FAILURE: 'NATION_FAILURE',
 
+    REPORT_SUCCESS: 'REPORT_SUCCESS',
+    REPORT_FAILURE: 'REPORT_FAILURE',
+
 }
 
 export default actionTypes

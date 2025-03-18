@@ -1,26 +1,58 @@
-import React, { useState, useCallback } from 'react';
-import { Button, Drawer } from 'antd';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Button, Drawer, Tag } from 'antd';
 import Accordion from 'react-bootstrap/Accordion';
+import { fetchReport } from '../../../../actions/actions/report';
+import { useDispatch, useSelector } from 'react-redux';
+import CreateBlogDrawer from './CreateBlogDrawer';
+import {
+    CloseCircleOutlined,
+  } from '@ant-design/icons';
 
 const AppDrawer = ({ title, width, closable, onClose, open }) => {
     const [childrenDrawer, setChildrenDrawer] = useState(false);
+    const [createBlogDrawer, setCreateBlogDrawer] = useState(false);
+    const { reports } = useSelector((state) => state.root.report || {});
     const [selectedQuestions, setSelectedQuestions] = useState({});
     const [errors, setErrors] = useState({});
+    const [activeKeys, setActiveKeys] = useState([]);
+    const dispatch = useDispatch();
 
-    const showChildrenDrawer = useCallback(() => {
-        const newErrors = {};
-        if (!selectedQuestions['Item 1']) {
-            newErrors['Item 1'] = 'Please select an answer for Item 1.';
+    useEffect(() => {
+        dispatch(fetchReport());
+    }, [dispatch]);
+
+    const report = reports?.data?.data || [];
+
+    const itemsByQuesNum = Array.from({ length: 8 }, () => []);
+    report.forEach(item => {
+        if (item.ques_num >= 1 && item.ques_num <= 8) {
+            itemsByQuesNum[item.ques_num - 1].push(item);
         }
-        if (!selectedQuestions['Item 2']) {
-            newErrors['Item 2'] = 'Please select an answer for Item 2.';
+    });
+
+    // console.log('Items by ques_num:', itemsByQuesNum);
+
+    const showCreateBlogDrawer = useCallback(() => {
+        const newErrors = {};
+        const newActiveKeys = [];
+        for (let i = 1; i <= 8; i++) {
+            if (!selectedQuestions[`Item ${i}`]) {
+                newErrors[`Item ${i}`] = `Please select an answer for Question ${i}.`;
+                newActiveKeys.push((i - 1).toString());
+            }
         }
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
+            setActiveKeys(newActiveKeys);
         } else {
-            setChildrenDrawer(true);
+            setCreateBlogDrawer(true);
         }
     }, [selectedQuestions]);
+
+    const handleCreateBlogDrawerClose = useCallback(() => {
+        setCreateBlogDrawer(false);
+        onClose();
+    }, [onClose]);
 
     const onChildrenDrawerClose = useCallback(() => {
         setChildrenDrawer(false);
@@ -40,50 +72,46 @@ const AppDrawer = ({ title, width, closable, onClose, open }) => {
         <Drawer title={title} width={width} closable={closable} onClose={onClose} open={open}
             style={{ marginTop: "75px" }}
         >
-            <Accordion id="accordionExample" defaultActiveKey="0">
-                <Accordion.Item className="mb-3" eventKey="0">
-                    <Accordion.Header id="heading-1">
-                        Sample Question for Item 1
-                    </Accordion.Header>
-                    <Accordion.Body>
-                        <p>
-                            Sample answer for the question related to Item 1.
-                        </p>
-                        <Button onClick={() => handleSelect('Item 1', 'Sample answer for Item 1')}>Select</Button>
-                    </Accordion.Body>
-                </Accordion.Item>
-                {selectedQuestions['Item 1'] && <p>{selectedQuestions['Item 1']}</p>}
-                {errors['Item 1'] && <p style={{ color: 'red' }}>{errors['Item 1']}</p>}
-
-                <Accordion.Item className="mb-3" eventKey="1">
-                    <Accordion.Header id="heading-2">
-                        Sample Question for Item 2
-                    </Accordion.Header>
-                    <Accordion.Body>
-                        <p>
-                            Sample answer for the question related to Item 2.
-                        </p>
-                        <Button onClick={() => handleSelect('Item 2', 'Sample answer for Item 2')}>Select</Button>
-                        {selectedQuestions['Item 2'] && <p>{selectedQuestions['Item 2']}</p>}
-                        {errors['Item 2'] && <p style={{ color: 'red' }}>{errors['Item 2']}</p>}
-                    </Accordion.Body>
-                </Accordion.Item>
-            </Accordion>
-
-            <Button type="primary" onClick={showChildrenDrawer}>
-                Two-level drawer
+            <Button type="primary" onClick={showCreateBlogDrawer}>
+                Create Blog
             </Button>
-            <Drawer
-                title="Two-level Drawer"
-                width={520}
-                closable={false}
-                onClose={onChildrenDrawerClose}
-                open={childrenDrawer}
-            >
-                This is two-level drawer
-            </Drawer>
+
+            <Tag style={{marginTop: '10px', fontSize: '15px'}} icon={<CloseCircleOutlined />} color="error"> If you violate the rules, you will be banned from posting blogs.</Tag>
+            
+            <Accordion id="accordionExample" activeKey={activeKeys} onSelect={(key) => setActiveKeys(key)}>
+                {itemsByQuesNum.map((items, index) => {
+                    if (items.length === 0) return null;
+                    const question = items[0].question;
+                    const answers = items.slice(0, 3).map((item, i) => item.answer || `Sample answer ${i + 1} for Item ${index + 1}`);
+                    return (
+                        <Accordion.Item className="mb-3" eventKey={index.toString()} key={index}>
+                            <Accordion.Header id={`heading-${index + 1}`}>
+                                {question}
+                            </Accordion.Header>
+                            <Accordion.Body className="d-flex flex-column gap-2">
+                                {answers.map((answer, i) => (
+                                    <Button
+                                        key={i}
+                                        onClick={() => handleSelect(`Item ${index + 1}`, answer)}
+                                        style={{
+                                            backgroundColor: selectedQuestions[`Item ${index + 1}`] === answer ? 'green' : 'initial',
+                                            color: selectedQuestions[`Item ${index + 1}`] === answer ? 'white' : 'initial',
+                                        }}
+                                    >
+                                        {answer}
+                                    </Button>
+                                ))}
+                                {selectedQuestions[`Item ${index + 1}`] && <p>{selectedQuestions[`Item ${index + 1}`]}</p>}
+                                {errors[`Item ${index + 1}`] && <p style={{ color: 'red' }}>{errors[`Item ${index + 1}`]}</p>}
+                            </Accordion.Body>
+                        </Accordion.Item>
+                    );
+                })}
+            </Accordion>
+            <CreateBlogDrawer onClose={handleCreateBlogDrawerClose} open={createBlogDrawer} />
         </Drawer>
     );
 };
+
 
 export default AppDrawer;

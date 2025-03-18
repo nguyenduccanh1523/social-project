@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Image, Container } from "react-bootstrap";
-import { Input, Select, Space, Pagination, Tag } from "antd";
+import { Input, Select, Space, Pagination, Tag, Modal, notification } from "antd"; // Import Modal and notification from antd
 import Card from "../../../../components/Card";
 import { Link } from "react-router-dom";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
 import BlogDetail from "./BlogDetail";
 import AppDrawer from "./Drawer"; // Ensure the Drawer component is correctly imported
 import { Button } from "antd"; // Import Button from antd
+import DrawerEdit from "./DrawerEdit"; // Import the new DrawerEdit component
 
 // img
 import blog6 from "../../../../assets/images/blog/01.jpg";
@@ -15,10 +16,11 @@ import { colorsTag } from "../../others/format";
 import { fetchTag } from "../../../../actions/actions/tag";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../../icons/uiverse/Loading";
-import { useQuery } from "@tanstack/react-query";
-import { apiGetMyBlog } from "../../../../services/blog";
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { apiDeleteBlog, apiGetMyBlog } from "../../../../services/blog";
 import { apiGetDocumentTag } from "../../../../services/tag"; // Import the new API
 import Create from "../../icons/uiverse/Create";
+
 
 const { Search } = Input;
 const { Option } = Select;
@@ -27,7 +29,7 @@ const MyBlog = () => {
     const dispatch = useDispatch();
     const { profile } = useSelector((state) => state.root.user || {});
     const { tags } = useSelector((state) => state.root.tag || {});
-
+    const queryClient = useQueryClient();
 
     const [searchText, setSearchText] = useState("");
     const [pageParam, setPageParam] = useState(1);
@@ -36,6 +38,8 @@ const MyBlog = () => {
     const [savedBlogs, setSavedBlogs] = useState([]);
     const [filteredBlogs, setFilteredBlogs] = useState([]);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
+    const [editBlog, setEditBlog] = useState(null);
 
     const showDrawer = () => {
         setIsDrawerOpen(true);
@@ -43,6 +47,16 @@ const MyBlog = () => {
 
     const closeDrawer = () => {
         setIsDrawerOpen(false);
+    };
+
+    const showEditDrawer = (blog) => {
+        setEditBlog(blog);
+        setIsEditDrawerOpen(true);
+    };
+
+    const closeEditDrawer = () => {
+        setIsEditDrawerOpen(false);
+        setEditBlog(null);
     };
 
     const { data: myBlogs = [], isLoading: isMyBlogLoading } = useQuery({
@@ -92,6 +106,25 @@ const MyBlog = () => {
         setSelectedBlog(null);
     };
 
+    const handleDeleteBlog = (documentId) => {
+        console.log("Delete blog:", documentId);
+        Modal.confirm({
+            title: 'Are you sure you want to delete this blog?',
+            onOk: async () => {
+                try {
+                    await apiDeleteBlog({ documentId });
+                    notification.success({
+                        message: "Delete Blog",
+                        description: "Blog deleted successfully",
+                    });
+                    queryClient.invalidateQueries('myBlogs');
+                } catch (error) {
+                    console.error('Error deleting blog:', error);
+                }
+            },
+        });
+    };
+
     const { data: blogTags, isLoading: isBlogTagsLoading, error: blogTagsError } = useQuery({
         queryKey: ["blogTags", myBlogs?.map(blog => blog.documentId)],
         queryFn: async () => {
@@ -122,7 +155,7 @@ const MyBlog = () => {
                                 <Card.Body>
                                     <Space className="w-100 justify-content-between">
                                         <Search
-                                            placeholder="Tìm kiếm bài viết..."
+                                            placeholder="Search Blog..."
                                             allowClear
                                             enterButton="Search"
                                             size="large"
@@ -174,20 +207,34 @@ const MyBlog = () => {
                                                                                 {convertToVietnamDate(blog?.createdAt)}
                                                                             </Link>
                                                                         </div>
-                                                                        <div
-                                                                            className="bookmark-icon"
-                                                                            onClick={() => handleSaveBlog(blog.id)}
-                                                                            style={{
-                                                                                cursor: "pointer",
-                                                                                fontSize: "20px",
-                                                                                color: "#1890ff",
-                                                                            }}
-                                                                        >
-                                                                            {savedBlogs.includes(blog.id) ? (
-                                                                                <StarFilled />
-                                                                            ) : (
-                                                                                <StarOutlined />
-                                                                            )}
+                                                                        <div className="d-flex align-items-center">
+                                                                            <div
+                                                                                className="bookmark-icon"
+                                                                                onClick={() => showEditDrawer(blog)}
+                                                                                style={{
+                                                                                    cursor: "pointer",
+                                                                                    fontSize: "20px",
+                                                                                    color: "#1890ff",
+                                                                                }}
+                                                                            >
+                                                                                <span class="material-symbols-outlined">
+                                                                                    border_color
+                                                                                </span>
+                                                                            </div>
+                                                                            <div
+                                                                                className="delete-icon"
+                                                                                onClick={() => handleDeleteBlog(blog.documentId)}
+                                                                                style={{
+                                                                                    cursor: "pointer",
+                                                                                    fontSize: "20px",
+                                                                                    color: "#ff4d4f",
+                                                                                    marginLeft: "10px",
+                                                                                }}
+                                                                            >
+                                                                                <span class="material-symbols-outlined">
+                                                                                    delete
+                                                                                </span>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                     <h5
@@ -251,20 +298,34 @@ const MyBlog = () => {
                                                             <Col md="6">
                                                                 <div className="blog-description rounded p-2">
                                                                     <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                                                                        <div
-                                                                            className="bookmark-icon"
-                                                                            onClick={() => handleSaveBlog(blog.id)}
-                                                                            style={{
-                                                                                cursor: "pointer",
-                                                                                fontSize: "20px",
-                                                                                color: "#1890ff",
-                                                                            }}
-                                                                        >
-                                                                            {savedBlogs.includes(blog.id) ? (
-                                                                                <StarFilled />
-                                                                            ) : (
-                                                                                <StarOutlined />
-                                                                            )}
+                                                                        <div className="d-flex align-items-center">
+                                                                            <div
+                                                                                className="bookmark-icon"
+                                                                                onClick={() => showEditDrawer(blog)}
+                                                                                style={{
+                                                                                    cursor: "pointer",
+                                                                                    fontSize: "20px",
+                                                                                    color: "#1890ff",
+                                                                                }}
+                                                                            >
+                                                                                <span class="material-symbols-outlined">
+                                                                                    border_color
+                                                                                </span>
+                                                                            </div>
+                                                                            <div
+                                                                                className="delete-icon"
+                                                                                onClick={() => handleDeleteBlog(blog.documentId)}
+                                                                                style={{
+                                                                                    cursor: "pointer",
+                                                                                    fontSize: "20px",
+                                                                                    color: "#ff4d4f",
+                                                                                    marginLeft: "10px",
+                                                                                }}
+                                                                            >
+                                                                                <span class="material-symbols-outlined">
+                                                                                    delete
+                                                                                </span>
+                                                                            </div>
                                                                         </div>
                                                                         <div className="date">
                                                                             <Link to="#" tabIndex="-1">
@@ -369,9 +430,10 @@ const MyBlog = () => {
                 onSave={() => handleSaveBlog(selectedBlog?.id)}
                 isSaved={savedBlogs.includes(selectedBlog?.id)}
             />
-            <AppDrawer title="Create Blog" width={520} closable={false} onClose={closeDrawer} open={isDrawerOpen}>
+            <AppDrawer title="Verify article" width={520} closable={false} onClose={closeDrawer} open={isDrawerOpen}>
                 {/* Content of the Drawer */}
             </AppDrawer>
+            <DrawerEdit blog={editBlog} visible={isEditDrawerOpen} onClose={closeEditDrawer} />
         </>
     );
 };

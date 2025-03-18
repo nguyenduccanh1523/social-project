@@ -76,4 +76,52 @@ export const apiGetMyBlog = ({ userId }) =>
       console.error("Error fetching blog detail:", error.response || error);
       reject(error);
     }
-  }); 
+  });
+
+export const apiCreateBlog = (payload) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/document-shares",
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const apiUpdateBlog = ({ documentId, payload }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "put",
+        url: `/document-shares/${documentId}`,
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const apiDeleteBlog = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "delete",
+        url: `/document-shares/${documentId}`,
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+

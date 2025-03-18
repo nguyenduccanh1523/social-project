@@ -14,6 +14,7 @@ import converReducer from "./converReducer";
 import participantReducer from "./participantReducer";
 import supportReducer from "./supportReducer";
 import nationReducer from "./nationReducer";
+import reportReducer from "./reportReducer";
 
 const commonConfig = {
     storage,
@@ -38,7 +39,8 @@ const rootReducer = combineReducers({
     conversation: converReducer,
     participant: participantReducer,
     support: supportReducer,
-    nation: nationReducer
+    nation: nationReducer,
+    report: reportReducer
 })
 
 export default rootReducer
