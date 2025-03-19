@@ -23,7 +23,7 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
     const [selectedTags, setSelectedTags] = useState([]);
     const queryClient = useQueryClient();
 
-    console.log('blog', blog);
+    //console.log('blog', blog);
 
 
     const { data: tags } = useQuery({

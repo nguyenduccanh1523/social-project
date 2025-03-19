@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Image, Container } from "react-bootstrap";
-import { Input, Select, Space, Pagination, Tag } from "antd";
+import { Input, Select, Space, Pagination, Tag, notification, ExclamationCircleOutlined } from "antd";
 import Card from "../../../components/Card";
 import { Link } from "react-router-dom";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
@@ -16,6 +16,7 @@ import { colorsTag } from "../others/format";
 import { fetchTag } from "../../../actions/actions/tag";
 import { useDispatch, useSelector } from "react-redux";
 import Loader from "../icons/uiverse/Loading";
+import { apiCreateMarkPost, apiDeleteMarkPost, apiGetCheckMarkDocument, apiGetMarkBlog } from "../../../services/markpost";
 
 const { Search } = Input;
 const { Option } = Select;
@@ -23,6 +24,7 @@ const { Option } = Select;
 const BlogList = () => {
   const dispatch = useDispatch();
   const { tags } = useSelector((state) => state.root.tag || {});
+  const { profile } = useSelector((state) => state.root.user || {});
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -56,7 +58,7 @@ const BlogList = () => {
         }
 
         setAllBlogs(allData);
-        
+
 
         // Fetch tags cho mỗi blog
         const tagsPromises = allData.map(async (blog) => {
@@ -77,7 +79,7 @@ const BlogList = () => {
           tagsMap[result.blogId] = result.tags;
         });
         setBlogTags(tagsMap);
-        
+
 
         setIsLoading(false);
       } catch (err) {
@@ -93,24 +95,78 @@ const BlogList = () => {
     dispatch(fetchTag());
   }, [dispatch]);
 
+  useEffect(() => {
+    const fetchSavedBlogs = async () => {
+      try {
+        const response = await apiGetMarkBlog({ userId: profile?.documentId });
+        const savedBlogIds = response.data.data.map(item => item.document_share.documentId);
+        setSavedBlogs(savedBlogIds);
+      } catch (error) {
+        console.error("Error fetching saved blogs:", error);
+      }
+    };
 
-  const handleSaveBlog = (blogId) => {
+    if (profile?.documentId) {
+      fetchSavedBlogs();
+    }
+  }, [profile?.documentId]);
+
+  const handleSaveBlog = async (blogId) => {
+    console.log('handleSaveBlog called with blogId:', blogId); // Debug log
     if (savedBlogs.includes(blogId)) {
-      setSavedBlogs(savedBlogs.filter((id) => id !== blogId));
+      console.log('Removing blogId:', blogId); // Debug log
+      try {
+        const response = await apiGetCheckMarkDocument({ documentId: blogId, userId: profile?.documentId });
+        const markDocumentId = response?.data?.data[0]?.documentId;
+        if (markDocumentId) {
+          await apiDeleteMarkPost({ documentId: markDocumentId });
+          setSavedBlogs(savedBlogs.filter((id) => id !== blogId));
+          notification.success({
+            message: 'Success',
+            description: 'Blog post removed from saved list.',
+          });
+        }
+      } catch (error) {
+        console.error("Error deleting marked blog:", error);
+        notification.error({
+          message: 'Error',
+          description: 'Failed to remove blog post from saved list.',
+        });
+      }
     } else {
-      setSavedBlogs([...savedBlogs, blogId]);
+      console.log('Saving blogId:', blogId); // Debug log
+      try {
+        const payload = {
+          data: {
+            user_id: profile?.documentId,
+            document_share: blogId,
+          }
+        }
+        await apiCreateMarkPost(payload);
+        setSavedBlogs([...savedBlogs, blogId]);
+        notification.success({
+          message: 'Success',
+          description: 'Blog post saved successfully.',
+        });
+      } catch (error) {
+        console.error("Error marking blog:", error);
+        notification.error({
+          message: 'Error',
+          description: 'Failed to save blog post.',
+        });
+      }
     }
   };
 
   const filteredBlogs = allBlogs?.filter((blog) => {
     // Filter by search text
-    const matchesSearch = !searchText || 
+    const matchesSearch = !searchText ||
       blog?.title?.toLowerCase().includes(searchText.toLowerCase()) ||
       blog?.description?.toLowerCase().includes(searchText.toLowerCase());
 
     // Filter by selected tags
-    const matchesTags = selectedTags.length === 0 || 
-      blogTags[blog?.documentId]?.data?.some(tagItem => 
+    const matchesTags = selectedTags.length === 0 ||
+      blogTags[blog?.documentId]?.data?.some(tagItem =>
         selectedTags.includes(tagItem?.tag_id?.documentId)
       );
 
@@ -177,8 +233,8 @@ const BlogList = () => {
                         optionLabelProp="label"
                       >
                         {tags?.data?.map((tag) => (
-                          <Option 
-                            key={tag.id} 
+                          <Option
+                            key={tag.id}
                             value={tag.documentId}
                             label={tag.name}
                           >
@@ -242,20 +298,27 @@ const BlogList = () => {
                                         {convertToVietnamDate(blog?.createdAt)}
                                       </Link>
                                     </div>
-                                    <div
-                                      className="bookmark-icon"
-                                      onClick={() => handleSaveBlog(blog.id)}
-                                      style={{
-                                        cursor: "pointer",
-                                        fontSize: "20px",
-                                        color: "#1890ff",
-                                      }}
-                                    >
-                                      {savedBlogs.includes(blog.id) ? (
-                                        <StarFilled />
-                                      ) : (
-                                        <StarOutlined />
-                                      )}
+                                    <div className="d-flex align-items-center gap-2">
+                                      <div
+                                        className="bookmark-icon"
+                                        onClick={() => handleSaveBlog(blog.documentId)}
+                                        style={{
+                                          cursor: "pointer",
+                                          fontSize: "20px",
+                                          color: "#1890ff",
+                                        }}
+                                      >
+                                        {savedBlogs.includes(blog.documentId) ? (
+                                          <StarFilled />
+                                        ) : (
+                                          <StarOutlined />
+                                        )}
+                                      </div>
+                                      <div className="mt-2">
+                                        <span className="material-symbols-outlined">
+                                          report
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                   <h5
@@ -321,20 +384,27 @@ const BlogList = () => {
                               <Col md="6">
                                 <div className="blog-description rounded p-2">
                                   <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                                    <div
-                                      className="bookmark-icon"
-                                      onClick={() => handleSaveBlog(blog.id)}
-                                      style={{
-                                        cursor: "pointer",
-                                        fontSize: "20px",
-                                        color: "#1890ff",
-                                      }}
-                                    >
-                                      {savedBlogs.includes(blog.id) ? (
-                                        <StarFilled />
-                                      ) : (
-                                        <StarOutlined />
-                                      )}
+                                    <div className="d-flex align-items-center gap-2">
+                                      <div className="mt-2">
+                                        <span className="material-symbols-outlined">
+                                          report
+                                        </span>
+                                      </div>
+                                      <div
+                                        className="bookmark-icon"
+                                        onClick={() => handleSaveBlog(blog.documentId)}
+                                        style={{
+                                          cursor: "pointer",
+                                          fontSize: "20px",
+                                          color: "#1890ff",
+                                        }}
+                                      >
+                                        {savedBlogs.includes(blog.documentId) ? (
+                                          <StarFilled />
+                                        ) : (
+                                          <StarOutlined />
+                                        )}
+                                      </div>
                                     </div>
                                     <div className="date">
                                       <Link to="#" tabIndex="-1">

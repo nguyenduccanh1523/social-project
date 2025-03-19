@@ -21,7 +21,7 @@ export const apiGetMarkPost = ({ userId }) =>
     } catch (error) {
       console.error("Error fetching group members:", error.response || error);
       reject(error);
-    }   
+    }
   });
 
 export const apiGetMarkBlog = ({ userId }) =>
@@ -46,7 +46,7 @@ export const apiGetMarkBlog = ({ userId }) =>
       console.error("Error fetching group members:", error.response || error);
       reject(error);
     }
-});
+  });
 
 export const apiDeleteMarkPost = ({ documentId }) =>
   new Promise(async (resolve, reject) => {
@@ -62,24 +62,24 @@ export const apiDeleteMarkPost = ({ documentId }) =>
     }
   });
 
-  export const apiCreateMarkPost = (payload) => {
-    return new Promise(async (resolve, reject) => {
-      try {
-        const response = await axiosConfig({
-          method: "post",
-          url: "/mark-posts",
-          data: payload,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        //console.log("Post Comment response:", response);
-        resolve(response);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
+export const apiCreateMarkPost = (payload) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/mark-posts",
+        data: payload,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      //console.log("Post Comment response:", response);
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
 
 
 export const apiGetCheckMarkPost = ({ postId, userId }) =>
@@ -101,5 +101,21 @@ export const apiGetCheckMarkPost = ({ postId, userId }) =>
     } catch (error) {
       console.error("Error fetching group members:", error.response || error);
       reject(error);
-    }   
+    }
+  });
+
+export const apiGetCheckMarkDocument = ({ documentId, userId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      // Gọi API với URL đã được truyền đúng groupId
+      const response = await axiosConfig({
+        method: "get",
+        url: `/mark-posts?populate=*&filters[$and][0][document_share][documentId][$eq]=${documentId}&filters[$and][1][user_id][documentId][$eq]=${userId}&sort=id%3ADESC`,
+      });
+      //console.log("Response:", response); // Log ra chi tiết phản hồi
+      resolve(response);
+    } catch (error) {
+      console.error("Error fetching group members:", error.response || error);
+      reject(error);
+    }
   });

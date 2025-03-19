@@ -27,6 +27,7 @@ import FriendList from "../views/dashboard/component/Friends/FriendList"
 import FriendRequest from "../views/dashboard/component/Friends/FriendRequest"
 import FriendProfile from "../views/dashboard/component/Friends/FriendProfile"
 import MyBlog from "../views/dashboard/component/Blog/MyBlog";
+import Notification from "../views/dashboard/app/notification";
 export const DefaultRouter = [
   {
     path: "/",
@@ -143,6 +144,10 @@ export const DefaultRouter = [
   {
     path:"/friend-profile/:id",
     element:<FriendProfile />
+  },
+  {
+    path:"/notification",
+    element:<Notification />
   }
   
 

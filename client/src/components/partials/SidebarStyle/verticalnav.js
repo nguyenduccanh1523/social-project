@@ -616,12 +616,12 @@ const VerticalNav = React.memo(() => {
         </Accordion.Item>
         <Nav.Item as="li">
           <Link
-            className={`${location.pathname === "/dashboard/app/notification"
+            className={`${location.pathname === "/notification"
               ? "active"
               : ""
               } nav-link `}
             aria-current="page"
-            to="/dashboard/app/notification"
+            to="/notification"
           >
             <OverlayTrigger
               placement="right"
