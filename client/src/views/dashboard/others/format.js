@@ -82,3 +82,26 @@ export const getMonthAndDay = (dateString) => {
 
   return { month, day };
 };
+
+export const getTagColorAndIcon = (noticeTypeName) => {
+  switch (noticeTypeName) {
+    case 'Event':
+      return { color: 'magenta', icon: 'event' };
+    case 'Friend':
+      return { color: 'red', icon: 'group' };
+    case 'Group':
+      return { color: 'volcano', icon: 'groups' };
+    case 'Message':
+      return { color: 'orange', icon: 'message' };
+    case 'Page':
+      return { color: 'gold', icon: 'pages' };
+    case 'Post':
+      return { color: 'lime', icon: 'post_add' };
+    case 'Story':
+      return { color: 'green', icon: 'auto_stories' };
+    case 'System':
+      return { color: 'cyan', icon: 'settings' };
+    default:
+      return { color: 'blue', icon: 'notifications' };
+  }
+};

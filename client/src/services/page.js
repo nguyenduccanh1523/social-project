@@ -27,10 +27,6 @@ export const apiGetPagesTags = ({ tagId }) =>
 export const apiGetPageDetail = ({pageId}) =>
     new Promise(async (resolve, reject) => {
         try {
-            if (typeof pageId !== "string") {
-                return reject(new Error("pageId should be a string"));
-            }
-
             const response = await axiosConfig({
                 method: "get",
                 url: `/pages/${pageId}?populate=*`,

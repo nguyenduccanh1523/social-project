@@ -36,3 +36,58 @@ export const apiEditGroupNotification = ({ documentId, payload }) =>
             reject(error);
         }
     });
+
+
+
+export const apiGetNotificationUser = ({ userId, page = 1 }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/user-notifications?sort=createdAt:DESC&filters[$and][0][users_permissions_user][documentId][$eq]=${userId}&pagination[pageSize]=20&pagination[page]=${page}&populate=*`,
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    })
+
+
+export const apiGetFindNotification = ({ notiId }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/notifications/${notiId}?populate=*`,
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    })
+
+export const apiGetNotificationCreated = ({ documentId }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/notification-createds/${documentId}?populate=*`,
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    })
+
+    export const apiGetUserNoti = ({ notiId, userId }) =>
+        new Promise(async (resolve, reject) => {
+            try {
+                const response = await axiosConfig({
+                    method: "get",
+                    url: `/user-notifications?populate=*&filters[$and][0][users_permissions_user][documentId][$eq]=${userId}&filters[$and][1][notification][documentId][$eq]=${notiId}`,
+                });
+                resolve(response);
+            } catch (error) {
+                reject(error);
+            }
+        })
