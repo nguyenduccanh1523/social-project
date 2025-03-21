@@ -34,7 +34,7 @@ const EditPage = ({ pageData, open, onClose }) => {
         setDescriptionPage(pageData?.about || '');
         setEmailPage(pageData?.email || '');
         setPhonePage(pageData?.phone || '');
-        setLivePage(pageData?.nation.documentId || '');
+        setLivePage(pageData?.nation?.documentId || '');
         setIntroPage(pageData?.intro || '');
         setOpenHour(pageData?.page_open_hour?.open_time || '');
         setCloseHour(pageData?.page_open_hour?.close_time || '');
@@ -95,7 +95,7 @@ const EditPage = ({ pageData, open, onClose }) => {
     const handleCheckboxChange = (e) => {
         
         setVerified(e.target.checked);
-        console.log('Checkbox checked:', isVerified); // Ensure the value is correctly set
+        //console.log('Checkbox checked:', isVerified); // Ensure the value is correctly set
     };
 
     const handleOk = async () => {

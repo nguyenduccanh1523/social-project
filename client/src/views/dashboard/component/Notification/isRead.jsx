@@ -17,7 +17,7 @@ const IsRead = ({noti}) => {
     });
 
     const notiRead = Notifi_Read?.data?.data?.[0] || {};
-    console.log('noti:', notiRead);
+    //console.log('noti:', notiRead);
     return (
         <>
             <Tag color={notiRead?.is_read ? 'gray' : 'blue'} className="me-3 d-flex align-items-center gap-2">

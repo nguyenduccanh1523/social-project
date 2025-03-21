@@ -79,15 +79,46 @@ export const apiGetNotificationCreated = ({ documentId }) =>
         }
     })
 
-    export const apiGetUserNoti = ({ notiId, userId }) =>
-        new Promise(async (resolve, reject) => {
-            try {
-                const response = await axiosConfig({
-                    method: "get",
-                    url: `/user-notifications?populate=*&filters[$and][0][users_permissions_user][documentId][$eq]=${userId}&filters[$and][1][notification][documentId][$eq]=${notiId}`,
-                });
-                resolve(response);
-            } catch (error) {
-                reject(error);
-            }
-        })
+export const apiGetUserNoti = ({ notiId, userId }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/user-notifications?populate=*&filters[$and][0][users_permissions_user][documentId][$eq]=${userId}&filters[$and][1][notification][documentId][$eq]=${notiId}`,
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    })
+
+
+export const apiUpdateUserNoti = ({ documentId, payload }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "put",
+                url: `/user-notifications/${documentId}`,
+                data: payload,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    })
+
+export const apiDeleteUserNoti = ({ documentId }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/user-notifications/${documentId}`,
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    })

@@ -3,16 +3,20 @@ import { Row, Col, Container, Dropdown, Button } from 'react-bootstrap'
 import { Tag } from 'antd'
 import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { getTagColorAndIcon } from '../../../../views/dashboard/others/format';
 
-import { apiGetFindNotification, apiGetNotificationCreated } from '../../../../services/notification';
+import { apiGetFindNotification, apiGetNotificationCreated, apiGetUserNoti, apiUpdateUserNoti } from '../../../../services/notification';
 import { apiGetPageDetail } from '../../../../services/page'
 import { apiFindOneGroup } from '../../../../services/groupServices/group'
 import { apiGetEventDetail } from '../../../../services/event'
 import { formatDistanceToNow } from 'date-fns'
 import IsRead from './isRead'
+import NotiModal from './NotiModal';
+
 const Noti = ({ notification }) => {
+    const { profile } = useSelector((state) => state.root.user || {});
+    const queryClient = useQueryClient();
     const { data: Notifi } = useQuery({
         queryKey: ['notifi', notification?.notification?.documentId],
         queryFn: () => apiGetFindNotification({ notiId: notification?.notification?.documentId }),
@@ -64,6 +68,39 @@ const Noti = ({ notification }) => {
 
     const event = eventData?.data?.data || {};
 
+    const [showModal, setShowModal] = useState(false);
+    const handleShowModal = async () => {
+        setShowModal(true);
+        const respone1 = await apiGetUserNoti({ notiId: Noti?.documentId, userId: profile?.documentId });
+        const dataNotiUser1 = respone1?.data?.data?.[0] || {};
+        if (dataNotiUser1?.is_read === false) {
+            const payload = {
+                data: {
+                    is_read: true
+                }
+            }
+            await apiUpdateUserNoti({ documentId: dataNotiUser1?.documentId, payload });
+            queryClient.invalidateQueries('notifi');
+        };
+    };
+
+    const handleCloseModal = () => setShowModal(false);
+
+    const handleMarkAsRead = async () => {
+        const respone = await apiGetUserNoti({ notiId: Noti?.documentId, userId: profile?.documentId });
+        const dataNotiUser = respone?.data?.data?.[0] || {};
+        if (dataNotiUser?.is_read === false) {
+            const payload = {
+                data: {
+                    is_read: true
+                }
+            }
+            await apiUpdateUserNoti({ documentId: dataNotiUser?.documentId, payload });
+            queryClient.invalidateQueries('notifi');
+            // Optionally, refetch or update the notification state here
+        }
+    };
+
     //console.log('notification:', Noti);
     return (
         <>
@@ -92,22 +129,26 @@ const Noti = ({ notification }) => {
                                     </Dropdown.Toggle>
                                 </Link>
                                 <Dropdown.Menu className="dropdown-menu-right">
-                                    <Dropdown.Item className="d-flex gap-2">
-                                        <span class="material-symbols-outlined">
+                                    <Dropdown.Item className="d-flex gap-2" onClick={handleShowModal}>
+                                        <span className="material-symbols-outlined">
                                             visibility
-                                        </span>View Notification</Dropdown.Item>
-                                    <Dropdown.Item className="d-flex gap-2"><span class="material-symbols-outlined">
+                                        </span>View Notification
+                                    </Dropdown.Item>
+                                    <Dropdown.Item className="d-flex gap-2"><span className="material-symbols-outlined">
                                         delete
                                     </span>Delete Notification</Dropdown.Item>
-                                    <Dropdown.Item className="d-flex gap-2"><span class="material-symbols-outlined">
-                                        check
-                                    </span>Mark as read</Dropdown.Item>
+                                    <Dropdown.Item className="d-flex gap-2" onClick={handleMarkAsRead}>
+                                        <span className="material-symbols-outlined">
+                                            check
+                                        </span>Mark as read
+                                    </Dropdown.Item>
                                 </Dropdown.Menu>
                             </Dropdown>
                         </div>
                     </div>
                 </div>
             </div>
+            <NotiModal show={showModal} handleClose={handleCloseModal} notification={Noti} user={Noti_cre?.users_id} page={page} group={group} event={event} />
         </>
     )
 

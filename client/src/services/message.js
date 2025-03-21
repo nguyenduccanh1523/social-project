@@ -14,7 +14,7 @@ export const apiGetMessage = ({ conversationId, pageParam = 1 }) =>
       // Gọi API với URL đã được truyền đúng groupId
       const response = await axiosConfig({
         method: "get",
-        url: `/messages?filters[$and][0][conversation_id][documentId][$eq]=${conversationId}&sort=id%3ADESC&pagination[page]=${pageParam}&pagination[pageSize]=10&populate=*`,
+        url: `/messages?filters[$and][0][conversation_id][documentId][$eq]=${conversationId}&sort=createdAt%3ADESC&pagination[page]=${pageParam}&pagination[pageSize]=10&populate=*`,
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve({
@@ -27,3 +27,20 @@ export const apiGetMessage = ({ conversationId, pageParam = 1 }) =>
       reject(error);
     }
   });
+
+  export const apiCreateMessager = (payload) =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const response = await axiosConfig({
+          method: "post",
+          url: "/messages",
+          data: payload,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        resolve(response);
+      } catch (error) {
+        reject(error);
+      }
+    });

@@ -11,7 +11,7 @@ const Chat = () => {
   return (
     <>
       <div id="content-page" className="content-page">
-        <Container id="left-tabs-example" defaultActiveKey="start">
+        <Container id="left-tabs-example" defaultactivekey="start">
           <Row>
             <Col sm="12">
               <Card>

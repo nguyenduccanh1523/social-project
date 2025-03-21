@@ -10,10 +10,9 @@ import SendMessager from "./sendMessager";
 import ContentMessager from "./contentMessager";
 
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchConversation,
-  fetchParticipantByUser,
-} from "../../../../actions/actions";
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { apiGetConversation } from "../../../../services/conversation";
+import { apiGetParticipantByUser } from "../../../../services/participant";
 
 const Conversation = ({ profile }) => {
   const dispatch = useDispatch();
@@ -23,29 +22,31 @@ const Conversation = ({ profile }) => {
   const [show1, setShow1] = useState("");
   const [searchQuery, setSearchQuery] = useState(""); // Trạng thái tìm kiếm
 
-  const { conversations } = useSelector(
-    (state) => state.root.conversation || {}
-  );
-  const { participants } = useSelector((state) => state.root.participant || {}); // Lấy danh sách thành viên từ store
+  const { data: conversationsData } = useQuery({
+    queryKey: ['conversations', profile?.documentId],
+    queryFn: () => apiGetConversation({userId: profile?.documentId}),
+    enabled: !!profile?.documentId
+  });
 
-  useEffect(() => {
-    dispatch(fetchConversation(profile?.documentId)); // Truyền đúng giá trị groupId
-    dispatch(fetchParticipantByUser(profile?.documentId)); // Truyền đúng giá trị userId
-  }, [profile, dispatch]);
+  const { data: participantsData } = useQuery({
+    queryKey: ['participants', profile?.documentId],
+    queryFn: () => apiGetParticipantByUser({userId: profile?.documentId}),
+    enabled: !!profile?.documentId
+  });
+
+  const conversations = conversationsData?.data?.data || [];
+  const participants = participantsData?.data?.data || [];
 
   const ChatSidebar = () => {
     document.getElementsByClassName("scroller")[0].classList.add("show");
   };
-
-  const allConver = conversations[profile?.documentId] || [];
-  const allParticipant = participants[profile?.documentId] || [];
 
   const handleSearch = (value) => {
     setSearchQuery(value); // Cập nhật giá trị tìm kiếm khi người dùng nhập
   };
 
   // Lọc các cuộc trò chuyện theo query tìm kiếm
-  const filteredConversations = allConver?.data?.filter((item) => {
+  const filteredConversations = conversations.filter((item) => {
     // Kiểm tra nếu conversation_created_by là profile hiện tại
     const username =
       item?.conversation_created_by?.documentId === profile?.documentId
@@ -55,9 +56,8 @@ const Conversation = ({ profile }) => {
     // So sánh tên người nhắn với query tìm kiếm (tìm kiếm không phân biệt chữ hoa chữ thường)
     return username?.toLowerCase().includes(searchQuery.toLowerCase());
   });
-  //console.log("filteredConversations: ", allParticipant);
 
-  const filteredParticipants = allParticipant?.data?.filter((participant) => {
+  const filteredParticipants = participants.filter((participant) => {
     return participant?.conversation_id?.name
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
@@ -311,7 +311,7 @@ const Conversation = ({ profile }) => {
                   username={username}
                 />
 
-                <SendMessager />
+                <SendMessager conversation={item?.documentId} />
               </Tab.Pane>
             );
           })}
@@ -394,7 +394,7 @@ const Conversation = ({ profile }) => {
                   //username={item?.conversation_id?.name}
                 />
 
-                <SendMessager />
+                <SendMessager conversation={item?.conversation_id?.documentId} />
               </Tab.Pane>
             );
           })}

@@ -236,13 +236,13 @@ const PageLists = () => {
                                   <div className="user-data-block">
                                     <h4 className="d-flex align-items-center">
                                       <Link
-                                        to={`/page/${page.page_id?.page_name}`}
+                                        to={`/page/${page.page_id?.documentId}`}
                                         state={{
                                           pageId: page.page_id?.documentId,
-                                          pageDetail:
-                                            pageDetails[
-                                            page?.page_id?.documentId
-                                            ],
+                                          // pageDetail:
+                                          //   pageDetails[
+                                          //   page?.page_id?.documentId
+                                          //   ],
                                           pageInfo: page,
                                         }}
                                       >
