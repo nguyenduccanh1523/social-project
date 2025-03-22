@@ -1,154 +1,125 @@
-import React, { useEffect, useState, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+  useState,
+} from "react";
 import { Link } from "react-router-dom";
 import { Image } from "antd";
 import { apiGetMessage } from "../../../../services/message";
+import loader from "../../../../assets/images/page-img/page-load-loader.gif";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   convertToVietnamDate,
   convertToVietnamHour,
 } from "../../others/format";
-import loader from "../../../../assets/images/page-img/page-load-loader.gif";
-import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 
 const ContentMessager = ({ item, profile, username }) => {
-  const [messages, setMessages] = useState([]); // Lưu trữ tin nhắn trong state
-  const [loading, setLoading] = useState(false); // Trạng thái loading
-  const [hasNextPage, setHasNextPage] = useState(false); // Kiểm tra có trang tiếp theo không
-  const [pageParam, setPageParam] = useState(1); // Trạng thái phân trang
-  const [showScrollButton, setShowScrollButton] = useState(false); // Hiển thị nút cuộn xuống
-  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true); // Điều khiển cuộn xuống dưới cùng
-  const messagesEndRef = useRef(null); // Dùng để cuộn xuống cuối khi có tin nhắn mới
-  const chatBodyRef = useRef(null); // Tham chiếu đến vùng chat body để theo dõi sự kiện cuộn
+  const chatBodyRef = useRef(null);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+  const queryClient = useQueryClient();
+  const isInitialLoad = useRef(true);
 
-  const { data, isLoading, isError, fetchNextPage, hasNextPage: queryHasNextPage } = useInfiniteQuery({
-    queryKey: ['messages', item],
-    queryFn: ({ pageParam = 1 }) => apiGetMessage({ conversationId: item, pageParam }),
-    getNextPageParam: (lastPage) => lastPage.hasNextPage ? pageParam + 1 : undefined,
-    enabled: !!item,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
+    useInfiniteQuery({
+      queryKey: ["messages", item],
+      queryFn: ({ pageParam = 1 }) =>
+        apiGetMessage({ conversationId: item, pageParam }),
+      getNextPageParam: (lastPage) =>
+        lastPage.hasNextPage ? lastPage.nextPage : false,
+    });
 
-  useEffect(() => {
-    if (shouldScrollToBottom && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      setShouldScrollToBottom(false); // Tắt sau khi cuộn 1 lần
+  const messages =
+    data?.pages?.flatMap((page) =>
+      Array.isArray(page?.data?.data) ? page.data.data : []
+    ) || [];
+
+  // Scroll về đáy khi load lần đầu
+  useLayoutEffect(() => {
+    if (!isLoading && isInitialLoad.current && chatBodyRef.current) {
+      const scrollHeight = chatBodyRef.current.scrollHeight;
+      chatBodyRef.current.scrollTop = scrollHeight;
+      isInitialLoad.current = false;
     }
-  }, [messages]);
+  }, [isLoading, data]);
 
-  useEffect(() => {
-    setShouldScrollToBottom(true); // Chỉ set true khi đổi conversation
-  }, [item]);
+  const handleScroll = useCallback(() => {
+    const el = chatBodyRef.current;
+    if (!el) return;
 
-  useEffect(() => {
-    if (data) {
-      const newMessages = data.pages.flatMap(page => page.data);
-      setMessages((prevMessages) => {
-        const uniqueMessages = newMessages.filter(
-          (msg) => !prevMessages.some((prevMsg) => prevMsg.id === msg.id)
-        );
-        return [...uniqueMessages.reverse(), ...prevMessages];
+    const scrollThreshold = 500;
+    setShowScrollToBottom(
+      el.scrollTop + el.clientHeight < el.scrollHeight - scrollThreshold
+    );
+
+    // Nếu đã hết trang, không fetch nữa
+    if (el.scrollTop === 0 && hasNextPage && !isFetchingNextPage) {
+      const prevScrollHeight = el.scrollHeight;
+      fetchNextPage().then((res) => {
+        const newMessages = res?.data?.data?.data || [];
+        // Nếu có thêm tin nhắn -> giữ vị trí scroll
+        if (newMessages.length > 0 && chatBodyRef.current) {
+          const newScrollHeight = chatBodyRef.current.scrollHeight;
+          chatBodyRef.current.scrollTop = newScrollHeight - prevScrollHeight;
+        }
       });
-      setHasNextPage(queryHasNextPage);
-      setShouldScrollToBottom(true); // Ensure scroll to bottom when new messages are loaded
     }
-    // Scroll to bottom when new messages are loaded
-    const chatContent = document.querySelector('.chat-content');
-    if (chatContent) {
-      chatContent.scrollTop = chatContent.scrollHeight;
-    }
-  }, [data]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  useEffect(() => {
-    setLoading(isLoading);
-  }, [isLoading]);
-
-  // Tải thêm tin nhắn khi người dùng cuộn lên
-  const loadMoreMessages = (e) => {
-    if (hasNextPage && !loading && e.target.scrollTop === 0) {
-      setShouldScrollToBottom(false); // Prevent auto-scroll to bottom when loading more messages
-      fetchNextPage();
+  const scrollToBottom = () => {
+    if (chatBodyRef.current) {
+      chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
     }
   };
 
-  // Cuộn xuống cuối khi có tin nhắn mới
   useEffect(() => {
-    if (messagesEndRef.current && shouldScrollToBottom) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, [messages, shouldScrollToBottom]); // Mỗi khi tin nhắn thay đổi, cuộn xuống cuối
-
-  // Hàm cuộn xuống cuối khi người dùng nhấn nút
-  const handleScrollToBottom = () => {
-    setShouldScrollToBottom(true);
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Lắng nghe sự kiện cuộn
-  const handleScroll = useCallback(
-    (e) => {
-      const element = e.target;
-      const scrollHeight = element.scrollHeight;
-      const scrollTop = element.scrollTop;
-      const clientHeight = element.clientHeight;
-
-      // Hiển thị nút khi cuộn lên trên 500px
-      setShowScrollButton(scrollHeight - scrollTop - clientHeight > 500);
-      //console.log(scrollHeight - scrollTop - clientHeight);
-
-      // Kiểm tra nếu đang ở gần top để load thêm tin nhắn
-      if (scrollTop < 100 && hasNextPage && !loading) {
-        setShouldScrollToBottom(false);
-        fetchNextPage();
-      }
-    },
-    [hasNextPage, loading, fetchNextPage]
-  );
-
-  // Gắn event listener cuộn
-  useEffect(() => {
-    const container = chatBodyRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-    }
-    return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, [handleScroll]);
-
-  // Tự động cuộn xuống dưới khi mở cuộc trò chuyện hoặc tin nhắn mới
-  useEffect(() => {
-    if (shouldScrollToBottom) {
+    // Mỗi khi chuyển sang cuộc trò chuyện khác -> scroll xuống cuối
+    if (chatBodyRef.current) {
       setTimeout(() => {
-        handleScrollToBottom();
-      }, 300); // Cuộn xuống sau khi tải tin nhắn mới
+        chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+      }, 100); // delay nhẹ để React render xong DOM
     }
-  }, [shouldScrollToBottom, item]); // Add `item` to dependencies to trigger scroll on conversation change
+    isInitialLoad.current = true; // Reset lại flag initial load
+  }, [item]);
 
   return (
     <>
       <div
         className="chat-content scroller"
-        onScroll={loadMoreMessages}
         ref={chatBodyRef}
-        onWheel={(e) => e.stopPropagation()} // Prevent outer scroll
+        onScroll={handleScroll}
+        onWheel={(e) => e.stopPropagation()}
       >
-        {/* Hiển thị khi không còn dữ liệu để tải thêm */}
-        {!hasNextPage && <p>No more messages</p>}
-        {/* Hiển thị loading nếu dữ liệu đang được tải */}
-        {loading && (
+        {/* Loader khi đang fetch trang tiếp theo */}
+        {isFetchingNextPage && hasNextPage && (
           <div className="col-sm-12 text-center">
-            <img src={loader} alt="loader" style={{ height: "100px" }} />
+            <img src={loader} alt="loading..." style={{ height: "60px" }} />
           </div>
         )}
-        {messages?.map((message, index) => {
+        {/* Khi không còn tin nhắn để load nữa */}
+        {!hasNextPage && !isLoading && (
+          <div
+            style={{
+              textAlign: "center",
+              fontSize: "13px",
+              color: "#aaa",
+              marginBottom: "10px",
+            }}
+          >
+            Đã hết tin nhắn cũ
+          </div>
+        )}
+
+        {/* Hiển thị tin nhắn (đảo ngược để tin mới ở dưới) */}
+        {[...messages].reverse().map((message, index) => {
           const isSentByUser =
             message?.sender_id?.documentId === profile?.documentId;
           const messageDate = message?.createdAt;
           const formattedDate = convertToVietnamDate(messageDate);
           const formattedTime = convertToVietnamHour(messageDate);
-
           return (
-            <div key={index}>
+            <div key={message?.documentId || index}>
               <div
                 className={
                   isSentByUser ? "chat d-flex other-user" : "chat chat-left"
@@ -202,7 +173,7 @@ const ContentMessager = ({ item, profile, username }) => {
                       <Image.PreviewGroup>
                         <Image
                           src={message?.media_id?.file_path}
-                          alt="post1"
+                          alt="media"
                           style={{
                             width: "100%",
                             height: "auto",
@@ -219,27 +190,29 @@ const ContentMessager = ({ item, profile, username }) => {
             </div>
           );
         })}
-        {/* Nút cuộn xuống dưới cùng */}
-        {showScrollButton && (
-          <button
-            style={{
-              position: "fixed",
-              bottom: "160px",
-              right: "600px",
-              padding: "10px",
-              backgroundColor: "skyblue",
-              color: "white",
-              borderRadius: "100%",
-              cursor: "pointer",
-              zIndex: 1000,
-            }}
-            onClick={handleScrollToBottom}
-          >
-            ↓
-          </button>
-        )}
-        <div ref={messagesEndRef} /> {/* Phần tử giúp cuộn xuống cuối */}
       </div>
+      {showScrollToBottom && (
+        <button
+          onClick={scrollToBottom}
+          style={{
+            position: "absolute",
+            bottom: "90px",
+            right: "380px",
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            backgroundColor: "#1877f2",
+            color: "white",
+            border: "none",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.2)",
+            cursor: "pointer",
+            zIndex: 1000,
+          }}
+          title="Cuộn xuống dưới cùng"
+        >
+          ⬇
+        </button>
+      )}
     </>
   );
 };
