@@ -77,6 +77,7 @@ const ButtonPost = ({ profile, formData, page, group, handleClose, onPostCreated
             }
             if (formData?.selectedImages?.length) {
                 for (const image of formData.selectedImages) {
+                    console.log('Uploading image:', image);
                     const binaryImage = await fetch(image.url)
                         .then(res => res.blob())
                         .then(blob => {

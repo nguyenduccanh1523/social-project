@@ -24,14 +24,11 @@ import { colorsTag, convertToDateTime } from "../../others/format";
 //image
 import user2 from "../../../../assets/images/user/02.jpg";
 import user3 from "../../../../assets/images/user/03.jpg";
-import icon3 from "../../../../assets/images/icon/03.png";
 import icon4 from "../../../../assets/images/icon/04.png";
-import icon5 from "../../../../assets/images/icon/05.png";
 import icon6 from "../../../../assets/images/icon/06.png";
-import icon7 from "../../../../assets/images/icon/07.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
-const CardPostHome = ({ post, pageInfo}) => {
+const CardPostHome = ({ post, pageInfo }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
@@ -95,6 +92,7 @@ const CardPostHome = ({ post, pageInfo}) => {
     const friendNames = friends?.map(friend => friend?.users_permissions_user?.username) || [];
 
     //console.log("post", post);
+    //console.log("page", pageInfo?.data?.page_name)
 
     return (
         <>

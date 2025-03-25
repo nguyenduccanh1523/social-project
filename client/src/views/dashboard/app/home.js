@@ -46,15 +46,7 @@ const Index = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
-  const fetchPageInfo = async (pageId) => {
-    try {
-      const response = await apiGetPageDetail(pageId);
-      return response.data; // Trả về dữ liệu
-    } catch (error) {
-      console.error("Error fetching page info:", error);
-      return null;
-    }
-  };
+
 
   // Fetch posts ban đầu
   useEffect(() => {
@@ -63,12 +55,13 @@ const Index = () => {
         const response = await getAllPosts({ page: 1 });
         const posts = response.data?.data || [];
         const pagination = response.data?.meta?.pagination;
-
+        
         // Kiểm tra và lấy thông tin page cho các post
         const updatedPosts = await Promise.all(
           posts.map(async (post) => {
+            
             if (post?.page?.documentId) {
-              const pageInfo = await fetchPageInfo(post.page.documentId);
+              const pageInfo = await fetchPageInfo(post?.page?.documentId);
               if (pageInfo) {
                 setPageInfoMap((prev) => ({
                   ...prev,
@@ -119,12 +112,14 @@ const Index = () => {
       // Kiểm tra và lấy thông tin page cho các post mới
       const updatedPosts = await Promise.all(
         newPosts.map(async (post) => {
+          
           if (post?.page?.documentId) {
-            const pageInfo = await fetchPageInfo(post.page.documentId);
+            const pageInfo = await fetchPageInfo(post?.page?.documentId);
+            //console.log("Page info:", pageInfo);
             if (pageInfo) {
               setPageInfoMap((prev) => ({
                 ...prev,
-                [post.page.documentId]: pageInfo, // Lưu thông tin page vào map
+                [post.page.documentId]: pageInfo // Lưu thông tin page vào map
               }));
             }
           }
@@ -195,6 +190,16 @@ const Index = () => {
       }
     }
   }, [isLoggedIn]);
+
+  const fetchPageInfo = async (pageId) => {
+    try {
+      const response = await apiGetPageDetail({pageId: pageId});
+      return response.data; // Trả về dữ liệu
+    } catch (error) {
+      console.error("Error fetching page info:", error);
+      return null;
+    }
+  };
 
   return (
     <>
@@ -296,7 +301,7 @@ const Index = () => {
                       pageInfo={pageInfoMap[post.page?.documentId]}
                     />
                   ))}
-
+                  
                   {loadingMore && (
                     <div className="col-sm-12 text-center">
                       <Loader />
