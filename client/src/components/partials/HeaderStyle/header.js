@@ -46,6 +46,7 @@ import user16 from "../../../assets/images/page-img/01.jpg";
 //Componets
 import CustomToggle from "../../dropdowns";
 import { useDispatch, useSelector } from "react-redux";
+import Status from "./status";
 // import DropdownMenu from "react-bootstrap/esm/DropdownMenu";
 
 const Header = () => {
@@ -1459,34 +1460,7 @@ const Header = () => {
                         </div>
                       </div>
 
-
-                       {/* su dung Collapse */}
-
-
-                      <div className="d-flex align-items-center iq-sub-card border-0">
-                        <i className="material-symbols-outlined text-success md-14">
-                          circle
-                        </i>
-                        <div className="ms-3">Online</div>
-                      </div>
-                      <div className="d-flex align-items-center iq-sub-card border-0">
-                        <i className="material-symbols-outlined text-warning md-14">
-                          circle
-                        </i>
-                        <div className="ms-3">Away</div>
-                      </div>
-                      <div className="d-flex align-items-center iq-sub-card border-0">
-                        <i className="material-symbols-outlined text-danger md-14">
-                          circle
-                        </i>
-                        <div className="ms-3">Disconnected</div>
-                      </div>
-                      <div className="d-flex align-items-center iq-sub-card border-0">
-                        <i className="material-symbols-outlined text-gray md-14">
-                          circle
-                        </i>
-                        <div className="ms-3">Invisible</div>
-                      </div>
+                      <Status userId={profile} />
                     </Card.Body>
                   </Card>
                 </Dropdown.Menu>

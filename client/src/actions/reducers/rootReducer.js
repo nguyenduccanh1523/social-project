@@ -15,6 +15,7 @@ import participantReducer from "./participantReducer";
 import supportReducer from "./supportReducer";
 import nationReducer from "./nationReducer";
 import reportReducer from "./reportReducer";
+import statusReducer from "./statusReducer";
 
 const commonConfig = {
     storage,
@@ -40,7 +41,8 @@ const rootReducer = combineReducers({
     participant: participantReducer,
     support: supportReducer,
     nation: nationReducer,
-    report: reportReducer
+    report: reportReducer,
+    status: statusReducer
 })
 
 export default rootReducer

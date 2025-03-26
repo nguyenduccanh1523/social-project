@@ -1,6 +1,7 @@
 // StoryContainer.jsx
 import React, { useState, useEffect } from 'react';
 import { Row, Col } from 'react-bootstrap';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiGetStories } from '../../../../services/stories';
 import NavbarLeft from './navbarLeft';
 import StoryViewerRight from './storyViewRight';
@@ -11,12 +12,24 @@ const StoryContainer = () => {
     const [selectedIndex, setSelectedIndex] = useState(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
+    const { data: storiesData } = useQuery({
+        queryKey: ['stories'],
+        queryFn: apiGetStories,
+        onSuccess: (data) => {
+            const storyList = data?.data?.data ?? [];
+            setStories(storyList); // chỉ là mảng
+        },
+    });
+
     useEffect(() => {
-        apiGetStories().then((res) => setStories(res.data));
-    }, []);
+        if (storiesData && Array.isArray(storiesData?.data?.data)) {
+            setStories(storiesData);
+        }
+    }, [storiesData]);
+    //console.log('stories', stories);
 
     const handleSelectStory = (story) => {
-        const index = stories?.data?.findIndex(s => s.user_id.documentId === story.user_id.documentId);
+        const index = stories?.data?.data?.findIndex(s => s.user_id.documentId === story.user_id.documentId);
         setSelectedIndex(index);
     };
 
@@ -25,7 +38,7 @@ const StoryContainer = () => {
     };
 
     const handleNext = () => {
-        if (selectedIndex < stories.data.length - 1) setSelectedIndex(selectedIndex + 1);
+        if (selectedIndex < stories.data.data.length - 1) setSelectedIndex(selectedIndex + 1);
     };
 
     return (
@@ -34,12 +47,12 @@ const StoryContainer = () => {
                 <NavbarLeft
                     stories={stories}
                     onSelectStory={handleSelectStory}
-                    activeStoryId={stories?.data?.[selectedIndex]?.user_id?.documentId}
+                    activeStoryId={stories?.data?.data?.[selectedIndex]?.user_id?.documentId}
                     setIsCreateModalOpen={setIsCreateModalOpen}
                 />
             </Col>
             <StoryViewerRight
-                story={stories?.data?.[selectedIndex]}
+                story={stories?.data?.data?.[selectedIndex]}
                 onPrev={handlePrev}
                 onNext={handleNext}
             />

@@ -1,0 +1,23 @@
+.status-radio .ant-radio-inner {
+    border-width: 2px;
+}
+
+.status-radio.text-success .ant-radio-checked .ant-radio-inner {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.status-radio.text-warning .ant-radio-checked .ant-radio-inner {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.status-radio.text-danger .ant-radio-checked .ant-radio-inner {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.status-radio.text-gray .ant-radio-checked .ant-radio-inner {
+    background-color: #6c757d;
+    border-color: #6c757d;
+}

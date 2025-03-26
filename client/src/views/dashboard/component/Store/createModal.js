@@ -6,9 +6,11 @@ import { createMedia, uploadToMediaLibrary } from "../../../../services/media";
 import { apiCreateStory, apiUpdateStory } from "../../../../services/stories";
 import { useSelector } from "react-redux";
 import styled from "styled-components";
+import { useQueryClient } from '@tanstack/react-query';
 
 const DraggableText = ({ text, onRemove, onDrag, onEdit, textColor }) => {
   const nodeRef = useRef(null);
+  
 
   return (
     <Draggable
@@ -54,6 +56,7 @@ const CreateStoryModal = ({ open, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
   const canvasRef = useRef(null);
+  const queryClient = useQueryClient();
 
   const handleChange = ({ fileList: newFileList }) => {
     setFileList(newFileList);
@@ -119,6 +122,7 @@ const CreateStoryModal = ({ open, onClose }) => {
 
 
   const handleSubmit = async () => {
+    setLoading(true);
     const storyData = {
       type: backgroundType,
       background: backgroundType === 'color' ? backgroundColor : previewImage,
@@ -191,7 +195,9 @@ const CreateStoryModal = ({ open, onClose }) => {
     }
 
     message.success('Story created successfully!');
-    //onClose(); // đóng modal
+    queryClient.invalidateQueries('stories');
+    setLoading(false);
+    onClose(); // đóng modal
   };
 
 

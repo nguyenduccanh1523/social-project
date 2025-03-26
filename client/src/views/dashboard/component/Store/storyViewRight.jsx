@@ -1,14 +1,20 @@
 // StoryViewerRight.jsx
 import React, { useState, useEffect } from 'react';
 import { Col, Image } from 'react-bootstrap';
-import { Progress as AntdProgress } from 'antd';
+import { Progress as AntdProgress, Dropdown, Menu, Modal, notification } from 'antd'; // Import Modal from antd
 import { timeAgo } from '../../others/format';
+import { useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
+import { apiDeleteStory } from '../../../../services/stories';
 
-const StoryViewerRight = ({ story, onPrev, onNext }) => {
-    console.log('story', story)
+const StoryViewerRight = ({ story, onPrev, onNext, handleReportStory }) => { // Remove handleDeleteStory from props
+    const { profile } = useSelector((state) => state.root.user || {});
     const [percent, setPercent] = useState(0);
     const [intervalId, setIntervalId] = useState(null);
     const [isPaused, setIsPaused] = useState(false);
+    const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false); // State for delete confirmation modal
+    const [isDeleting, setIsDeleting] = useState(false); // State for loading during delete
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         if (story) {
@@ -35,7 +41,6 @@ const StoryViewerRight = ({ story, onPrev, onNext }) => {
         setIntervalId(id);
     };
 
-
     const pauseResume = () => {
         if (isPaused) {
             setIsPaused(false);
@@ -45,6 +50,57 @@ const StoryViewerRight = ({ story, onPrev, onNext }) => {
             setIsPaused(true);
         }
     };
+
+    const showDeleteModal = () => {
+        setIsDeleteModalVisible(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        setIsDeleting(true);
+        try {
+            await apiDeleteStory({ documentId: story?.documentId }); // Use apiDeleteStory to delete the story
+            notification.success({ message: 'Story deleted successfully' }); // Show success notification
+            queryClient.invalidateQueries('stories');
+        } catch (error) {
+            console.error('Failed to delete story:', error);
+        } finally {
+            setIsDeleting(false);
+            setIsDeleteModalVisible(false);
+        }
+    };
+
+    const handleDeleteCancel = () => {
+        setIsDeleteModalVisible(false);
+    };
+
+    console.log('story', story);
+
+    const menu = (
+        <Menu>
+            <Menu.Item
+                key="1"
+                style={{ display: story?.user_id?.documentId === profile?.documentId ? 'block' : 'none' }}
+                onClick={showDeleteModal} // Show confirmation modal
+            >
+                <div className="d-flex align-items-top">
+                    <i className="material-symbols-outlined">delete</i>
+                    <div className="data ms-2">
+                        <h6>Delete</h6>
+                        <p className="mb-0">Remove this story</p>
+                    </div>
+                </div>
+            </Menu.Item>
+            <Menu.Item key="2" onClick={() => handleReportStory(story.documentId)}>
+                <div className="d-flex align-items-top">
+                    <i className="material-symbols-outlined">report_problem</i>
+                    <div className="data ms-2">
+                        <h6>Report</h6>
+                        <p className="mb-0">Report this story</p>
+                    </div>
+                </div>
+            </Menu.Item>
+        </Menu>
+    );
 
     if (!story) {
         return (
@@ -62,7 +118,43 @@ const StoryViewerRight = ({ story, onPrev, onNext }) => {
             <div className="chat-content" style={{ height: '730px' }}>
                 <AntdProgress percent={percent} showInfo={false} style={{ marginTop: '15px' }} />
                 <div className="chat d-flex other-user" style={{ marginTop: '10px' }}>
-                    <i className="material-symbols-outlined" style={{ cursor: 'pointer', fontSize: '30px' }}>more_horiz</i>
+                    <Dropdown
+                        menu={{
+                            items: [
+                                {
+                                    key: '1',
+                                    label: (
+                                        story?.user_id?.documentId === profile?.documentId && (
+                                            <div className="d-flex align-items-top" onClick={showDeleteModal}>
+                                                <i className="material-symbols-outlined">delete</i>
+                                                <div className="data ms-2">
+                                                    <h6>Delete</h6>
+                                                    <p className="mb-0">Remove this story</p>
+                                                </div>
+                                            </div>
+                                        )
+                                    ),
+                                },
+                                {
+                                    key: '2',
+                                    label: (
+                                        <div className="d-flex align-items-top" onClick={() => handleReportStory(story.documentId)}>
+                                            <i className="material-symbols-outlined">report_problem</i>
+                                            <div className="data ms-2">
+                                                <h6>Report</h6>
+                                                <p className="mb-0">Report this story</p>
+                                            </div>
+                                        </div>
+                                    ),
+                                }
+                            ]
+                        }}
+                        trigger={['click']}
+                    >
+                        <span className="material-symbols-outlined" style={{ cursor: 'pointer', fontSize: '30px' }}>
+                            more_horiz
+                        </span>
+                    </Dropdown>
                     <div onClick={pauseResume} style={{ cursor: 'pointer' }}>
                         <i className="material-symbols-outlined" style={{ fontSize: '30px' }}>{isPaused ? 'play_arrow' : 'pause'}</i>
                     </div>
@@ -72,7 +164,7 @@ const StoryViewerRight = ({ story, onPrev, onNext }) => {
                     <div className="stories-data ms-3 d-flex gap-2">
                         <h5>{story?.user_id?.username}</h5>
                         <p className="mb-0">{timeAgo(story?.createdAt)}</p>
-                        <i className="material-symbols-outlined">public</i>
+                        {story?.type?.name === 'public' ? <i className="material-symbols-outlined">public</i> : <i className="material-symbols-outlined">lock</i>}
                     </div>
                 </div>
                 <div className="d-flex mt-3 h-90">
@@ -148,6 +240,17 @@ const StoryViewerRight = ({ story, onPrev, onNext }) => {
                     </Col>
                 </div>
             </div>
+            <Modal
+                title="Confirm Delete"
+                open={isDeleteModalVisible} // Use open instead of visible
+                onOk={handleDeleteConfirm}
+                onCancel={handleDeleteCancel}
+                okText="Delete"
+                cancelText="Cancel"
+                confirmLoading={isDeleting} // Add loading state
+            >
+                <p>Are you sure you want to delete this story?</p>
+            </Modal>
         </Col>
     );
 };
