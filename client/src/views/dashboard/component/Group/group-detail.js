@@ -52,6 +52,7 @@ const GroupDetail = () => {
   const images = [img12, img13, img14, img15, img16];
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inviteModalShow, setInviteModalShow] = useState(false);
+  
 
 
   const { data: GroupDatas } = useQuery({

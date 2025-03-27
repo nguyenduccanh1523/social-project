@@ -19,7 +19,7 @@ const Status = ({ userId }) => {
     }, [dispatch, userId]);
     //console.log('status', status);
 
-    console.log('userId', userId);
+    //console.log('userId', userId);
 
     const statusColors = {
         "Active": "text-success",

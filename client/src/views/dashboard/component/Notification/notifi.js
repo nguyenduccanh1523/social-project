@@ -9,7 +9,7 @@ import { getTagColorAndIcon } from '../../../../views/dashboard/others/format';
 import { apiGetFindNotification, apiGetNotificationCreated, apiGetUserNoti, apiUpdateUserNoti } from '../../../../services/notification';
 import { apiGetPageDetail } from '../../../../services/page'
 import { apiFindOneGroup } from '../../../../services/groupServices/group'
-import { apiGetEventDetail } from '../../../../services/event'
+import { apiGetEventDetail } from '../../../../services/eventServices/event'
 import { formatDistanceToNow } from 'date-fns'
 import IsRead from './isRead'
 import NotiModal from './NotiModal';

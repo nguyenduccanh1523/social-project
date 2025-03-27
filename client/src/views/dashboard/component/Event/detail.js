@@ -4,6 +4,9 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 import ProfileHeader from '../../../../components/profile-header'
 import CustomToggle from '../../../../components/dropdowns'
 import ShareOffcanvas from '../../../../components/share-offcanvas'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Input, message } from 'antd'; // Import Ant Design Input and message components
+import { apiUpdateEventRequest } from '../../../../services/eventServices/eventRequest'; // Import the API function
 
 //image
 import user9 from '../../../../assets/images/user/1.jpg'
@@ -30,8 +33,10 @@ import icon5 from '../../../../assets/images/icon/05.png'
 import icon6 from '../../../../assets/images/icon/06.png'
 import icon7 from '../../../../assets/images/icon/07.png'
 import header from '../../../../assets/images/page-img/profile-bg7.jpg'
-import { apiGetEventMember, apiGetEventUser } from '../../../../services/event';
+import { apiGetEventMember, apiGetEventUser } from '../../../../services/eventServices/event';
 import { useSelector } from 'react-redux'
+import { apiGetEventRequest } from '../../../../services/eventServices/eventRequest'
+import { apiCreateMemberEvent } from '../../../../services/eventServices/eventMembers'
 
 const EventDetail = () => {
     const location = useLocation();
@@ -45,8 +50,19 @@ const EventDetail = () => {
     const [eventMember, setEventMember] = useState([]);
     const [eventUser, setEventUser] = useState([]);
     const { profile } = useSelector((state) => state.root.user || {});
+    const queryClient = useQueryClient();
 
     const document = profile?.documentId;
+
+    const { data: eventRequests, isLoading: isLoadingRequests } = useQuery({
+        queryKey: ['eventRequests', eventDetail?.documentId],
+        queryFn: () => apiGetEventRequest({ eventId: eventDetail?.documentId }),
+        enabled: !!eventDetail?.documentId,
+    });
+
+    const userRequest = eventRequests?.data?.data || [];
+    
+    //console.log('userRequestuserRequest', userRequest);
 
     // Kiểm tra xem có event_id nào trong eventUser bằng với eventDetail?.documentId hay không
     const isEventUserExists = eventUser?.data?.some(event => event.event_id.documentId === eventDetail?.documentId);
@@ -67,7 +83,7 @@ const EventDetail = () => {
     useEffect(() => {
         if (isEventUserExists) {
             console.log("Event user exists for this event.");
-            // Thực hiện các hành động khác nếu cần
+            // Perform necessary actions here
         } else {
             console.log("No event user found for this event.");
         }
@@ -79,6 +95,59 @@ const EventDetail = () => {
         });
     }, [eventDetail]);
 
+    const [showModal, setShowModal] = useState(false);
+    const [visibleRequests, setVisibleRequests] = useState(3);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const handleShowModal = () => setShowModal(true);
+    const handleCloseModal = () => setShowModal(false);
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value.toLowerCase());
+    };
+
+    const filteredRequests = userRequest.filter((request) =>
+        request?.user_request?.username?.toLowerCase().includes(searchTerm)
+    );
+
+    const handleAccept = async (documentId, userId) => {
+        try {
+            const payload = { 
+                data: {
+                    request_status: "vr8ygnd5y17xs4vcq6du3q7c"
+                }
+             };
+            await apiUpdateEventRequest({documentId: documentId, payload: payload});
+            message.success('Request accepted successfully!');
+            const payloadMember = {
+                    event_id: eventDetail?.documentId,
+                    user_id: userId,
+                    status_type: "going"
+            }
+            await apiCreateMemberEvent({data: payloadMember});
+            queryClient.invalidateQueries('eventRequests');
+        } catch (error) {
+            console.error("Error accepting request:", error);
+            message.error('Failed to accept the request.');
+        }
+    };
+
+    const handleRefuse = async (documentId) => {
+        try {
+            const payload = { 
+                data: {
+                    request_status: "aei7fjtmxrzz3hkmorgwy0gm"
+                }
+             };
+             await apiUpdateEventRequest({documentId: documentId, payload: payload});
+            message.success('Request refused successfully!');
+            queryClient.invalidateQueries('eventRequests');
+        } catch (error) {
+            console.error("Error refusing request:", error);
+            message.error('Failed to refuse the request.');
+        }
+    };
+
+    //console.log('eventDetaileventDetail', eventDetail);
 
     return (
         <>
@@ -158,6 +227,82 @@ const EventDetail = () => {
                                     </ul>
                                 </Card.Body>
                             </Card>
+                            {eventDetail?.host_id?.documentId === profile?.documentId && (
+                                <Card>
+                                    <Card.Header className="d-flex justify-content-between">
+                                        <div className="header-title">
+                                            <h4 className="card-title">Event Join Requests</h4>
+                                        </div>
+                                    </Card.Header>
+                                    <Card.Body>
+                                        {isLoadingRequests ? (
+                                            <p>Loading requests...</p>
+                                        ) : userRequest?.length > 0 ? (
+                                            <>
+                                                <ul className="list-inline p-0 m-0">
+                                                    {userRequest.slice(0, visibleRequests).map((request) => (
+                                                        <li key={request?.user_request?.documentId} className="mb-3 d-flex align-items-center justify-content-between">
+                                                            <div className="d-flex align-items-center">
+                                                                <img
+                                                                    className="avatar-40 rounded-circle me-3"
+                                                                    src={request?.user_request?.profile_picture}
+                                                                    alt={request?.user_request?.username}
+                                                                />
+                                                                <h6 className="mb-0">{request?.user_request?.username}</h6>
+                                                            </div>
+                                                            <div className="d-flex gap-2">
+                                                                <Button size="sm" variant="success" onClick={() => handleAccept(request?.documentId, request?.user_request?.documentId)}>Accept</Button>
+                                                                <Button size="sm" variant="danger" onClick={() => handleRefuse(request?.documentId)}>Refuse</Button>
+                                                            </div>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                {userRequest.length > visibleRequests && (
+                                                    <Button variant="link" onClick={handleShowModal}>Read More</Button>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <p className="text-muted">No join requests yet.</p>
+                                        )}
+                                    </Card.Body>
+
+                                    {/* Modal for displaying all requests */}
+                                    <Modal show={showModal} onHide={handleCloseModal} style={{marginTop: '70px'}} size="lg">
+                                        <Modal.Header closeButton>
+                                            <Modal.Title>All Join Requests</Modal.Title>
+                                        </Modal.Header>
+                                        <Modal.Body>
+                                            <Input 
+                                                placeholder="Search users..." 
+                                                onChange={handleSearch} 
+                                                style={{ marginBottom: '20px' }} 
+                                            />
+                                            <ul className="list-inline p-0 m-0">
+                                                {filteredRequests.map((request) => (
+                                                    <li key={request?.user_request?.documentId} className="mb-3 d-flex align-items-center justify-content-between">
+                                                        <div className="d-flex align-items-center">
+                                                            <img
+                                                                className="avatar-40 rounded-circle me-3"
+                                                                src={request?.user_request?.profile_picture}
+                                                                alt={request?.user_request?.username}
+                                                            />
+                                                            <h6 className="mb-0">{request?.user_request?.username}</h6>
+                                                        </div>
+                                                        <div className="d-flex gap-2">
+                                                            <Button size="sm" variant="success" onClick={() => handleAccept(request?.documentId, request?.user_request?.documentId)}>Accept</Button>
+                                                            <Button size="sm" variant="danger" onClick={() => handleRefuse(request?.documentId)}>Refuse</Button>
+                                                        </div>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </Modal.Body>
+                                        <Modal.Footer>
+                                            <Button variant="secondary" onClick={handleCloseModal}>Close</Button>
+                                        </Modal.Footer>
+                                    </Modal>
+                                </Card>
+                            )}
+
                         </Col>
                         <Col lg="8">
                             <Card id="post-modal-data" className="card">

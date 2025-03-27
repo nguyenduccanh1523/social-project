@@ -466,6 +466,11 @@ ul.request-list {
 		background-color: $warning;
 	}
 }
+.iq-profile-avatar.status-disturb {
+	&:before {
+		background-color: $danger;
+	}
+}
 
 .cover-container{
 	position: relative;
