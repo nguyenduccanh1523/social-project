@@ -452,11 +452,11 @@ const VerticalNav = React.memo(() => {
               </Nav.Item>
               <Nav.Item as="li">
                 <Link
-                  className={`${location.pathname === "/dashboard/extrapages/pages-invoice"
+                  className={`${location.pathname === "/my-pages"
                     ? "active"
                     : ""
                     } nav-link`}
-                  to="/dashboard/extrapages/pages-invoice"
+                  to="/my-pages"
                 >
                   <i className="icon">
                     <svg
@@ -483,41 +483,6 @@ const VerticalNav = React.memo(() => {
                     <i className="sidenav-mini-icon"> MP </i>
                   </OverlayTrigger>
                   <span className="item-name">My Page</span>
-                </Link>
-              </Nav.Item>
-              <Nav.Item as="li">
-                <Link
-                  className={`${location.pathname === "/dashboard/extrapages/pages-pricing"
-                    ? "active"
-                    : ""
-                    } nav-link`}
-                  to="/dashboard/extrapages/pages-pricing"
-                >
-                  <i className="icon">
-                    <svg
-                      className="icon-10"
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="10"
-                      viewBox="0 0 24 24"
-                      fill="currentColor"
-                    >
-                      <g>
-                        <circle
-                          cx="12"
-                          cy="12"
-                          r="8"
-                          fill="currentColor"
-                        ></circle>
-                      </g>
-                    </svg>
-                  </i>
-                  <OverlayTrigger
-                    placement="right"
-                    overlay={<Tooltip>Create Page</Tooltip>}
-                  >
-                    <i className="sidenav-mini-icon"> CP </i>
-                  </OverlayTrigger>
-                  <span className="item-name">Create Page</span>
                 </Link>
               </Nav.Item>
             </ul>

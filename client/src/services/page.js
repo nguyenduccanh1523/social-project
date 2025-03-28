@@ -24,7 +24,7 @@ export const apiGetPagesTags = ({ tagId }) =>
         }
     });
 
-export const apiGetPageDetail = ({pageId}) =>
+export const apiGetPageDetail = ({ pageId }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
@@ -67,7 +67,7 @@ export const apiGetPageDetailTag = ({ pageId }) =>
 export const apiGetPageHour = ({ pageId }) =>
     new Promise(async (resolve, reject) => {
         try {
-            
+
             // Gọi API với URL đã được truyền đúng groupId
             const response = await axiosConfig({
                 method: "get",
@@ -82,23 +82,23 @@ export const apiGetPageHour = ({ pageId }) =>
     });
 
 
-    export const apiEditPageHour = ({ documentId, payload }) => {
-        return new Promise(async (resolve, reject) => {
-            try {
-                const response = await axiosConfig({
-                    method: "put",
-                    url: `/page-open-hours/${documentId}`,
-                    data: payload,
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                resolve(response);
-            } catch (error) {
-                reject(error);
-            }
-        });
-    }
+export const apiEditPageHour = ({ documentId, payload }) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "put",
+                url: `/page-open-hours/${documentId}`,
+                data: payload,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
 
 
 
@@ -236,3 +236,27 @@ export const apiEditPage = ({ documentId, payload }) => {
         }
     });
 }
+
+export const apiGetMyPage = ({ userId }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            // Kiểm tra groupId trước khi dùng trong URL
+            if (typeof pageId !== "string") {
+                //console.error("Invalid groupId:", groupId);
+                return reject(new Error("groupId should be a string"));
+            }
+
+            //console.log("Fetching group members for groupId:", groupId);
+
+            // Gọi API với URL đã được truyền đúng groupId
+            const response = await axiosConfig({
+                method: "get",
+                url: `/pages?filters[$and][0][author][documentId][$eq]=${userId}&populate=*`,
+            });
+            //console.log("Response:", response); // Log ra chi tiết phản hồi
+            resolve(response);
+        } catch (error) {
+            console.error("Error fetching group members:", error.response || error);
+            reject(error);
+        }
+    });

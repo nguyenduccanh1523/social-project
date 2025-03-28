@@ -131,32 +131,32 @@ const EditEvent = ({ oldData, open, onClose }) => {
             let bannerId = oldData?.banner_id?.documentId;
 
             console.log('imageData', imageData)
-            // // ✅ Trường hợp ảnh mới được upload:
-            // if (imageData.type === 'uploaded') {
-            //     const binaryImage = await fetch(imageData.url)
-            //         .then(res => res.blob())
-            //         .then(blob => {
-            //             const fileType = blob.type;
-            //             const fileName = 'uploaded-image.jpg';
-            //             return new File([blob], fileName, { type: fileType });
-            //         });
+            // ✅ Trường hợp ảnh mới được upload:
+            if (imageData.type === 'uploaded') {
+                const binaryImage = await fetch(imageData.url)
+                    .then(res => res.blob())
+                    .then(blob => {
+                        const fileType = blob.type;
+                        const fileName = 'uploaded-image.jpg';
+                        return new File([blob], fileName, { type: fileType });
+                    });
 
-            //     const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
-            //     const payload = {
-            //         data: {
-            //             file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-            //             file_type: uploadedFile.data[0].mime,
-            //             file_size: uploadedFile.data[0].size.toString(),
-            //         },
-            //     };
-            //     const response = await createMedia(payload);
-            //     bannerId = response.data.data.documentId;
-            // }
+                const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
+                const payload = {
+                    data: {
+                        file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
+                        file_type: uploadedFile.data[0].mime,
+                        file_size: uploadedFile.data[0].size.toString(),
+                    },
+                };
+                const response = await createMedia(payload);
+                bannerId = response.data.data.documentId;
+            }
 
-            // // ✅ Trường hợp chọn media có sẵn:
-            // if (imageData.type === 'media') {
-            //     bannerId = imageData.documentId;
-            // }
+            // ✅ Trường hợp chọn media có sẵn:
+            if (imageData.type === 'media') {
+                bannerId = imageData.documentId;
+            }
 
             // ✅ Payload cuối cùng để cập nhật sự kiện
             const payload = {
@@ -172,20 +172,20 @@ const EditEvent = ({ oldData, open, onClose }) => {
             console.log('Final Payload:', payload);
 
             // // ✅ Gọi API cập nhật thay vì tạo mới (ví dụ: `apiUpdateEvent`)
-            // await apiEditEvent({documentId: oldData.documentId, payload}); // <-- ⚠️ Giả sử bạn có hàm `apiUpdateEvent`
+            await apiEditEvent({documentId: oldData.documentId, payload}); // <-- ⚠️ Giả sử bạn có hàm `apiUpdateEvent`
 
-            // notification.success({
-            //     message: 'Success',
-            //     description: 'Event updated successfully',
-            //     placement: 'topRight',
-            // });
+            notification.success({
+                message: 'Success',
+                description: 'Event updated successfully',
+                placement: 'topRight',
+            });
 
-            // // form.resetFields();
-            // // setStartTime(null);
-            // // setEndTime(null);
-            // // setUploadedImage(null);
-            // // setSelectedMedia(null);
-            // onClose();
+            // form.resetFields();
+            // setStartTime(null);
+            // setEndTime(null);
+            // setUploadedImage(null);
+            // setSelectedMedia(null);
+            onClose();
         } catch (error) {
             console.error('Error submitting event:', error);
             notification.error({

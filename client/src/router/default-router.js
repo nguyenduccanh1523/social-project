@@ -8,6 +8,7 @@ import GroupDetail from "../views/dashboard/component/Group/group-detail";
 import Chat from "../views/dashboard/app/chat";
 import Blog from "../views/dashboard/app/blog";
 import Pages from "../views/dashboard/app/pages";
+import MyPage from "../views/dashboard/component/pages/my-pages";
 import PageLists from "../views/dashboard/component/pages/pageLists"
 import PageDetail from "../views/dashboard/component/pages/page-detail"
 import Faq from "../views/dashboard/component/Support/Fag"
@@ -42,113 +43,117 @@ export const DefaultRouter = [
     element: <TermsofService />,
   },
   {
-    path:"/user-profile",
-    element:<UserProfile/>
+    path: "/user-profile",
+    element: <UserProfile />
   },
   {
-    path:"/groups",
-    element:<Groups/>
+    path: "/groups",
+    element: <Groups />
   },
   {
-    path:"/my-groups",
-    element:<MyGroups/>
+    path: "/my-groups",
+    element: <MyGroups />
   },
   {
-    path:"/group-detail/:id",
-    element:<GroupDetail/>
+    path: "/group-detail/:id",
+    element: <GroupDetail />
   },
   {
-    path:"/chat",
-    element:<Chat/>
+    path: "/chat",
+    element: <Chat />
   },
   {
-    path:"/blogs",
-    element:<Blog />
+    path: "/blogs",
+    element: <Blog />
   },
   {
-    path:"my-blogs",
-    element:<MyBlog />
+    path: "my-blogs",
+    element: <MyBlog />
   },
   {
-    path:"/pages",
-    element:<Pages />
+    path: "/my-pages",
+    element: <MyPage />
   },
   {
-    path:"/page-lists/:id",
-    element:<PageLists />
+    path: "/pages",
+    element: <Pages />
   },
   {
-    path:"/page/:id",
-    element:<PageDetail />
+    path: "/page-lists/:id",
+    element: <PageLists />
   },
   {
-    path:"/faq",
-    element:<Faq />
+    path: "/page/:id",
+    element: <PageDetail />
   },
   {
-    path:"/guide",
-    element:<Guider />
+    path: "/faq",
+    element: <Faq />
   },
   {
-    path:"/contact",
-    element:<Contact />
+    path: "/guide",
+    element: <Guider />
   },
   {
-    path:"/update",
-    element:<Update />
+    path: "/contact",
+    element: <Contact />
   },
   {
-    path:"/privacy-setting",
-    element:<UserPrivacySetting />
+    path: "/update",
+    element: <Update />
   },
   {
-    path:"/account-setting",
-    element:<UserAccountSetting />
+    path: "/privacy-setting",
+    element: <UserPrivacySetting />
   },
   {
-    path:"/stories",
-    element:<Story />
+    path: "/account-setting",
+    element: <UserAccountSetting />
   },
   {
-    path:"/events",
-    element:<Event />
+    path: "/stories",
+    element: <Story />
   },
   {
-    path:"/my-events",
-    element:<ProfileEvent />
+    path: "/events",
+    element: <Event />
   },
   {
-    path:"/event-detail/:id",
-    element:<EventDetail />
+    path: "/my-events",
+    element: <ProfileEvent />
   },
   {
-    path:"/mark-post",
-    element:<MarkPost />
+    path: "/event-detail/:id",
+    element: <EventDetail />
   },
   {
-    path:"/mark-post/post",
-    element:<ListPost />
+    path: "/mark-post",
+    element: <MarkPost />
   },
   {
-    path:"/mark-post/blog",
-    element:<ListBlog />
+    path: "/mark-post/post",
+    element: <ListPost />
   },
   {
-    path:"/friend-list",
-    element:<FriendList />
+    path: "/mark-post/blog",
+    element: <ListBlog />
   },
   {
-    path:"/friend-request",
-    element:<FriendRequest />
+    path: "/friend-list",
+    element: <FriendList />
   },
   {
-    path:"/friend-profile/:id",
-    element:<FriendProfile />
+    path: "/friend-request",
+    element: <FriendRequest />
   },
   {
-    path:"/notification",
-    element:<Notification />
+    path: "/friend-profile/:id",
+    element: <FriendProfile />
+  },
+  {
+    path: "/notification",
+    element: <Notification />
   }
-  
+
 
 ];
