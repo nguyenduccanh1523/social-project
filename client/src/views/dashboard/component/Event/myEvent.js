@@ -13,6 +13,7 @@ import { useSelector } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
 import Create from '../../icons/uiverse/Create';
 import CreateEvent from './CreateEvent'; // Import the CreateEvent component
+import './MyEvent.css'; // Import the CSS file
 
 const { Search } = Input;
 
@@ -64,7 +65,7 @@ const ProfileEvents = () => {
         enabled: !!profile?.documentId
     });
 
-    console.log('rawEvents:', rawEvents);
+    //console.log('rawEvents:', rawEvents);
 
     const { data: eventDetails = [], isLoading: isLoadingDetails } = useQuery({
         queryKey: ['eventDetails', rawEvents],
@@ -103,6 +104,8 @@ const ProfileEvents = () => {
         setIsDrawerVisible(false); // Close the Drawer
     };
 
+    //console.log('currentEventcurrentEvents:', currentEvents);
+
     return (
         <>
             <ProfileHeader title="All Events" img={img6} />
@@ -139,8 +142,8 @@ const ProfileEvents = () => {
                                     <div className="image-container" style={{ height: '200px', overflow: 'hidden' }}>
                                         <Image
                                             src={event?.banner_id?.file_path}
-                                            className="w-100 h-100"
-                                            style={{ objectFit: 'cover' }}
+                                            //className="w-full h-full"
+                                            style={{ objectFit: 'fill', width: '100%', height: '100%' }}
                                             preview={false}
                                             alt="Event banner"
                                         />

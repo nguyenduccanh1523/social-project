@@ -33,7 +33,7 @@ export const apiGetEventUser = ({ userId }) =>
         }
     });
 
-export const apiGetEventUserCreate = ({userId}) =>
+export const apiGetEventUserCreate = ({ userId }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
@@ -138,3 +138,52 @@ export const apiGetEventInvationFriend = ({ eventId, userId, friendId }) =>
             reject(error);
         }
     });
+
+export const apiCreateEvent = (payload) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "post",
+                url: "/events",
+                data: payload,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
+
+
+export const apiEditEvent = ({ documentId, payload }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "put",
+                url: `/events/${documentId}`,
+                data: payload,
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
+
+export const apiDeleteEvent = ({ documentId }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "delete",
+                url: `/events/${documentId}`,
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
+

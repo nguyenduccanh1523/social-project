@@ -98,3 +98,19 @@ export const createPostMedia = (payload) =>
         reject(error);
       }
     });
+
+    
+
+export const apiPublicMedia = () =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/medias?populate=*&filters[$and][0][type][documentId][$eq]=elx6zlfz9ywp6esoyfi6a1yl`,
+      });
+      resolve(response);
+    } catch (error) {
+      console.error("Error deleting post tag:", error.response || error);
+      reject(error);
+    }
+  });

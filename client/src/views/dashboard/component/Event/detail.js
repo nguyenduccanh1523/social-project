@@ -37,6 +37,8 @@ import { apiGetEventMember, apiGetEventUser } from '../../../../services/eventSe
 import { useSelector } from 'react-redux'
 import { apiGetEventRequest } from '../../../../services/eventServices/eventRequest'
 import { apiCreateMemberEvent } from '../../../../services/eventServices/eventMembers'
+import IconEdit from '../../icons/uiverse/iconEdit'
+import EditEvent from './EditEvent'
 
 const EventDetail = () => {
     const location = useLocation();
@@ -50,6 +52,7 @@ const EventDetail = () => {
     const [eventMember, setEventMember] = useState([]);
     const [eventUser, setEventUser] = useState([]);
     const { profile } = useSelector((state) => state.root.user || {});
+    const [drawerOpen, setDrawerOpen] = useState(false);
     const queryClient = useQueryClient();
 
     const document = profile?.documentId;
@@ -61,7 +64,7 @@ const EventDetail = () => {
     });
 
     const userRequest = eventRequests?.data?.data || [];
-    
+
     //console.log('userRequestuserRequest', userRequest);
 
     // Kiểm tra xem có event_id nào trong eventUser bằng với eventDetail?.documentId hay không
@@ -111,19 +114,19 @@ const EventDetail = () => {
 
     const handleAccept = async (documentId, userId) => {
         try {
-            const payload = { 
+            const payload = {
                 data: {
                     request_status: "vr8ygnd5y17xs4vcq6du3q7c"
                 }
-             };
-            await apiUpdateEventRequest({documentId: documentId, payload: payload});
+            };
+            await apiUpdateEventRequest({ documentId: documentId, payload: payload });
             message.success('Request accepted successfully!');
             const payloadMember = {
-                    event_id: eventDetail?.documentId,
-                    user_id: userId,
-                    status_type: "going"
+                event_id: eventDetail?.documentId,
+                user_id: userId,
+                status_type: "going"
             }
-            await apiCreateMemberEvent({data: payloadMember});
+            await apiCreateMemberEvent({ data: payloadMember });
             queryClient.invalidateQueries('eventRequests');
         } catch (error) {
             console.error("Error accepting request:", error);
@@ -133,12 +136,12 @@ const EventDetail = () => {
 
     const handleRefuse = async (documentId) => {
         try {
-            const payload = { 
+            const payload = {
                 data: {
                     request_status: "aei7fjtmxrzz3hkmorgwy0gm"
                 }
-             };
-             await apiUpdateEventRequest({documentId: documentId, payload: payload});
+            };
+            await apiUpdateEventRequest({ documentId: documentId, payload: payload });
             message.success('Request refused successfully!');
             queryClient.invalidateQueries('eventRequests');
         } catch (error) {
@@ -174,13 +177,21 @@ const EventDetail = () => {
                                             </Link>
                                         ))}
                                     </div>
-                                    {isEventUserExists ? (
-                                        <button type="submit" className="btn btn-primary mb-2 d-flex align-items-center gap-2"><i className="material-symbols-outlined ">
-                                            done</i> Invited</button>
-                                    ) : (
-                                        <button type="submit" className="btn btn-primary mb-2 d-flex align-items-center gap-2"><i className="material-symbols-outlined ">
-                                            person_add_alt</i> Invite</button>
-                                    )}
+                                    <div className="group-btn d-flex align-items-center gap-2">
+                                        {isEventUserExists ? (
+                                            <button type="submit" className="btn btn-primary mb-2 d-flex align-items-center gap-2"><i className="material-symbols-outlined ">
+                                                done</i> Invited</button>
+                                        ) : (
+                                            <button type="submit" className="btn btn-primary mb-2 d-flex align-items-center gap-2"><i className="material-symbols-outlined ">
+                                                person_add_alt</i> Invite</button>
+                                        )}
+                                        {eventDetail?.host_id?.documentId === profile?.documentId && (
+                                            <div onClick={() => setDrawerOpen(true)}>
+                                                <IconEdit />
+                                            </div>
+                                        )}
+                                        <EditEvent oldData={eventDetail} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+                                    </div>
                                 </div>
                             </div>
                         </Col>
@@ -267,15 +278,15 @@ const EventDetail = () => {
                                     </Card.Body>
 
                                     {/* Modal for displaying all requests */}
-                                    <Modal show={showModal} onHide={handleCloseModal} style={{marginTop: '70px'}} size="lg">
+                                    <Modal show={showModal} onHide={handleCloseModal} style={{ marginTop: '70px' }} size="lg">
                                         <Modal.Header closeButton>
                                             <Modal.Title>All Join Requests</Modal.Title>
                                         </Modal.Header>
                                         <Modal.Body>
-                                            <Input 
-                                                placeholder="Search users..." 
-                                                onChange={handleSearch} 
-                                                style={{ marginBottom: '20px' }} 
+                                            <Input
+                                                placeholder="Search users..."
+                                                onChange={handleSearch}
+                                                style={{ marginBottom: '20px' }}
                                             />
                                             <ul className="list-inline p-0 m-0">
                                                 {filteredRequests.map((request) => (
