@@ -26,11 +26,24 @@ export const apiGetPostTag = ({ postId }) =>
 
 export const apiGetDocumentTag = ({ documentId }) =>
   new Promise(async (resolve, reject) => {
-    try {     
-
+    try {
       const response = await axiosConfig({
         method: "get",
         url: `/post-tags?filters[$and][0][document_share_id][documentId][$eq]=${documentId}&populate=*`,
+      });
+      resolve(response);
+    } catch (error) {
+      console.error("Error fetching document tags:", error.response || error);
+      reject(error);
+    }
+  });
+
+export const apiGetTagPage = ({ documentId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/post-tags?filters[$and][0][page_id][documentId][$eq]=${documentId}&populate=*`,
       });
       resolve(response);
     } catch (error) {
@@ -53,7 +66,6 @@ export const apiGetTag = (payload) =>
     }
   });
 
-
 export const apiCreatePostTag = (payload) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -62,13 +74,31 @@ export const apiCreatePostTag = (payload) => {
         url: "/post-tags",
         data: payload,
         headers: {
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
       resolve(response);
     } catch (error) {
       reject(error);
     }
+  });
+};
+
+export const apiEditPostTag = ({ documentId, payload }) => {
+  return new Promise(async (resolve, reject) => {
+      try {
+          const response = await axiosConfig({
+              method: "put",
+              url: `/post-tags/${documentId}`,
+              data: payload,
+              headers: {
+                  'Content-Type': 'application/json'
+              }
+          });
+          resolve(response);
+      } catch (error) {
+          reject(error);
+      }
   });
 }
 
@@ -85,7 +115,6 @@ export const apiDeletePostTag = ({ documentId }) =>
       reject(error);
     }
   });
-
 
 export const apiGetPageTag = ({ tagId }) =>
   new Promise(async (resolve, reject) => {

@@ -96,13 +96,13 @@ const ProfileEvents = () => {
         setShowInviteModal(true);
     };
 
-    const handleCreateClick = () => {
-        setIsDrawerVisible(true); // Open the Drawer
-    };
+    // const handleCreateClick = () => {
+    //     setIsDrawerVisible(true); // Open the Drawer
+    // };
 
-    const handleDrawerClose = () => {
-        setIsDrawerVisible(false); // Close the Drawer
-    };
+    // const handleDrawerClose = () => {
+    //     setIsDrawerVisible(false); // Close the Drawer
+    // };
 
     //console.log('currentEventcurrentEvents:', currentEvents);
 

@@ -17,6 +17,8 @@ import {
 } from "../../../../services/page";
 import Loader from "../../icons/uiverse/Loading";
 import { useSelector } from "react-redux";
+import Create from "../../icons/uiverse/Create";
+import CreatePage from "./createPage";
 
 const { Search } = Input;
 
@@ -25,6 +27,7 @@ const MyPage = () => {
   const { tagName } = location.state || {};
   const { profile } = useSelector((state) => state.root.user || {});
   const [searchTerm, setSearchTerm] = useState("");
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: myPagesData, isLoading: isPagesLoading } = useQuery({
@@ -34,7 +37,7 @@ const MyPage = () => {
   });
 
   const pages = myPagesData?.data?.data || [];
-  const pageIds = pages.map((page) => page.page_id?.documentId);
+  const pageIds = pages.map((page) => page?.documentId);
 
   const { data: pageDetailsMap, isLoading: isPageDetailsLoading } = useQuery({
     queryKey: ["pageDetailsMap", pageIds],
@@ -59,14 +62,20 @@ const MyPage = () => {
           .catch(() => ({ [pageId]: false }))
       );
       const followStatusResults = await Promise.all(followStatusPromises);
-      return followStatusResults.reduce((acc, curr) => ({ ...acc, ...curr }), {});
+      return followStatusResults.reduce(
+        (acc, curr) => ({ ...acc, ...curr }),
+        {}
+      );
     },
     enabled: !!pageIds.length && !!profile?.documentId,
   });
 
   const handleUnfollow = async (pageId) => {
     try {
-      const response = await apiGetCheckFollowPage({ pageId, userId: profile?.documentId });
+      const response = await apiGetCheckFollowPage({
+        pageId,
+        userId: profile?.documentId,
+      });
       const memberId = response.data?.data?.[0]?.documentId;
       if (memberId) {
         await apiDeletePageMember({ documentId: memberId });
@@ -99,18 +108,21 @@ const MyPage = () => {
   const handleSearch = (value) => setSearchTerm(value);
 
   const filteredPages = pages.filter((page) => {
-    const detail = pageDetailsMap?.[page.page_id?.documentId];
+    const detail = pageDetailsMap?.[page.documentId];
     const name = detail?.page_name?.toLowerCase() || "";
     return name.includes(searchTerm.toLowerCase());
   });
 
   return (
     <>
-      <ProfileHeader title={`My Pages ${tagName ? `in ${tagName}` : ""}`} img={img9} />
+      <ProfileHeader
+        title={`My Pages ${tagName ? `in ${tagName}` : ""}`}
+        img={img9}
+      />
       <div id="content-page" className="content-page">
         <Container>
           <Row>
-            <Col md="12" className="mb-3">
+            <Col md="12" className="mb-3 d-flex justify-content-between">
               <Search
                 placeholder="Search pages by name..."
                 allowClear
@@ -123,6 +135,13 @@ const MyPage = () => {
                   margin: "0 auto",
                   display: "block",
                 }}
+              />
+              <div onClick={() => setDrawerOpen(true)}>
+                <Create />
+              </div>
+              <CreatePage
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
               />
             </Col>
 
@@ -153,7 +172,7 @@ const MyPage = () => {
               </Col>
             ) : (
               filteredPages.map((page) => {
-                const pageId = page.page_id?.documentId;
+                const pageId = page.documentId;
                 const detail = pageDetailsMap?.[pageId];
                 const isFollowed = followStatusMap?.[pageId];
 
@@ -173,7 +192,9 @@ const MyPage = () => {
                             <div className="user-detail d-flex">
                               <div className="profile-img pe-4">
                                 <img
-                                  src={detail?.profile_picture?.file_path || user05}
+                                  src={
+                                    detail?.profile_picture?.file_path || user05
+                                  }
                                   alt="avatar"
                                   className="avatar-130 img-fluid rounded-circle"
                                 />
@@ -195,20 +216,30 @@ const MyPage = () => {
                                 <p>{detail?.intro || "No intro available"}</p>
                                 <div className="d-flex align-items-center mb-2">
                                   <img
-                                    src={detail?.author?.profile_picture || user05}
+                                    src={
+                                      detail?.author?.profile_picture || user05
+                                    }
                                     alt="author"
                                     className="avatar-30 rounded-circle me-2"
                                   />
-                                  <span>@{detail?.author?.username || "anonymous"}</span>
+                                  <span>
+                                    @{detail?.author?.username || "anonymous"}
+                                  </span>
                                 </div>
                                 <div className="d-flex align-items-center">
-                                  <i className="material-symbols-outlined me-2">group</i>
+                                  <i className="material-symbols-outlined me-2">
+                                    group
+                                  </i>
                                   <span>
-                                    {detail?.page_members?.length || 0} followers
+                                    {detail?.page_members?.length || 0}{" "}
+                                    followers
                                   </span>
                                   <span
                                     className="material-symbols-outlined"
-                                    style={{ marginLeft: "10px", color: "gold" }}
+                                    style={{
+                                      marginLeft: "10px",
+                                      color: "gold",
+                                    }}
                                   >
                                     star
                                   </span>
@@ -217,7 +248,9 @@ const MyPage = () => {
                               </div>
                             </div>
                             <button
-                              className={`btn rounded-pill px-4 ${isFollowed ? "btn-secondary" : "btn-primary"}`}
+                              className={`btn rounded-pill px-4 ${
+                                isFollowed ? "btn-secondary" : "btn-primary"
+                              }`}
                               onClick={() =>
                                 isFollowed
                                   ? handleUnfollow(pageId)
