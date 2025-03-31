@@ -27,6 +27,19 @@ export const apiFindOneGroup = ({ groupId }) =>
     }
   });
 
+export const apiMyAdminGroup = ({ userId }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/groups?filters[$and][0][admin_id][documentId][$eq]=${userId}&populate=*`, // Sử dụng `friendId` chính xác trong URL
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
 
 export const apiGetMyGroup = ({ userId }) =>
   new Promise(async (resolve, reject) => {
@@ -130,6 +143,23 @@ export const apiEditGroupInvited = ({ documentId, payload }) =>
     }
   });
 
+
+export const apiCreateGroup = (payload) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: "/groups",
+        data: payload,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
 
 
 

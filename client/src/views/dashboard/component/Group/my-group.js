@@ -1,104 +1,153 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Container } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import { Link } from "react-router-dom";
 import ProfileHeader from "../../../../components/profile-header";
+import { useSelector } from "react-redux";
+import { useQuery } from "@tanstack/react-query";
+import { apiGetGroupRequest } from "../../../../services/groupServices/groupRequest";
+import Create from "../../icons/uiverse/Create";
+import CreateGroup from "./createGroup";
+import { apiGetMyGroup, apiFindOneGroup, apiMyAdminGroup } from "../../../../services/groupServices/group"; // Import the new API
+import { Pagination as AntPagination } from "antd"; // Use Ant Design's Pagination component
 
 // images
 import user05 from "../../../../assets/images/user/05.jpg";
-import img1 from "../../../../assets/images/page-img/profile-bg1.jpg";
-import img2 from "../../../../assets/images/page-img/profile-bg2.jpg";
-import img3 from "../../../../assets/images/page-img/profile-bg3.jpg";
-import img4 from "../../../../assets/images/page-img/profile-bg4.jpg";
-import img5 from "../../../../assets/images/page-img/profile-bg5.jpg";
-import img6 from "../../../../assets/images/page-img/profile-bg6.jpg";
 import img7 from "../../../../assets/images/page-img/profile-bg7.jpg";
-import img9 from "../../../../assets/images/page-img/profile-bg9.jpg";
-import { useDispatch, useSelector } from "react-redux";
-
-import {
-  fetchFindOneGroup,
-  fetchGroupMembers,
-  fetchMyGroup,
-} from "../../../../actions/actions";
-import { apiGetGroupRequest } from "../../../../services/groupServices/groupRequest";
+import { apiGetGroupMembers } from "../../../../services/groupServices/groupMembers";
 
 const MyGroups = () => {
-  const dispatch = useDispatch();
   const { profile } = useSelector((state) => state.root.user || {});
-  const { findgroup } = useSelector((state) => state.root.group || {});
-  const { mygroups } = useSelector((state) => state.root.group || {});
-  const { members } = useSelector((state) => state.root.group || {});
-  const images = [img1, img2, img3, img4, img5, img6, img7, img9];
+  const [currentPage, setCurrentPage] = useState(1);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const pageSize = 6;
 
-  const document = profile?.documentId;
-  const [groupRequests, setGroupRequests] = useState({});
+  const fetchGroups = async () => {
+    if (!profile?.documentId) return [];
 
-  useEffect(() => {
-    if (document) {
-      dispatch(fetchMyGroup(document));
+    const [myGroupsRes, adminGroupsRes] = await Promise.all([
+      apiGetMyGroup({ userId: profile.documentId }),
+      apiMyAdminGroup({ userId: profile.documentId })
+    ]);
+
+    const myGroups = myGroupsRes?.data?.data || [];
+    const adminGroups = adminGroupsRes?.data?.data || [];
+    console.log("My Groups:", myGroupsRes); // Log ra chi tiết nhóm
+    console.log("Admin Groups:", adminGroupsRes);
+
+    // Dùng Map để tránh trùng lặp
+    const groupMap = new Map();
+
+    // Thêm từ myGroups trước
+    for (const group of myGroups) {
+      const groupId = group?.group_id?.documentId;
+      if (!groupId) continue;
+      groupMap.set(groupId, {
+        ...group,
+        admin: false
+      });
     }
-  }, [document, dispatch]);
 
-  useEffect(() => {
-    mygroups[document]?.data?.forEach((group) => {
-      dispatch(fetchFindOneGroup(group?.group_id?.documentId)); // Truyền đúng giá trị groupId
-    });
-  }, [document, mygroups, dispatch]);
+    // Gộp thêm adminGroups, nếu trùng thì gán admin = true
+    for (const adminGroup of adminGroups) {
+      const groupId = adminGroup?.documentId;
+      if (!groupId) continue;
 
-  useEffect(() => {
-    mygroups[document]?.data?.forEach((group) => {
-      dispatch(fetchGroupMembers(group?.group_id?.documentId)); // Truyền đúng giá trị groupId
-    });
-  }, [mygroups, document, dispatch]);
-
-  useEffect(() => {
-    const fetchGroupRequests = async () => {
-      const requests = {};
-      for (const group of mygroups[document]?.data || []) {
-        const groupId = group?.group_id?.documentId;
-        //console.log("groupId", groupId);
-        const response = await apiGetGroupRequest({ groupId: groupId });
-        //console.log("response", response);
-        requests[groupId] = response.data?.data.length;
+      if (groupMap.has(groupId)) {
+        const existingGroup = groupMap.get(groupId);
+        groupMap.set(groupId, {
+          ...existingGroup,
+          admin: true // Ưu tiên cập nhật admin nếu trùng
+        });
+      } else {
+        // Nếu chưa có, tạo mới với admin = true
+        groupMap.set(groupId, {
+          group_id: adminGroup,
+          admin: true
+        });
       }
-      setGroupRequests(requests);
-    };
-
-    if (mygroups[document]?.data?.length > 0) {
-      fetchGroupRequests();
     }
-  }, [mygroups, document]);
+
+    const groups = Array.from(groupMap.values());
+
+    const groupRequests = {};
+    const groupDetails = {};
+    const groupMembers = {};
+
+    for (const group of groups) {
+      const groupId = group?.group_id?.documentId;
+
+      const [requestResponse, detailResponse, memberResponse] = await Promise.all([
+        apiGetGroupRequest({ groupId }),
+        apiFindOneGroup({ groupId }),
+        apiGetGroupMembers({ groupId })
+      ]);
+
+      groupRequests[groupId] = requestResponse?.data?.data?.length || 0;
+      groupDetails[groupId] = detailResponse?.data?.data || {};
+      groupMembers[groupId] = memberResponse?.data?.data || [];
+    }
+
+    return { groups, groupRequests, groupDetails, groupMembers };
+  };
+
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["myGroups", profile?.documentId],
+    queryFn: fetchGroups,
+    enabled: !!profile?.documentId,
+  });
+
+  if (isLoading) return <p>Loading...</p>;
+
+  const { groups = [], groupRequests = {}, groupDetails = {}, groupMembers = {} } = data || {};
+  const paginatedGroups = groups.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <>
       <ProfileHeader img={img7} title="Groups" />
       <div id="content-page" className="content-page">
         <Container>
+          <div className="mb-2" onClick={() => setDrawerOpen(true)}>
+            <Create />
+          </div>
+          <CreateGroup open={drawerOpen} onClose={() => setDrawerOpen(false)} />
           <div className="d-grid gap-3 d-grid-template-1fr-19">
-            {mygroups[document]?.data?.length > 0 ? ( // Lấy danh sách nhóm của người dùng
-              mygroups[document]?.data?.map((group, index) => {
-                const groupId = group?.group_id?.documentId; // Truy xuất group_id từ group_id
-                const groupImage = group?.group_id?.image_group; // Truy xuất ảnh nhóm
+            {paginatedGroups.length > 0 ? (
+              paginatedGroups.map((group) => {
+                //console.log("Group:", group); // Log ra chi tiết nhóm
+                const groupId = group?.group_id?.documentId;
                 const groupName = group?.group_id?.group_name;
                 const groupDescription = group?.group_id?.description;
-                const groupDetails = findgroup[groupId]?.data; // Lấy thông tin chi tiết nhóm
-                //console.log("groupDetails", groupDetails);
-
-                const groupDetailsAvailable = groupDetails || {};
-
-                // Lấy thành viên của nhóm hiện tại từ Redux
-                const groupMembers = members[groupId]?.data || [];
-                // Đảm bảo groupMembers là mảng trước khi gọi .slice()
-                const validGroupMembers = Array.isArray(groupMembers)
-                  ? groupMembers
-                  : [];
+                const groupDetailsData = groupDetails[groupId] || {};
+                const groupImage = group?.group_id?.image_group;
+                const groupType = group?.group_id?.type?.name;
+                const groupMembersList = groupMembers[groupId] || [];
+                const groupPosts = group?.group_id?.posts || [];
 
                 return (
-                  <Card className="mb-0" key={groupId}>
+                  <Card className="mb-0" key={groupId} style={{ position: "relative" }}>
+                    {group.admin && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: "10px",
+                          right: "10px",
+                          background: "#28a745",
+                          color: "#fff",
+                          padding: "5px 10px",
+                          borderRadius: "5px",
+                          fontSize: "0.75rem",
+                          fontWeight: "bold",
+                          zIndex: 1,
+                        }}
+                      >
+                        Admin
+                      </div>
+                    )}
                     <div className="top-bg-image">
                       <img
-                        src={groupDetails?.media?.file_path}
+                        src={groupDetailsData?.media?.file_path}
                         className="img-fluid w-100"
                         alt="group-bg"
                         style={{ height: "350px" }}
@@ -107,19 +156,16 @@ const MyGroups = () => {
                     <Card.Body className="text-center">
                       <div className="group-info pt-3 pb-3">
                         <h4>
-                          <Link
-                            to={`/group-detail/${groupId}`}
-                            state={{ documentId: groupDetailsAvailable?.documentId }}
-                          >
+                          <Link to={`/group-detail/${groupId}`} state={{ documentId: groupId }}>
                             {groupName}
                           </Link>
                         </h4>
                         <p>{groupDescription}</p>
                         <div className="d-flex align-items-center justify-content-center gap-2">
                           <span className="material-symbols-outlined">
-                            {groupDetails?.type?.name === "private" ? "lock" : "public"}
+                            {groupDetailsData?.type?.name === "private" ? "lock" : "public"}
                           </span>
-                          {groupDetails?.type?.name === "private" ? " Private Group" : " Public Group"}
+                          {groupDetailsData?.type?.name === "private" ? " Private Group" : " Public Group"}
                         </div>
                       </div>
 
@@ -127,13 +173,11 @@ const MyGroups = () => {
                         <ul className="d-flex align-items-center justify-content-between list-inline m-0 p-0">
                           <li className="pe-3 ps-3">
                             <p className="mb-0">Post</p>
-                            <h6>{groupDetailsAvailable?.posts?.length || 0}</h6>
+                            <h6>{groupDetailsData?.posts?.length}</h6>
                           </li>
                           <li className="pe-3 ps-3">
                             <p className="mb-0">Member</p>
-                            <h6>
-                              {groupDetailsAvailable?.member_ids?.length || 0}
-                            </h6>
+                            <h6>{groupMembersList.length}</h6>
                           </li>
                           <li className="pe-3 ps-3">
                             <p className="mb-0">Request</p>
@@ -143,28 +187,19 @@ const MyGroups = () => {
                       </div>
                       <div className="group-member mb-3">
                         <div className="iq-media-group">
-                          {validGroupMembers
-                            .slice(0, 6)
-                            .map((member, index) => (
-                              <Link to="#" className="iq-media" key={index}>
-                                <img
-                                  className="img-fluid avatar-40 rounded-circle"
-                                  src={
-                                    member?.users_id?.profile_picture || user05
-                                  }
-                                  alt="profile-img"
-                                />
-                              </Link>
-                            ))}
+                          {groupMembersList.slice(0, 6).map((member, index) => (
+                            <Link to="#" className="iq-media" key={index}>
+                              <img
+                                className="img-fluid avatar-40 rounded-circle"
+                                src={member?.users_id?.profile_picture || user05}
+                                alt="profile-img"
+                              />
+                            </Link>
+                          ))}
                         </div>
                       </div>
-                      <Link
-                        to={`/group-detail/${groupId}`}
-                        state={{ documentId: groupDetailsAvailable?.documentId }}>
-                        <button
-                          type="submit"
-                          className="btn btn-primary d-block w-100"
-                        >
+                      <Link to={`/group-detail/${groupId}`} state={{ documentId: groupId }}>
+                        <button type="submit" className="btn btn-primary d-block w-100">
                           Access
                         </button>
                       </Link>
@@ -176,6 +211,14 @@ const MyGroups = () => {
               <p className="text-center">No groups available</p>
             )}
           </div>
+          <AntPagination
+            className="mt-3"
+            current={currentPage}
+            total={groups.length}
+            pageSize={pageSize}
+            onChange={(page) => setCurrentPage(page)}
+            showSizeChanger={false} // Ensure no invalid props are passed
+          />
         </Container>
       </div>
     </>
