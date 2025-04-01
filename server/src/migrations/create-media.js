@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Medias', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING,
@@ -20,6 +20,16 @@ module.exports = {
       file_size: {
         type: Sequelize.DOUBLE,
         allowNull: false,  // Không cho phép giá trị null
+      },
+      type_id: {
+        type: Sequelize.STRING,
+        allowNull: true,  // Cho phép null
+        references: {
+          model: 'Types',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       created_at: {
         type: Sequelize.DATE,

@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('userSocials', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING,
@@ -18,7 +18,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Users',  // Tên bảng Users
-          key: 'id'  // Trường 'id' trong bảng Users
+          key: 'documentId'  // Trường 'documentId' trong bảng Users
         },
         onUpdate: 'CASCADE',  // Cập nhật user_id khi có thay đổi trong bảng Users
         onDelete: 'CASCADE',  // Xóa userSocial khi xóa User
@@ -27,8 +27,8 @@ module.exports = {
         type: Sequelize.STRING,  // Sử dụng chuỗi UUID để liên kết với Social
         allowNull: false,
         references: {
-          model: 'Social',  // Tên bảng Social
-          key: 'id'  // Trường 'id' trong bảng Social
+          model: 'Socials',  // Tên bảng Social
+          key: 'documentId'  // Trường 'documentId' trong bảng Social
         },
         onUpdate: 'CASCADE',  // Cập nhật social_id khi có thay đổi trong bảng Social
         onDelete: 'CASCADE',  // Xóa userSocial khi xóa Social

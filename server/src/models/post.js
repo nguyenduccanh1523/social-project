@@ -11,12 +11,14 @@ module.exports = (sequelize, DataTypes) => {
       // Mối quan hệ giữa Post và User: Một Post thuộc về một User
       Post.belongsTo(models.User, {
         foreignKey: 'user_id',
+        targetKey: 'documentId',
         as: 'user'
       });
 
       // Mối quan hệ giữa Post và Group: Một Post có thể thuộc về một Group
       Post.belongsTo(models.Group, {
         foreignKey: 'group_id',
+        targetKey: 'documentId',
         as: 'group'
       });
       // Mối quan hệ giữa Post và PostMedia: Một Post có thể liên kết với nhiều Media
@@ -36,12 +38,25 @@ module.exports = (sequelize, DataTypes) => {
       // Mối quan hệ giữa Post và Share: Một Post có thể được chia sẻ nhiều lần
       Post.hasMany(models.Share, {
         foreignKey: 'post_id',
+        sourceKey: 'documentId',
         as: 'shares'
+      });
+      
+      // Thêm mối quan hệ với Type nếu cần
+      Post.belongsTo(models.Type, {
+        foreignKey: 'type_id',
+        targetKey: 'documentId',
+        as: 'postType'
       });
     }
   }
 
   Post.init({
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
     user_id: {
       type: DataTypes.STRING,
       allowNull: false
@@ -53,6 +68,14 @@ module.exports = (sequelize, DataTypes) => {
     group_id: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    type_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Types',
+        key: 'documentId'
+      }
     },
     type: {
       type: DataTypes.STRING,

@@ -13,25 +13,40 @@ module.exports = (sequelize, DataTypes) => {
        // Một userSocial liên kết với một User
       userSocial.belongsTo(models.User, {
         foreignKey: 'user_id',  // Cột trong bảng userSocial
+        targetKey: 'documentId',
         as: 'user'  // Alias để truy cập User từ userSocial
       });
 
       // Một userSocial liên kết với một Social
       userSocial.belongsTo(models.Social, {
         foreignKey: 'social_id',  // Cột trong bảng userSocial
+        targetKey: 'documentId',
         as: 'social'  // Alias để truy cập Social từ userSocial
       });
     }
   }
-  userS.init({
+  userSocial.init({
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
     accountUrl: DataTypes.STRING,
     user_id: {
-        type: DataTypes.INTEGER,
-        allowNull: false
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: 'Users',
+          key: 'documentId',
+        },
     },
     social_id: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        references: {
+          model: 'Socials',
+          key: 'documentId',
+        },
     }
   }, {
     sequelize,

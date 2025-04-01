@@ -11,32 +11,39 @@ module.exports = (sequelize, DataTypes) => {
       // Một group_members liên kết với một User
       group_members.belongsTo(models.User, {
         foreignKey: 'user_id',
+        targetKey: 'documentId',
         as: 'user'
       });
 
       // Một group_members liên kết với một Group
       group_members.belongsTo(models.Group, {
         foreignKey: 'group_id',
+        targetKey: 'documentId',
         as: 'group'
       });
     }
   }
 
   group_members.init({
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
     group_id: {
-      type: DataTypes.String,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: 'Groups',
-        key: 'id',
+        key: 'documentId',
       },
     },
     user_id: {
-      type: DataTypes.String,
+      type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: 'Users',
-        key: 'id',
+        key: 'documentId',
       },
     },
     joined_at: {

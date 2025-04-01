@@ -11,26 +11,45 @@ module.exports = (sequelize, DataTypes) => {
       // Mối quan hệ giữa group_invitations và User: Mỗi lời mời có người gửi và người nhận
       group_invitation.belongsTo(models.User, {
         foreignKey: 'invited_by', // Cột khóa ngoại trong bảng group_invitations
+        targetKey: 'documentId',
         as: 'inviter'  // Alias để truy cập người gửi lời mời
       });
 
       group_invitation.belongsTo(models.User, {
         foreignKey: 'invited_to', // Cột khóa ngoại trong bảng group_invitations
+        targetKey: 'documentId',
         as: 'invitee'  // Alias để truy cập người được mời
       });
 
       // Mối quan hệ giữa group_invitations và Group: Mỗi lời mời thuộc về một Group
       group_invitation.belongsTo(models.Group, {
         foreignKey: 'group_id', // Cột khóa ngoại trong bảng group_invitations
+        targetKey: 'documentId',
         as: 'group'  // Alias để truy cập thông tin nhóm
+      });
+
+      // Mối quan hệ giữa group_invitations và StatusAction: Mỗi lời mời thuộc về một trạng thái
+      group_invitation.belongsTo(models.StatusAction, {
+        foreignKey: 'status_action_id', // Cột khóa ngoại trong bảng group_invitations
+        targetKey: 'documentId',
+        as: 'statusAction'  // Alias để truy cập thông tin trạng thái
       });
     }
   }
 
   group_invitation.init({
-    invitation_status: {
+    documentId: {
       type: DataTypes.STRING,
-      defaultValue: 'pending',  // Trạng thái lời mời mặc định là 'pending'
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
+    status_action_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'StatusActions',
+        key: 'documentId',
+      },
     },
     responded_at: {
       type: DataTypes.DATE,
@@ -41,7 +60,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       references: {
         model: 'Groups',  // Tên bảng Groups
-        key: 'id',        // Cột khóa chính trong bảng Groups
+        key: 'documentId',        // Cột khóa chính trong bảng Groups
       },
     },
     invited_by: {
@@ -49,15 +68,15 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       references: {
         model: 'Users',   // Tên bảng Users
-        key: 'id',        // Cột khóa chính trong bảng Users
+        key: 'documentId',        // Cột khóa chính trong bảng Users
       },
     },
     invited_to: {
-      type: DataTypes.STRING    ,
+      type: DataTypes.STRING,
       allowNull: false, 
       references: {
         model: 'Users',   // Tên bảng Users
-        key: 'id',        // Cột khóa chính trong bảng Users
+        key: 'documentId',        // Cột khóa chính trong bảng Users
       },
     },
     created_at: {

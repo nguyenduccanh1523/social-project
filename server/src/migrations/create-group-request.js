@@ -3,35 +3,42 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('user_requests', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING,
         defaultValue: Sequelize.UUIDV4,  // Tự động tăng giá trị ID
       },
       group_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: 'Groups',  // Tên bảng Groups
-          key: 'id',        // Khóa chính trong bảng Groups
+          key: 'documentId',        // Khóa chính trong bảng Groups
         },
         onUpdate: 'CASCADE',  // Cập nhật group_id nếu có thay đổi trong bảng Groups
         onDelete: 'CASCADE',  // Xóa yêu cầu khi nhóm bị xóa
       },
       user_id: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: 'Users',  // Tên bảng Users
-          key: 'id',       // Khóa chính trong bảng Users
+          key: 'documentId',       // Khóa chính trong bảng Users
         },
         onUpdate: 'CASCADE',  // Cập nhật user_id nếu có thay đổi trong bảng Users
         onDelete: 'CASCADE',  // Xóa yêu cầu khi người dùng bị xóa
       },
-      request_status: {
+
+      status_action_id: {
         type: Sequelize.STRING,
-        defaultValue: 'pending', // Trạng thái mặc định là 'pending'
+        allowNull: true,
+        references: {
+          model: 'StatusActions',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       created_at: {
         type: Sequelize.DATE,

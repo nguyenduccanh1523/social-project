@@ -4,7 +4,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     // Sửa bảng posts
     await queryInterface.createTable('Posts', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING,
@@ -15,7 +15,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Users',
-          key: 'id',
+          key: 'documentId',
         },
         onUpdate: 'CASCADE',
         onDelete: 'CASCADE',
@@ -30,7 +30,7 @@ module.exports = {
         allowNull: true,
         references: {
           model: 'Groups',
-          key: 'id',
+          key: 'documentId',
         },
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',

@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Socials', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING, // ID kiểu chuỗi (UUID)

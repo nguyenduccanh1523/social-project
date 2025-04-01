@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Shares', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING,
@@ -14,7 +14,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Posts',  // Tên bảng Posts
-          key: 'id',       // Cột khóa chính trong bảng Posts
+          key: 'documentId',       // Cột khóa chính trong bảng Posts
         },
         onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Posts
         onDelete: 'CASCADE',  // Xóa khi xóa bài viết
@@ -24,7 +24,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Users',  // Tên bảng Users
-          key: 'id',       // Cột khóa chính trong bảng Users
+          key: 'documentId',       // Cột khóa chính trong bảng Users
         },
         onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Users
         onDelete: 'CASCADE',  // Xóa khi xóa người dùng

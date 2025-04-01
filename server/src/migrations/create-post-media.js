@@ -3,12 +3,18 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('post_medias', {
+      documentId: {
+        allowNull: false,
+        primaryKey: true,
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
+      },
       post_id: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
           model: 'Posts',  // Tên bảng Posts
-          key: 'id',       // Cột khóa chính trong bảng Posts
+          key: 'documentId',       // Cột khóa chính trong bảng Posts
         },
         onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Posts
         onDelete: 'CASCADE',  // Xóa khi xóa bài viết
@@ -18,7 +24,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Medias',  // Tên bảng Medias
-          key: 'id',        // Cột khóa chính trong bảng Medias
+          key: 'documentId',        // Cột khóa chính trong bảng Medias
         },
         onUpdate: 'CASCADE',  // Cập nhật khi có thay đổi trong bảng Medias
         onDelete: 'CASCADE',  // Xóa khi xóa media

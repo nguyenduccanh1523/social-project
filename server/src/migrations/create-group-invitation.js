@@ -3,15 +3,22 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('group_invitations', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING,
         defaultValue: Sequelize.UUIDV4,  // Tự động tăng giá trị ID
       },
-      invitation_status: {
+
+      status_action_id: {
         type: Sequelize.STRING,
-        defaultValue: 'pending', // Trạng thái mặc định là 'pending'
+        allowNull: true,
+        references: {
+          model: 'StatusActions',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       responded_at: {
         type: Sequelize.DATE,
@@ -22,7 +29,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Groups',  // Tên bảng Groups
-          key: 'id',        // Cột khóa chính trong bảng Groups
+          key: 'documentId',        // Cột khóa chính trong bảng Groups
         },
         onUpdate: 'CASCADE',  // Cập nhật group_id nếu có thay đổi trong bảng Groups
         onDelete: 'CASCADE',  // Xóa tất cả các lời mời khi nhóm bị xóa
@@ -32,7 +39,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Users',   // Tên bảng Users
-          key: 'id',        // Cột khóa chính trong bảng Users
+          key: 'documentId',        // Cột khóa chính trong bảng Users
         },
         onUpdate: 'CASCADE',  // Cập nhật invited_by nếu có thay đổi trong bảng Users
         onDelete: 'CASCADE',  // Xóa tất cả các lời mời khi người dùng bị xóa
@@ -42,7 +49,7 @@ module.exports = {
         allowNull: false,
         references: {
           model: 'Users',   // Tên bảng Users
-          key: 'id',        // Cột khóa chính trong bảng Users
+          key: 'documentId',        // Cột khóa chính trong bảng Users
         },
         onUpdate: 'CASCADE',  // Cập nhật invited_to nếu có thay đổi trong bảng Users
         onDelete: 'CASCADE',  // Xóa tất cả các lời mời khi người dùng bị xóa

@@ -3,7 +3,7 @@
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Groups', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING, // ID kiểu chuỗi (UUID)
@@ -22,7 +22,7 @@ module.exports = {
         allowNull: false,  // admin_id là bắt buộc
         references: {
           model: 'Users',  // Tên bảng Users
-          key: 'id',       // Trường 'id' trong bảng Users
+          key: 'documentId',       // Trường 'documentId' trong bảng Users
         },
         onUpdate: 'CASCADE',  // Cập nhật admin_id khi có thay đổi trong bảng Users
         onDelete: 'CASCADE',  // Xóa group khi xóa User

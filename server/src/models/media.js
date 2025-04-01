@@ -8,17 +8,29 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // Mối quan hệ giữa Media và Post: Một Media có thể liên kết với nhiều bài viết
+      // Mối quan hệ giữa Media và Post thông qua PostMedia
       Media.belongsToMany(models.Post, {
-        through: models.post_medias,
+        through: models.PostMedia,
         foreignKey: 'media_id',
         otherKey: 'post_id',
         as: 'posts'
+      });
+
+      // Mối quan hệ giữa Media và Type: Một Media thuộc về một Type
+      Media.belongsTo(models.Type, {
+        foreignKey: 'type_id',
+        targetKey: 'documentId',
+        as: 'mediaType'
       });
     }
   }
 
   Media.init({
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
     file_path: {
       type: DataTypes.STRING(255),
       allowNull: false
@@ -31,21 +43,30 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DOUBLE,
       allowNull: false
     },
+    type_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Types',
+        key: 'documentId'
+      }
+    },
     created_at: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      defaultValue: DataTypes.NOW
     },
     updated_at: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
+      defaultValue: DataTypes.NOW
     },
     deleted_at: {
       type: DataTypes.DATE,
-      allowNull: true,  // Trường này có thể là null
+      allowNull: true
     }
   }, {
     sequelize,
     modelName: 'Media',
+    paranoid: true // Sử dụng soft delete với trường deletedAt
   });
 
   return Media;

@@ -11,24 +11,31 @@ module.exports = (sequelize, DataTypes) => {
       // Mối quan hệ giữa Share và Post: Một Share liên kết với một Post
       Share.belongsTo(models.Post, {
         foreignKey: 'post_id',
+        targetKey: 'documentId',
         as: 'post'
       });
 
       // Mối quan hệ giữa Share và User: Một Share liên kết với một User
       Share.belongsTo(models.User, {
         foreignKey: 'user_id',
+        targetKey: 'documentId',
         as: 'user'
       });
     }
   }
 
   Share.init({
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
     post_id: {
       type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: 'Posts',  // Tên bảng Posts
-        key: 'id',       // Cột khóa chính trong bảng Posts
+        key: 'documentId',       // Cột khóa chính trong bảng Posts
       },
     },
     user_id: {
@@ -36,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       references: {
         model: 'Users',  // Tên bảng Users
-        key: 'id',       // Cột khóa chính trong bảng Users
+        key: 'documentId',       // Cột khóa chính trong bảng Users
       },
     },
     created_at: {

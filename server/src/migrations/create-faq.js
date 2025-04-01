@@ -1,0 +1,51 @@
+'use strict';
+/** @type {import('sequelize-cli').Migration} */
+const { v4: uuidv4 } = require('uuid');
+
+module.exports = {
+  async up(queryInterface, Sequelize) {
+    await queryInterface.createTable('Faqs', {
+      documentId: {
+        allowNull: false,
+        primaryKey: true,
+        type: Sequelize.STRING,
+        defaultValue: uuidv4,
+      },
+      question: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      answer: {
+        type: Sequelize.TEXT,
+        allowNull: false,
+      },
+      category_id: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        references: {
+          model: 'CategorySupports',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+      },
+      deletedAt: {
+        allowNull: true,
+        type: Sequelize.DATE,
+      }
+    });
+  },
+  async down(queryInterface, Sequelize) {
+    await queryInterface.dropTable('Faqs');
+  }
+}; 

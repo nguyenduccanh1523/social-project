@@ -5,7 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Users', {
-      id: {
+      documentId: {
         allowNull: false,
         primaryKey: true,
         type: Sequelize.STRING,
@@ -56,9 +56,19 @@ module.exports = {
         type: Sequelize.STRING,
         references: {
           model: 'Roles',   // Tên bảng cha
-          key: 'id'         // Khóa ngoại ở bảng Users
+          key: 'documentId'         // Khóa ngoại ở bảng Users
         },
         allowNull: false,  // Đảm bảo role_id không thể trống
+      },
+      status_activity_id: {
+        type: Sequelize.STRING,
+        references: {
+          model: 'StatusActivities',
+          key: 'documentId'
+        },
+        allowNull: true,  // Cho phép null
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       createdAt: {
         allowNull: false,

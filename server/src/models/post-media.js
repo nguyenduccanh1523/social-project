@@ -11,24 +11,31 @@ module.exports = (sequelize, DataTypes) => {
       // Mối quan hệ giữa PostMedia và Post: Một PostMedia liên kết với một Post
       PostMedia.belongsTo(models.Post, {
         foreignKey: 'post_id',
+        targetKey: 'documentId',
         as: 'post'
       });
 
       // Mối quan hệ giữa PostMedia và Media: Một PostMedia liên kết với một Media
       PostMedia.belongsTo(models.Media, {
         foreignKey: 'media_id',
+        targetKey: 'documentId',
         as: 'media'
       });
     }
   }
 
   PostMedia.init({
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
     post_id: {
       type: DataTypes.STRING,
       allowNull: false,
       references: {
         model: 'Posts',  // Tên bảng Posts
-        key: 'id',       // Cột khóa chính trong bảng Posts
+        key: 'documentId',       // Cột khóa chính trong bảng Posts
       },
     },
     media_id: {
@@ -36,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       references: {
         model: 'Medias',  // Tên bảng Medias
-        key: 'id',        // Cột khóa chính trong bảng Medias
+        key: 'documentId',        // Cột khóa chính trong bảng Medias
       },
     },
     created_at: {
