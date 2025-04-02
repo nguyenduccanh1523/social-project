@@ -24,12 +24,24 @@ module.exports = {
         allowNull: true,
       },
       profile_picture: {
-        type: Sequelize.STRING(255),
+        type: Sequelize.STRING,
         allowNull: true,
+        references: {
+          model: 'Medias',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       cover_picture: {
-        type: Sequelize.STRING(255),
+        type: Sequelize.STRING,
         allowNull: true,
+        references: {
+          model: 'Medias',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       email: {
         type: Sequelize.TEXT,

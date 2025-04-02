@@ -1,41 +1,66 @@
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
+const { v4: uuidv4 } = require('uuid');
+const { DataTypes } = require('sequelize');
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable('Groups', {
       documentId: {
+        type: DataTypes.STRING,
         allowNull: false,
         primaryKey: true,
-        type: Sequelize.STRING, // ID kiểu chuỗi (UUID)
-        defaultValue: Sequelize.UUIDV4,  // Tạo giá trị mặc định UUID
+        defaultValue: Sequelize.UUIDV4
       },
-      groupName: {
-        type: Sequelize.STRING,
-        allowNull: false,  // groupName là bắt buộc
+      group_name: {
+        type: DataTypes.STRING,
+        allowNull: false
       },
       description: {
-        type: Sequelize.STRING,
-        allowNull: true,   // description là tùy chọn
+        type: DataTypes.TEXT,
+        allowNull: true
       },
       admin_id: {
-        type: Sequelize.STRING,
-        allowNull: false,  // admin_id là bắt buộc
+        type: DataTypes.STRING,
+        allowNull: false,
         references: {
-          model: 'Users',  // Tên bảng Users
-          key: 'documentId',       // Trường 'documentId' trong bảng Users
+          model: 'Users',
+          key: 'documentId'
         },
-        onUpdate: 'CASCADE',  // Cập nhật admin_id khi có thay đổi trong bảng Users
-        onDelete: 'CASCADE',  // Xóa group khi xóa User
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
+      group_image: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+          model: 'Medias',
+          key: 'documentId'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
+      type_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+          model: 'Types',
+          key: 'documentId'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,  // Tự động gán thời gian tạo
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,  // Tự động gán thời gian cập nhật
+        type: Sequelize.DATE
+      },
+      deletedAt: {
+        allowNull: true,
+        type: Sequelize.DATE
       }
     });
   },

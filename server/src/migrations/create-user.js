@@ -24,21 +24,57 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,  // Đảm bảo password không thể trống
       },
-      profilePicture: {
-        type: Sequelize.STRING,
-        allowNull: true,   // Profile picture là tùy chọn
-      },
-      bio: {
-        type: Sequelize.STRING,
-        allowNull: true,   // Bio là tùy chọn
-      },
-      dateOfBirth: {
+      reset_password_expires: {
         type: Sequelize.DATE,
-        allowNull: true,   // Date of Birth là tùy chọn
+        allowNull: true
+      },
+      avatar_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'Medias',
+          key: 'documentId'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
+      cover_photo_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'Medias',
+          key: 'documentId'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
+      is_online: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      is_blocked: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      about: {
+        type: Sequelize.TEXT,
+        allowNull: true
+      },
+      email_verified: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      refresh_token: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      refresh_token_expires: {
+        type: Sequelize.DATE,
+        allowNull: true
       },
       phone: {
         type: Sequelize.STRING,
-        allowNull: true,   // Phone là tùy chọn
+        allowNull: true
       },
       gender: {
         type: Sequelize.STRING,
@@ -72,13 +108,15 @@ module.exports = {
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,  // Tự động gán thời gian tạo
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.NOW,  // Tự động gán thời gian cập nhật
+        type: Sequelize.DATE
+      },
+      deletedAt: {
+        allowNull: true,
+        type: Sequelize.DATE
       }
     });
   },

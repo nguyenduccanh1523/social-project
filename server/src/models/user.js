@@ -19,17 +19,32 @@ module.exports = (sequelize, DataTypes) => {
 
       // Một User thuộc về một StatusActivity
       User.belongsTo(models.StatusActivity, {
-        foreignKey: 'status_activity_id',
+        foreignKey: 'status_id',
         targetKey: 'documentId',
-        as: 'statusActivity'
+        as: 'status'
       });
 
       // Một User có nhiều tài khoản xã hội
       User.hasMany(models.userSocial, {
         foreignKey: 'user_id',
         sourceKey: 'documentId',
-        as: 'socialsAccount'
+        as: 'socialAccounts'
       });
+      
+      // Một User có avatar từ Media
+      User.belongsTo(models.Media, {
+        foreignKey: 'avatar_id',
+        targetKey: 'documentId',
+        as: 'avatarMedia'
+      });
+      
+      // Một User có cover photo từ Media
+      User.belongsTo(models.Media, {
+        foreignKey: 'cover_photo_id',
+        targetKey: 'documentId',
+        as: 'coverPhotoMedia'
+      });
+      
       // Một User có thể là admin của nhiều Group
       User.hasMany(models.Group, {
         foreignKey: 'admin_id',
@@ -83,7 +98,7 @@ module.exports = (sequelize, DataTypes) => {
 
       // User tham gia nhiều group với quan hệ nhiều-nhiều
       User.belongsToMany(models.Group, {
-        through: models.GroupMember,
+        through: models.group_members,
         foreignKey: 'user_id',
         otherKey: 'group_id',
         as: 'memberGroups'
@@ -105,7 +120,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       
       // User có nhiều nhóm thành viên
-      User.hasMany(models.GroupMember, {
+      User.hasMany(models.group_members, {
         foreignKey: 'user_id',
         sourceKey: 'documentId',
         as: 'groupMemberships'
@@ -251,6 +266,84 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'documentId',
         as: 'documentComments'
       });
+      
+      // User có nhiều UserNotification
+      User.hasMany(models.UserNotification, {
+        foreignKey: 'user_id',
+        sourceKey: 'documentId',
+        as: 'notifications'
+      });
+      
+      // User có nhiều Notification thông qua UserNotification
+      User.belongsToMany(models.Notification, {
+        through: models.UserNotification,
+        foreignKey: 'user_id',
+        otherKey: 'notification_id',
+        as: 'allNotifications'
+      });
+      
+      // User có nhiều NotificationSetting
+      User.hasMany(models.NotificationSetting, {
+        foreignKey: 'user_id',
+        sourceKey: 'documentId',
+        as: 'notificationSettings'
+      });
+      
+      // User có nhiều Call (gọi đi)
+      User.hasMany(models.Call, {
+        foreignKey: 'caller_id',
+        sourceKey: 'documentId',
+        as: 'outgoingCalls'
+      });
+      
+      // User có nhiều Call (gọi đến)
+      User.hasMany(models.Call, {
+        foreignKey: 'receiver_id',
+        sourceKey: 'documentId',
+        as: 'incomingCalls'
+      });
+      
+      // User host nhiều Livestream
+      User.hasMany(models.Livestream, {
+        foreignKey: 'host_id',
+        sourceKey: 'documentId',
+        as: 'hostedLivestreams'
+      });
+      
+      // User xem nhiều Livestream thông qua ViewLivestream
+      User.hasMany(models.ViewLivestream, {
+        foreignKey: 'user_id',
+        sourceKey: 'documentId',
+        as: 'viewedLivestreams'
+      });
+      
+      // User chặn nhiều User khác
+      User.hasMany(models.Blocklist, {
+        foreignKey: 'user_id',
+        sourceKey: 'documentId',
+        as: 'blockedUsers'
+      });
+      
+      // User bị nhiều User khác chặn
+      User.hasMany(models.Blocklist, {
+        foreignKey: 'blocked_user_id',
+        sourceKey: 'documentId',
+        as: 'blockedByUsers'
+      });
+      
+      // User có nhiều Report
+      User.hasMany(models.Report, {
+        foreignKey: 'user_id',
+        sourceKey: 'documentId',
+        as: 'reports'
+      });
+      
+      // User có nhiều PostFriend
+      User.hasMany(models.PostFriend, {
+        foreignKey: 'user_id',
+        sourceKey: 'documentId',
+        as: 'taggedInPosts'
+      });
     }
   }
   User.init({
@@ -259,33 +352,43 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       defaultValue: DataTypes.UUIDV4
     },
-    userName: {
+    fullname: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    username: {
       type: DataTypes.STRING,
       allowNull: false
     },
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      validate: {
+        isEmail: true
+      }
     },
     password: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    profilePicture: DataTypes.STRING,
-    bio: DataTypes.STRING,
-    dateOfBirth: DataTypes.DATE,
-    phone: DataTypes.STRING,
-    gender: DataTypes.STRING,
-    relationship: DataTypes.STRING,
-    address: DataTypes.STRING,
-    role_id: {
+    date_of_birth: {
+      type: DataTypes.DATE,
+      allowNull: false
+    },
+    gender: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    status_activity_id: {
+    role_id: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
+      references: {
+        model: 'Roles',
+        key: 'documentId'
+      }
+    },
+    status_id: {
+      type: DataTypes.STRING,
       references: {
         model: 'StatusActivities',
         key: 'documentId'
@@ -311,13 +414,21 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true
     },
-    avatar: {
+    avatar_id: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      references: {
+        model: 'Medias',
+        key: 'documentId'
+      }
     },
-    cover_photo: {
+    cover_photo_id: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
+      references: {
+        model: 'Medias',
+        key: 'documentId'
+      }
     },
     is_online: {
       type: DataTypes.BOOLEAN,
@@ -335,6 +446,18 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    refresh_token: {
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    refresh_token_expires: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: true
+    }
   }, {
     sequelize,
     modelName: 'User',

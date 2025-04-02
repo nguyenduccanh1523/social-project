@@ -41,6 +41,16 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      event_image: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'Medias',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

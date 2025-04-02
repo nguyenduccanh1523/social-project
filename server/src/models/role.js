@@ -12,13 +12,19 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // Một Role có nhiều User
       Role.hasMany(models.User, {
-        foreignKey: 'role_id', // Tên cột trong bảng User
-        as: 'users' // Alias để truy cập liên kết từ Role tới User
+        foreignKey: 'role_id',
+        sourceKey: 'documentId',
+        as: 'users'
       });
     }
   }
   Role.init({
-    roleName: DataTypes.STRING,
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
+    name: DataTypes.STRING,
     description: DataTypes.STRING
   }, {
     sequelize,

@@ -10,9 +10,16 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // Mối quan hệ giữa StatusActivity và User: Một StatusActivity có thể có nhiều User
       StatusActivity.hasMany(models.User, {
-        foreignKey: 'status_activity_id',
+        foreignKey: 'status_id',
         sourceKey: 'documentId',
         as: 'users'
+      });
+      
+      // Mối quan hệ giữa StatusActivity và Type
+      StatusActivity.belongsTo(models.Type, {
+        foreignKey: 'type_id',
+        targetKey: 'documentId',
+        as: 'type'
       });
     }
   }
@@ -29,6 +36,14 @@ module.exports = (sequelize, DataTypes) => {
     description: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    type_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Types',
+        key: 'documentId'
+      }
     }
   }, {
     sequelize,

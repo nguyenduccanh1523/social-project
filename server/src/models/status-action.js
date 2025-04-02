@@ -21,6 +21,20 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'documentId',
         as: 'groupInvitations'
       });
+      
+      // Mối quan hệ giữa StatusAction và EventRequest
+      StatusAction.hasMany(models.EventRequest, {
+        foreignKey: 'status_action_id',
+        sourceKey: 'documentId',
+        as: 'eventRequests'
+      });
+      
+      // Mối quan hệ giữa StatusAction và EventInvitation
+      StatusAction.hasMany(models.EventInvitation, {
+        foreignKey: 'status_action_id',
+        sourceKey: 'documentId',
+        as: 'eventInvitations'
+      });
     }
   }
   StatusAction.init({

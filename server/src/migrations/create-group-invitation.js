@@ -68,13 +68,23 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true,  // Trường này có thể là null
       },
-      // Chỉ mục để đảm bảo không có lời mời trùng lặp cho mỗi người dùng trong mỗi nhóm
-      indexes: [
-        {
-          unique: true,
-          fields: ['group_id', 'invited_by', 'invited_to'],  // Đảm bảo mỗi lời mời chỉ tồn tại một lần cho một nhóm và người nhận
-        },
-      ],
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      deletedAt: {
+        allowNull: true,
+        type: Sequelize.DATE
+      }
+    }).then(() => {
+      // Tạo index sau khi bảng đã được tạo
+      return queryInterface.addIndex('group_invitations', ['group_id', 'invited_by', 'invited_to'], {
+        unique: true
+      });
     });
   },
 

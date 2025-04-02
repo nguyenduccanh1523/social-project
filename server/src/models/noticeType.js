@@ -14,6 +14,13 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'documentId',
         as: 'notifications'
       });
+      
+      // Một NoticeType có nhiều NotificationSetting
+      NoticeType.hasMany(models.NotificationSetting, {
+        foreignKey: 'notice_type_id',
+        sourceKey: 'documentId',
+        as: 'notificationSettings'
+      });
     }
   }
   NoticeType.init({

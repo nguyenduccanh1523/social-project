@@ -33,6 +33,16 @@ module.exports = {
         onUpdate: 'CASCADE',  // Cập nhật social_id khi có thay đổi trong bảng Social
         onDelete: 'CASCADE',  // Xóa userSocial khi xóa Social
       },
+      page_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'Pages',
+          key: 'documentId'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

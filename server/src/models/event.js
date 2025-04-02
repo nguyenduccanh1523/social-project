@@ -15,6 +15,13 @@ module.exports = (sequelize, DataTypes) => {
         as: 'host'
       });
       
+      // Một Event có một Media (hình ảnh sự kiện)
+      Event.belongsTo(models.Media, {
+        foreignKey: 'event_image',
+        targetKey: 'documentId',
+        as: 'image'
+      });
+      
       // Một Event có nhiều EventMember
       Event.hasMany(models.EventMember, {
         foreignKey: 'event_id',
@@ -71,7 +78,15 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: false
     },
-    location: DataTypes.STRING
+    location: DataTypes.STRING,
+    event_image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Medias',
+        key: 'documentId'
+      }
+    }
   }, {
     sequelize,
     modelName: 'Event',

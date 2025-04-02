@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('user_requests', {
+    await queryInterface.createTable('group_requests', {
       documentId: {
         allowNull: false,
         primaryKey: true,
@@ -19,7 +19,7 @@ module.exports = {
         onUpdate: 'CASCADE',  // Cập nhật group_id nếu có thay đổi trong bảng Groups
         onDelete: 'CASCADE',  // Xóa yêu cầu khi nhóm bị xóa
       },
-      user_id: {
+      user_request: {
         type: Sequelize.STRING,
         allowNull: false,
         references: {
@@ -29,7 +29,6 @@ module.exports = {
         onUpdate: 'CASCADE',  // Cập nhật user_id nếu có thay đổi trong bảng Users
         onDelete: 'CASCADE',  // Xóa yêu cầu khi người dùng bị xóa
       },
-
       status_action_id: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -54,17 +53,27 @@ module.exports = {
         type: Sequelize.DATE,
         allowNull: true, // Trường này có thể là null
       },
-      // Chỉ mục để đảm bảo không có yêu cầu trùng lặp cho mỗi user trong mỗi group
-      indexes: [
-        {
-          unique: true,
-          fields: ['group_id', 'user_id'], // Cặp group_id và user_id là duy nhất
-        },
-      ],
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      deletedAt: {
+        allowNull: true,
+        type: Sequelize.DATE
+      }
+    }).then(() => {
+      // Tạo index sau khi bảng đã được tạo
+      return queryInterface.addIndex('group_requests', ['group_id', 'user_request'], {
+        unique: true
+      });
     });
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('user_requests');
+    await queryInterface.dropTable('group_requests');
   }
 };

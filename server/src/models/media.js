@@ -22,6 +22,62 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'documentId',
         as: 'mediaType'
       });
+
+      // Một Media được sử dụng trong nhiều Post
+      Media.hasMany(models.PostMedia, {
+        foreignKey: 'media_id',
+        sourceKey: 'documentId',
+        as: 'postMedia'
+      });
+      
+      // Một Media được sử dụng trong nhiều Story
+      Media.hasMany(models.Story, {
+        foreignKey: 'media_id',
+        sourceKey: 'documentId',
+        as: 'stories'
+      });
+      
+      // Một Media được sử dụng trong nhiều Message
+      Media.hasMany(models.Message, {
+        foreignKey: 'media_id',
+        sourceKey: 'documentId',
+        as: 'messages'
+      });
+      
+      // Một Media được sử dụng trong nhiều DocumentShare
+      Media.hasMany(models.DocumentShare, {
+        foreignKey: 'media_id',
+        sourceKey: 'documentId',
+        as: 'documentShares'
+      });
+      
+      // Một Media được sử dụng bởi nhiều Page (profile_picture)
+      Media.hasMany(models.Page, {
+        foreignKey: 'profile_picture',
+        sourceKey: 'documentId',
+        as: 'pageProfiles'
+      });
+      
+      // Một Media được sử dụng bởi nhiều Page (cover_picture)
+      Media.hasMany(models.Page, {
+        foreignKey: 'cover_picture',
+        sourceKey: 'documentId',
+        as: 'pageCovers'
+      });
+      
+      // Một Media được sử dụng bởi nhiều Group (profile_picture)
+      Media.hasMany(models.Group, {
+        foreignKey: 'group_image',
+        sourceKey: 'documentId',
+        as: 'groupImages'
+      });
+      
+      // Một Media được sử dụng bởi nhiều Event (image)
+      Media.hasMany(models.Event, {
+        foreignKey: 'event_image',
+        sourceKey: 'documentId',
+        as: 'eventImages'
+      });
     }
   }
 

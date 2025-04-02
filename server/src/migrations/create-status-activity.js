@@ -19,6 +19,16 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: true,
       },
+      type_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'Types',
+          key: 'documentId'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

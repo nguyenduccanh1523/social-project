@@ -10,48 +10,113 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+      // Một Group được tạo bởi một User (admin)
       Group.belongsTo(models.User, {
         foreignKey: 'admin_id',
+        targetKey: 'documentId',
         as: 'admin'
       });
+      
+      // Một Group có một Media (hình ảnh nhóm)
+      Group.belongsTo(models.Media, {
+        foreignKey: 'group_image',
+        targetKey: 'documentId',
+        as: 'image'
+      });
+      
+      // Một Group thuộc về một Type (loại nhóm)
+      Group.belongsTo(models.Type, {
+        foreignKey: 'type_id',
+        targetKey: 'documentId',
+        as: 'type'
+      });
+      
       // Một Group có nhiều GroupMember
       Group.hasMany(models.group_members, {
         foreignKey: 'group_id',
+        sourceKey: 'documentId',
         as: 'members'
       });
-      // Một Group có nhiều User thông qua GroupMember (Many-to-Many)
+      
+      // Quan hệ nhiều-nhiều với User thông qua GroupMember
       Group.belongsToMany(models.User, {
         through: models.group_members,
         foreignKey: 'group_id',
         otherKey: 'user_id',
         as: 'users'
       });
-      // Mối quan hệ giữa Group và group_requests (một Group có thể có nhiều yêu cầu tham gia)
+      
+      // Một Group có nhiều NotificationCreated
+      Group.hasMany(models.NotificationCreated, {
+        foreignKey: 'group_id',
+        sourceKey: 'documentId',
+        as: 'notifications'
+      });
+      
+      // Một Group có nhiều GroupRequest
       Group.hasMany(models.group_request, {
         foreignKey: 'group_id',
-        as: 'groupRequests'
+        sourceKey: 'documentId',
+        as: 'requests'
       });
-      // Mối quan hệ giữa Group và group_invitations: Một Group có thể có nhiều lời mời tham gia
+      
+      // Một Group có nhiều GroupInvitation
       Group.hasMany(models.group_invitation, {
         foreignKey: 'group_id',
-        as: 'groupInvitations'
+        sourceKey: 'documentId',
+        as: 'invitations'
       });
+      
+      // Một Group có nhiều Post
       Group.hasMany(models.Post, {
         foreignKey: 'group_id',
+        sourceKey: 'documentId',
         as: 'posts'
       });
     }
   }
   Group.init({
-    groupName: DataTypes.STRING,
-    description: DataTypes.STRING,
-    admin_id: {
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
+    group_name: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    admin_id: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'documentId'
+      }
+    },
+    group_image: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Medias',
+        key: 'documentId'
+      }
+    },
+    type_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Types',
+        key: 'documentId'
+      }
     }
   }, {
     sequelize,
     modelName: 'Group',
+    paranoid: true
   });
   return Group;
 };

@@ -22,6 +22,20 @@ module.exports = (sequelize, DataTypes) => {
         as: 'creator'
       });
       
+      // Một Page có ảnh đại diện (Media)
+      Page.belongsTo(models.Media, {
+        foreignKey: 'profile_picture',
+        targetKey: 'documentId',
+        as: 'profileImage'
+      });
+      
+      // Một Page có ảnh bìa (Media)
+      Page.belongsTo(models.Media, {
+        foreignKey: 'cover_picture',
+        targetKey: 'documentId',
+        as: 'coverImage'
+      });
+      
       // Một Page có nhiều Post Tags
       Page.hasMany(models.PostTag, {
         foreignKey: 'page_id',
@@ -49,6 +63,20 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: 'documentId',
         as: 'openHours'
       });
+      
+      // Một Page có nhiều Post
+      Page.hasMany(models.Post, {
+        foreignKey: 'page_id',
+        sourceKey: 'documentId',
+        as: 'posts'
+      });
+      
+      // Một Page có nhiều UserSocial
+      Page.hasMany(models.userSocial, {
+        foreignKey: 'page_id',
+        sourceKey: 'documentId',
+        as: 'socials'
+      });
     }
   }
   Page.init({
@@ -63,8 +91,22 @@ module.exports = (sequelize, DataTypes) => {
     },
     intro: DataTypes.TEXT,
     about: DataTypes.TEXT,
-    profile_picture: DataTypes.STRING(255),
-    cover_picture: DataTypes.STRING(255),
+    profile_picture: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Medias',
+        key: 'documentId'
+      }
+    },
+    cover_picture: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Medias',
+        key: 'documentId'
+      }
+    },
     email: DataTypes.TEXT,
     phone: DataTypes.TEXT,
     lives_in: {

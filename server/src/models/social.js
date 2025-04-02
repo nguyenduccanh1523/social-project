@@ -17,6 +17,11 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Social.init({
+    documentId: {
+      type: DataTypes.STRING,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
+    },
     platform: DataTypes.STRING,
     iconUrl: DataTypes.STRING
   }, {

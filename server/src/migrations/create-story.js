@@ -66,8 +66,7 @@ module.exports = {
       },
       expired_at: {
         allowNull: false,
-        type: Sequelize.DATE,
-        defaultValue: Sequelize.literal('NOW() + INTERVAL \'24 HOURS\''),
+        type: Sequelize.DATE
       },
       updatedAt: {
         allowNull: false,

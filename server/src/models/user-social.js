@@ -23,6 +23,13 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'documentId',
         as: 'social'  // Alias để truy cập Social từ userSocial
       });
+      
+      // Một userSocial liên kết với một Page
+      userSocial.belongsTo(models.Page, {
+        foreignKey: 'page_id',
+        targetKey: 'documentId',
+        as: 'page'
+      });
     }
   }
   userSocial.init({
@@ -45,6 +52,14 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         references: {
           model: 'Socials',
+          key: 'documentId',
+        },
+    },
+    page_id: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+          model: 'Pages',
           key: 'documentId',
         },
     }

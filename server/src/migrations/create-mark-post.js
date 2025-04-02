@@ -56,30 +56,6 @@ module.exports = {
         type: Sequelize.DATE,
       }
     });
-    
-    // Tạo unique constraint cho cặp user_id, post_id
-    await queryInterface.addConstraint('MarkPosts', {
-      fields: ['user_id', 'post_id'],
-      type: 'unique',
-      name: 'unique_user_post_mark',
-      where: {
-        post_id: {
-          [Sequelize.Op.ne]: null
-        }
-      }
-    });
-    
-    // Tạo unique constraint cho cặp user_id, document_share_id
-    await queryInterface.addConstraint('MarkPosts', {
-      fields: ['user_id', 'document_share_id'],
-      type: 'unique',
-      name: 'unique_user_document_mark',
-      where: {
-        document_share_id: {
-          [Sequelize.Op.ne]: null
-        }
-      }
-    });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('MarkPosts');

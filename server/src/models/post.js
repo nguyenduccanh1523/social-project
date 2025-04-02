@@ -21,6 +21,14 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: 'documentId',
         as: 'group'
       });
+      
+      // Mối quan hệ giữa Post và Page: Một Post có thể thuộc về một Page
+      Post.belongsTo(models.Page, {
+        foreignKey: 'page_id',
+        targetKey: 'documentId',
+        as: 'page'
+      });
+      
       // Mối quan hệ giữa Post và PostMedia: Một Post có thể liên kết với nhiều Media
       Post.belongsToMany(models.Media, {
         through: models.PostMedia,
@@ -30,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
       });
       // Mối quan hệ giữa Post và Tag: Một Post có thể có nhiều Tag thông qua bảng post_tags
       Post.belongsToMany(models.Tag, {
-        through: models.post_tags,  // Bảng trung gian giữa Post và Tag
+        through: models.PostTag,  // Bảng trung gian giữa Post và Tag
         foreignKey: 'post_id',
         otherKey: 'tag_id',
         as: 'tags'  // Alias để truy cập các thẻ của bài viết
@@ -42,11 +50,39 @@ module.exports = (sequelize, DataTypes) => {
         as: 'shares'
       });
       
-      // Thêm mối quan hệ với Type nếu cần
+      // Thêm mối quan hệ với Type
       Post.belongsTo(models.Type, {
         foreignKey: 'type_id',
         targetKey: 'documentId',
         as: 'postType'
+      });
+      
+      // Mối quan hệ với MarkPost
+      Post.hasMany(models.MarkPost, {
+        foreignKey: 'post_id',
+        sourceKey: 'documentId',
+        as: 'marks'
+      });
+      
+      // Mối quan hệ với Comment
+      Post.hasMany(models.Comment, {
+        foreignKey: 'post_id',
+        sourceKey: 'documentId',
+        as: 'comments'
+      });
+      
+      // Mối quan hệ với Reaction
+      Post.hasMany(models.Reaction, {
+        foreignKey: 'post_id',
+        sourceKey: 'documentId',
+        as: 'reactions'
+      });
+      
+      // Mối quan hệ với PostFriend
+      Post.hasMany(models.PostFriend, {
+        foreignKey: 'post_id',
+        sourceKey: 'documentId',
+        as: 'friends'
       });
     }
   }
@@ -68,6 +104,14 @@ module.exports = (sequelize, DataTypes) => {
     group_id: {
       type: DataTypes.STRING,
       allowNull: true
+    },
+    page_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Pages',
+        key: 'documentId'
+      }
     },
     type_id: {
       type: DataTypes.STRING,

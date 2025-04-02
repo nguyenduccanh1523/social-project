@@ -35,6 +35,26 @@ module.exports = {
         onUpdate: 'CASCADE',
         onDelete: 'SET NULL',
       },
+      page_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'Pages',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
+      type_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        references: {
+          model: 'Types',
+          key: 'documentId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
+      },
       type: {
         type: Sequelize.STRING,
         allowNull: false,
