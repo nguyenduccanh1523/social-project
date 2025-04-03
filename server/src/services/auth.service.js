@@ -104,7 +104,7 @@ export const registerUser = async (userData) => {
       password: hashedPassword,
       date_of_birth: new Date(), // Giá trị mặc định
       gender: 'not_specified', // Giá trị mặc định
-      role_id: process.env.ROLE_USER_ID || 'f47ac10b-58cc-4372-a567-0e02b2c3d479', // ID của role user thường - đảm bảo ID tồn tại
+      role_id: process.env.ROLE_USER_ID || '11', // ID của role user thường - đảm bảo ID tồn tại
       is_online: true,
       email_verified: false
     });
