@@ -103,7 +103,7 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
         references: {
-          model: 'Livestreams',
+          model: 'LiveStreams',
           key: 'documentId',
         },
         onUpdate: 'CASCADE',

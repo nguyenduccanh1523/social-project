@@ -61,6 +61,12 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PostMedia',
+    tableName: 'post_medias', // Chỉ định tên bảng trong database
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    deletedAt: 'deleted_at',
+    paranoid: true
   });
 
   return PostMedia;

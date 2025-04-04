@@ -31,18 +31,32 @@ module.exports = (sequelize, DataTypes) => {
       
       // Mối quan hệ giữa Post và PostMedia: Một Post có thể liên kết với nhiều Media
       Post.belongsToMany(models.Media, {
-        through: models.PostMedia,
+        through: {
+          model: models.PostMedia,
+          unique: false
+        },
         foreignKey: 'post_id',
         otherKey: 'media_id',
+        sourceKey: 'documentId',
+        targetKey: 'documentId',
+        constraints: false,
         as: 'medias'
       });
+      
       // Mối quan hệ giữa Post và Tag: Một Post có thể có nhiều Tag thông qua bảng post_tags
       Post.belongsToMany(models.Tag, {
-        through: models.PostTag,  // Bảng trung gian giữa Post và Tag
+        through: {
+          model: models.PostTag,
+          unique: false
+        },
         foreignKey: 'post_id',
         otherKey: 'tag_id',
+        sourceKey: 'documentId',
+        targetKey: 'documentId',
+        constraints: false,
         as: 'tags'  // Alias để truy cập các thẻ của bài viết
       });
+      
       // Mối quan hệ giữa Post và Share: Một Post có thể được chia sẻ nhiều lần
       Post.hasMany(models.Share, {
         foreignKey: 'post_id',
@@ -140,6 +154,12 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Post',
+    tableName: 'Posts',
+    timestamps: true,
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    deletedAt: 'deletedAt',
+    paranoid: true
   });
 
   return Post;

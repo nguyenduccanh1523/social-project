@@ -13,6 +13,8 @@ module.exports = (sequelize, DataTypes) => {
         through: models.PostTag,  // Bảng trung gian giữa Post và Tag
         foreignKey: 'tag_id',
         otherKey: 'post_id',
+        sourceKey: 'documentId',  // Thêm sourceKey để chỉ định rõ khóa nguồn
+        targetKey: 'documentId',  // Thêm targetKey để chỉ định rõ khóa đích
         as: 'posts'  // Alias để truy cập các bài viết liên kết với tag này
       });
       
@@ -54,6 +56,12 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Tag',
+    tableName: 'Tags', // Thêm tên bảng rõ ràng
+    timestamps: true, // Sử dụng timestamps
+    createdAt: 'created_at', // Ánh xạ createdAt đến created_at trong DB
+    updatedAt: 'updated_at', // Ánh xạ updatedAt đến updated_at trong DB
+    deletedAt: 'deleted_at', // Ánh xạ deletedAt đến deleted_at trong DB
+    paranoid: true
   });
 
   return Tag;

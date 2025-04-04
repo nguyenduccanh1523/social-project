@@ -10,9 +10,15 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // Mối quan hệ giữa Media và Post thông qua PostMedia
       Media.belongsToMany(models.Post, {
-        through: models.PostMedia,
+        through: {
+          model: models.PostMedia,
+          unique: false
+        },
         foreignKey: 'media_id',
         otherKey: 'post_id',
+        sourceKey: 'documentId',
+        targetKey: 'documentId',
+        constraints: false,
         as: 'posts'
       });
 
@@ -122,7 +128,12 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Media',
-    paranoid: true // Sử dụng soft delete với trường deletedAt
+    tableName: 'Medias',
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at',
+    deletedAt: 'deleted_at',
+    paranoid: true
   });
 
   return Media;

@@ -78,7 +78,9 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PostTag',
-    paranoid: true, // Sử dụng soft delete với trường deletedAt
+    tableName: 'PostTags',
+    timestamps: true,
+    paranoid: true,
     indexes: [
       {
         unique: true,
