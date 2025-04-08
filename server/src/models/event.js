@@ -1,5 +1,5 @@
-'use strict';
-const { Model } = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Event extends Model {
     /**
@@ -10,87 +10,97 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // Một Event được tạo bởi một User (host)
       Event.belongsTo(models.User, {
-        foreignKey: 'host_id',
-        targetKey: 'documentId',
-        as: 'host'
+        foreignKey: "host_id",
+        targetKey: "documentId",
+        as: "host",
       });
-      
+
       // Một Event có một Media (hình ảnh sự kiện)
       Event.belongsTo(models.Media, {
-        foreignKey: 'event_image',
-        targetKey: 'documentId',
-        as: 'image'
+        foreignKey: "event_image",
+        targetKey: "documentId",
+        as: "image",
       });
-      
+
       // Một Event có nhiều EventMember
       Event.hasMany(models.EventMember, {
-        foreignKey: 'event_id',
-        sourceKey: 'documentId',
-        as: 'members'
+        foreignKey: "event_id",
+        sourceKey: "documentId",
+        as: "members",
       });
-      
+
       // Một Event có nhiều EventRequest
       Event.hasMany(models.EventRequest, {
-        foreignKey: 'event_id',
-        sourceKey: 'documentId',
-        as: 'requests'
+        foreignKey: "event_id",
+        sourceKey: "documentId",
+        as: "requests",
       });
-      
+
       // Một Event có nhiều EventInvitation
       Event.hasMany(models.EventInvitation, {
-        foreignKey: 'event_id',
-        sourceKey: 'documentId',
-        as: 'invitations'
+        foreignKey: "event_id",
+        sourceKey: "documentId",
+        as: "invitations",
       });
-      
+
       // Một Event có thể có nhiều NotificationCreated
       Event.hasMany(models.NotificationCreated, {
-        foreignKey: 'event_id',
-        sourceKey: 'documentId',
-        as: 'notifications'
+        foreignKey: "event_id",
+        sourceKey: "documentId",
+        as: "notifications",
+      });
+
+      // Một Event có thể có nhiều Posts liên quan
+      Event.hasMany(models.Post, {
+        foreignKey: "event_id",
+        sourceKey: "documentId",
+        as: "posts",
       });
     }
   }
-  Event.init({
-    documentId: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4
+  Event.init(
+    {
+      documentId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        defaultValue: DataTypes.UUIDV4,
+      },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      description: DataTypes.TEXT,
+      host_id: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: "Users",
+          key: "documentId",
+        },
+      },
+      start_time: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      end_time: {
+        type: DataTypes.DATE,
+        allowNull: false,
+      },
+      location: DataTypes.STRING,
+      event_image: {
+        type: DataTypes.STRING,
+        allowNull: true,
+        references: {
+          model: "Medias",
+          key: "documentId",
+        },
+      },
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    description: DataTypes.TEXT,
-    host_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      references: {
-        model: 'Users',
-        key: 'documentId'
-      }
-    },
-    start_time: {
-      type: DataTypes.DATE,
-      allowNull: false
-    },
-    end_time: {
-      type: DataTypes.DATE,
-      allowNull: false
-    },
-    location: DataTypes.STRING,
-    event_image: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      references: {
-        model: 'Medias',
-        key: 'documentId'
-      }
+    {
+      sequelize,
+      modelName: "Event",
+      paranoid: true, // Sử dụng soft delete với trường deletedAt
     }
-  }, {
-    sequelize,
-    modelName: 'Event',
-    paranoid: true // Sử dụng soft delete với trường deletedAt
-  });
+  );
   return Event;
-}; 
+};

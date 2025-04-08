@@ -6,7 +6,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     // Lấy thông tin về Groups và admin của nhóm
     const groups = await queryInterface.sequelize.query(
-      'SELECT documentId, admin_id FROM `Groups`;',
+      'SELECT documentId, admin_id FROM Groups;',
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     );
 

@@ -1,5 +1,5 @@
-'use strict';
-const { Model } = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class PostMedia extends Model {
     /**
@@ -10,64 +10,64 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // Mối quan hệ giữa PostMedia và Post: Một PostMedia liên kết với một Post
       PostMedia.belongsTo(models.Post, {
-        foreignKey: 'post_id',
-        targetKey: 'documentId',
-        as: 'post'
+        foreignKey: "post_id",
+        targetKey: "documentId",
+        as: "post",
       });
 
       // Mối quan hệ giữa PostMedia và Media: Một PostMedia liên kết với một Media
       PostMedia.belongsTo(models.Media, {
-        foreignKey: 'media_id',
-        targetKey: 'documentId',
-        as: 'media'
+        foreignKey: "media_id",
+        targetKey: "documentId",
+        as: "media",
       });
     }
   }
 
-  PostMedia.init({
-    documentId: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4
-    },
-    post_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      references: {
-        model: 'Posts',  // Tên bảng Posts
-        key: 'documentId',       // Cột khóa chính trong bảng Posts
+  PostMedia.init(
+    {
+      documentId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        defaultValue: DataTypes.UUIDV4,
+      },
+      post_id: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: "Posts", // Tên bảng Posts
+          key: "documentId", // Cột khóa chính trong bảng Posts
+        },
+      },
+      media_id: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        references: {
+          model: "Medias", // Tên bảng Medias
+          key: "documentId", // Cột khóa chính trong bảng Medias
+        },
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW,
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true, // Trường này có thể là null
       },
     },
-    media_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      references: {
-        model: 'Medias',  // Tên bảng Medias
-        key: 'documentId',        // Cột khóa chính trong bảng Medias
-      },
-    },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-    },
-    deleted_at: {
-      type: DataTypes.DATE,
-      allowNull: true,  // Trường này có thể là null
+    {
+      sequelize,
+      modelName: "PostMedia",
+      tableName: "post_medias", // Chỉ định tên bảng trong database
+      timestamps: true,
+      paranoid: true,
     }
-  }, {
-    sequelize,
-    modelName: 'PostMedia',
-    tableName: 'post_medias', // Chỉ định tên bảng trong database
-    timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
-    deletedAt: 'deleted_at',
-    paranoid: true
-  });
+  );
 
   return PostMedia;
 };

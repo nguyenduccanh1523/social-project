@@ -1,5 +1,5 @@
-'use strict';
-const { Model } = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class Tag extends Model {
     /**
@@ -10,59 +10,59 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // Mối quan hệ giữa Tag và Post: Một Tag có thể được gán cho nhiều Post
       Tag.belongsToMany(models.Post, {
-        through: models.PostTag,  // Bảng trung gian giữa Post và Tag
-        foreignKey: 'tag_id',
-        otherKey: 'post_id',
-        sourceKey: 'documentId',  // Thêm sourceKey để chỉ định rõ khóa nguồn
-        targetKey: 'documentId',  // Thêm targetKey để chỉ định rõ khóa đích
-        as: 'posts'  // Alias để truy cập các bài viết liên kết với tag này
+        through: models.PostTag, // Bảng trung gian giữa Post và Tag
+        foreignKey: "tag_id",
+        otherKey: "post_id",
+        sourceKey: "documentId", // Thêm sourceKey để chỉ định rõ khóa nguồn
+        targetKey: "documentId", // Thêm targetKey để chỉ định rõ khóa đích
+        as: "posts", // Alias để truy cập các bài viết liên kết với tag này
       });
-      
+
       // Mối quan hệ giữa Tag và PostTag
       Tag.hasMany(models.PostTag, {
-        foreignKey: 'tag_id',
-        sourceKey: 'documentId',
-        as: 'postTags'
+        foreignKey: "tag_id",
+        sourceKey: "documentId",
+        as: "postTags",
       });
     }
   }
 
-  Tag.init({
-    documentId: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      defaultValue: DataTypes.UUIDV4
+  Tag.init(
+    {
+      documentId: {
+        type: DataTypes.STRING,
+        primaryKey: true,
+        defaultValue: DataTypes.UUIDV4,
+      },
+      name: {
+        type: DataTypes.STRING(50),
+        allowNull: false, // Không cho phép giá trị null
+      },
+      description: {
+        type: DataTypes.STRING(255),
+        allowNull: true, // Cho phép giá trị null
+      },
+      createdAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW, // Tự động gán thời gian tạo
+      },
+      updatedAt: {
+        type: DataTypes.DATE,
+        defaultValue: DataTypes.NOW, // Tự động gán thời gian cập nhật
+      },
+      deletedAt: {
+        type: DataTypes.DATE,
+        allowNull: true, // Trường này có thể là null
+      },
     },
-    name: {
-      type: DataTypes.STRING(50),
-      allowNull: false,  // Không cho phép giá trị null
-    },
-    description: {
-      type: DataTypes.STRING(255),
-      allowNull: true,  // Cho phép giá trị null
-    },
-    created_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,  // Tự động gán thời gian tạo
-    },
-    updated_at: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,  // Tự động gán thời gian cập nhật
-    },
-    deleted_at: {
-      type: DataTypes.DATE,
-      allowNull: true,  // Trường này có thể là null
+    {
+      sequelize,
+      modelName: "Tag",
+      tableName: "Tags", // Thêm tên bảng rõ ràng
+      timestamps: true, // Sử dụng timestamps
+      paranoid: true,
     }
-  }, {
-    sequelize,
-    modelName: 'Tag',
-    tableName: 'Tags', // Thêm tên bảng rõ ràng
-    timestamps: true, // Sử dụng timestamps
-    createdAt: 'created_at', // Ánh xạ createdAt đến created_at trong DB
-    updatedAt: 'updated_at', // Ánh xạ updatedAt đến updated_at trong DB
-    deletedAt: 'deleted_at', // Ánh xạ deletedAt đến deleted_at trong DB
-    paranoid: true
-  });
+  );
 
   return Tag;
 };
