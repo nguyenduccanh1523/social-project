@@ -1,0 +1,187 @@
+import db from '../models';
+import { Op } from 'sequelize';
+import { Sequelize } from 'sequelize';
+
+// Lấy tất cả post-tags có phân trang và lọc
+export const getAllPostTags = async ({
+    page = 1,
+    pageSize = 10,
+    filters = {},
+    sortField = 'createdAt',
+    sortOrder = 'DESC',
+    populate = false,
+    tagId = null,
+    pageId = null,
+    postId = null,
+    document_share_id = null
+}) => {
+    try {
+        
+        const offset = (page - 1) * pageSize;
+        const whereConditions = {};
+
+        // Áp dụng các bộ lọc nếu có
+        if (filters.status) {
+            whereConditions.status = filters.status;
+        }
+
+        if (filters.keyword) {
+            whereConditions[Op.or] = [
+                { name: { [Op.like]: `%${filters.keyword}%` } },
+                { description: { [Op.like]: `%${filters.keyword}%` } }
+            ];
+        }
+
+        // Lọc theo tagId nếu được cung cấp
+        if (tagId) {
+            whereConditions.tag_id = tagId;
+        }
+
+        // Lọc theo pageId nếu được cung cấp
+        if (pageId) {
+            whereConditions.page_id = pageId;
+        }
+
+        // Lọc theo postId nếu được cung cấp
+        if (postId) {
+            whereConditions.post_id = postId;
+        }
+
+        // Lọc theo document_share_id nếu được cung cấp
+        if (document_share_id) {
+            whereConditions.document_share_id = document_share_id;
+        }
+
+        // Chuẩn bị các mối quan hệ cần include
+        const includes = [];
+
+        if (populate) {
+            includes.push(
+                {
+                    model: db.Tag,
+                    as: 'tag',
+                    attributes: ['documentId', 'name', 'description']
+                },
+                {
+                    model: db.Post,
+                    as: 'post',
+                    attributes: ['documentId', 'content']
+                },
+                {
+                    model: db.Page,
+                    as: 'page',
+                    attributes: ['documentId', 'page_name']
+                },
+                {
+                    model: db.DocumentShare,
+                    as: 'documentShare',
+                    attributes: ['documentId', 'title']
+                }
+            );
+        }
+
+        // Thực hiện truy vấn
+        const { count, rows } = await db.PostTag.findAndCountAll({
+            where: whereConditions,
+            include: includes,
+            order: [[sortField, sortOrder]],
+            offset,
+            limit: pageSize,
+            distinct: true
+        });
+
+        return {
+            data: rows,
+            meta: {
+                pagination: {
+                    page: parseInt(page),
+                    pageSize: parseInt(pageSize),
+                    pageCount: Math.ceil(count / pageSize),
+                    total: count
+                }
+            }
+        };
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy danh sách post-tags: ${error.message}`);
+    }
+};
+
+// Lấy post-tag theo ID
+export const getPostTagById = async (documentId) => {
+    try {
+        const postTag = await db.PostTag.findByPk(documentId, {
+            include: [
+                {
+                    model: db.Tag,
+                    as: 'tag',
+                    attributes: ['documentId', 'name', 'description']
+                },
+                {
+                    model: db.Post,
+                    as: 'post',
+                    attributes: ['documentId', 'content']
+                },
+                {
+                    model: db.Page,
+                    as: 'page',
+                    attributes: ['documentId', 'page_name']
+                },
+                {
+                    model: db.DocumentShare,
+                    as: 'documentShare',
+                    attributes: ['documentId', 'title']
+                }
+            ]
+        });
+
+        if (!postTag) {
+            throw new Error('Không tìm thấy post-tag');
+        }
+
+        return postTag;
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy thông tin post-tag: ${error.message}`);
+    }
+};
+
+// Tạo post-tag mới
+export const createPostTag = async (postTagData) => {
+    try {
+        const newPostTag = await db.PostTag.create(postTagData);
+        return await getPostTagById(newPostTag.documentId);
+    } catch (error) {
+        throw new Error(`Lỗi khi tạo post-tag mới: ${error.message}`);
+    }
+};
+
+// Cập nhật post-tag
+export const updatePostTag = async (documentId, postTagData) => {
+    try {
+        const postTag = await db.PostTag.findByPk(documentId);
+        
+        if (!postTag) {
+            throw new Error('Không tìm thấy post-tag');
+        }
+
+        await postTag.update(postTagData);
+        return await getPostTagById(documentId);
+    } catch (error) {
+        throw new Error(`Lỗi khi cập nhật post-tag: ${error.message}`);
+    }
+};
+
+// Xóa post-tag
+export const deletePostTag = async (documentId) => {
+    try {
+        const postTag = await db.PostTag.findByPk(documentId);
+        
+        if (!postTag) {
+            throw new Error('Không tìm thấy post-tag');
+        }
+
+        await postTag.destroy();
+        return { message: 'Xóa post-tag thành công' };
+    } catch (error) {
+        throw new Error(`Lỗi khi xóa post-tag: ${error.message}`);
+    }
+}; 

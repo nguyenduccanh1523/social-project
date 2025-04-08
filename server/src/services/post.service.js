@@ -285,8 +285,8 @@ export const getPostById = async (documentId, userId = null) => {
                 include: [
                     {
                         model: db.User,
-                        as: 'users',
-                        attributes: ['documentId', 'username', 'avatar']
+                        as: 'user',
+                        attributes: ['documentId', 'username', 'avatar_id']
                     }
                 ]
             }
