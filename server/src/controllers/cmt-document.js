@@ -1,6 +1,6 @@
-import * as tagService from '../services/tag.service';
+import * as cmtDocumentService from '../services/cmt-document.service';
 
-export const getAllTags = async (req, res) => {
+export const getAllCmtDocument = async (req, res) => {
     try {
         // Lấy tham số phân trang từ query
         const pagination = req.query.pagination || {};
@@ -29,25 +29,24 @@ export const getAllTags = async (req, res) => {
         if (req.query.keyword) filters.keyword = req.query.keyword;
 
         // Lấy các tham số lọc
-        const pageId = req.query.pageId || null;
-        const postId = req.query.postId || null;
+        const parentId = req.query.parentId || null;
         const document_share_id = req.query.document_share_id || null;
+        
 
-        // Gọi service để lấy danh sách tags
-        const tagsData = await tagService.getAllTags({
+        // Gọi service để lấy danh sách comment document
+        const cmtDocumentData = await cmtDocumentService.getAllCmtDocument({
             page,
             pageSize,
             filters,
             sortField,
             sortOrder,
             populate,
-            pageId,
-            postId,
+            parentId,
             document_share_id
         });
 
         // Trả về kết quả
-        return res.status(200).json(tagsData);
+        return res.status(200).json(cmtDocumentData);
     } catch (error) {
         return res.status(500).json({
             err: -1,
@@ -56,15 +55,15 @@ export const getAllTags = async (req, res) => {
     }
 };
 
-export const getTagById = async (req, res) => {
+export const getCmtDocumentById = async (req, res) => {
     try {
         const { id } = req.params;
-        const tag = await tagService.getTagById(id);
+        const cmtDocument = await cmtDocumentService.getCmtDocumentById(id);
         
         return res.status(200).json({
             err: 0,
-            message: 'Lấy thông tin tag thành công',
-            data: tag
+            message: 'Lấy thông tin comment document thành công',
+            data: cmtDocument
         });
     } catch (error) {
         return res.status(404).json({
@@ -74,15 +73,15 @@ export const getTagById = async (req, res) => {
     }
 };
 
-export const createTag = async (req, res) => {
+export const createCmtDocument = async (req, res) => {
     try {
-        const tagData = req.body;
-        const newTag = await tagService.createTag(tagData);
+        const cmtDocumentData = req.body;
+        const newCmtDocument = await cmtDocumentService.createCmtDocument(cmtDocumentData);
         
         return res.status(201).json({
             err: 0,
-            message: 'Tạo tag mới thành công',
-            data: newTag
+            message: 'Tạo comment document mới thành công',
+            data: newCmtDocument
         });
     } catch (error) {
         return res.status(500).json({
@@ -92,16 +91,16 @@ export const createTag = async (req, res) => {
     }
 };
 
-export const updateTag = async (req, res) => {
+export const updateCmtDocument = async (req, res) => {
     try {
         const { id } = req.params;
-        const tagData = req.body;
-        const updatedTag = await tagService.updateTag(id, tagData);
+        const cmtDocumentData = req.body;
+        const updatedCmtDocument = await cmtDocumentService.updateCmtDocument(id, cmtDocumentData);
         
         return res.status(200).json({
             err: 0,
-            message: 'Cập nhật tag thành công',
-            data: updatedTag
+            message: 'Cập nhật comment document thành công',
+            data: updatedCmtDocument
         });
     } catch (error) {
         return res.status(500).json({
@@ -111,10 +110,10 @@ export const updateTag = async (req, res) => {
     }
 };
 
-export const deleteTag = async (req, res) => {
+export const deleteCmtDocument = async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await tagService.deleteTag(id);
+        const result = await cmtDocumentService.deleteCmtDocument(id);
         
         return res.status(200).json({
             err: 0,

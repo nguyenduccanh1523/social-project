@@ -1,6 +1,6 @@
-import * as tagService from '../services/tag.service';
+import * as commentService from '../services/comment.service';
 
-export const getAllTags = async (req, res) => {
+export const getAllComments = async (req, res) => {
     try {
         // Lấy tham số phân trang từ query
         const pagination = req.query.pagination || {};
@@ -29,25 +29,23 @@ export const getAllTags = async (req, res) => {
         if (req.query.keyword) filters.keyword = req.query.keyword;
 
         // Lấy các tham số lọc
-        const pageId = req.query.pageId || null;
-        const postId = req.query.postId || null;
-        const document_share_id = req.query.document_share_id || null;
+        const parent_id = req.query.parent_id !== undefined ? req.query.parent_id : null;
+        const post_id = req.query.post_id || null;
 
-        // Gọi service để lấy danh sách tags
-        const tagsData = await tagService.getAllTags({
+        // Gọi service để lấy danh sách comment
+        const commentsData = await commentService.getAllComments({
             page,
             pageSize,
             filters,
             sortField,
             sortOrder,
             populate,
-            pageId,
-            postId,
-            document_share_id
+            parent_id,
+            post_id,
         });
 
         // Trả về kết quả
-        return res.status(200).json(tagsData);
+        return res.status(200).json(commentsData);
     } catch (error) {
         return res.status(500).json({
             err: -1,
@@ -56,15 +54,15 @@ export const getAllTags = async (req, res) => {
     }
 };
 
-export const getTagById = async (req, res) => {
+export const getCommentById = async (req, res) => {
     try {
         const { id } = req.params;
-        const tag = await tagService.getTagById(id);
+        const comment = await commentService.getCommentById(id);
         
         return res.status(200).json({
             err: 0,
-            message: 'Lấy thông tin tag thành công',
-            data: tag
+            message: 'Lấy thông tin comment thành công',
+            data: comment
         });
     } catch (error) {
         return res.status(404).json({
@@ -74,15 +72,15 @@ export const getTagById = async (req, res) => {
     }
 };
 
-export const createTag = async (req, res) => {
+export const createComment = async (req, res) => {
     try {
-        const tagData = req.body;
-        const newTag = await tagService.createTag(tagData);
+        const commentData = req.body;
+        const newComment = await commentService.createComment(commentData);
         
         return res.status(201).json({
             err: 0,
-            message: 'Tạo tag mới thành công',
-            data: newTag
+            message: 'Tạo comment mới thành công',
+            data: newComment
         });
     } catch (error) {
         return res.status(500).json({
@@ -92,16 +90,16 @@ export const createTag = async (req, res) => {
     }
 };
 
-export const updateTag = async (req, res) => {
+export const updateComment = async (req, res) => {
     try {
         const { id } = req.params;
-        const tagData = req.body;
-        const updatedTag = await tagService.updateTag(id, tagData);
+        const commentData = req.body;
+        const updatedComment = await commentService.updateComment(id, commentData);
         
         return res.status(200).json({
             err: 0,
-            message: 'Cập nhật tag thành công',
-            data: updatedTag
+            message: 'Cập nhật comment thành công',
+            data: updatedComment
         });
     } catch (error) {
         return res.status(500).json({
@@ -111,10 +109,10 @@ export const updateTag = async (req, res) => {
     }
 };
 
-export const deleteTag = async (req, res) => {
+export const deleteComment = async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await tagService.deleteTag(id);
+        const result = await commentService.deleteComment(id);
         
         return res.status(200).json({
             err: 0,

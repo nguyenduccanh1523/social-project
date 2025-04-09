@@ -1,6 +1,6 @@
-import * as tagService from '../services/tag.service';
+import * as reactionService from '../services/reaction.service';
 
-export const getAllTags = async (req, res) => {
+export const getAllReactions = async (req, res) => {
     try {
         // Lấy tham số phân trang từ query
         const pagination = req.query.pagination || {};
@@ -26,28 +26,27 @@ export const getAllTags = async (req, res) => {
         // Xây dựng bộ lọc từ query params
         const filters = {};
         if (req.query.status) filters.status = req.query.status;
-        if (req.query.keyword) filters.keyword = req.query.keyword;
 
         // Lấy các tham số lọc
-        const pageId = req.query.pageId || null;
         const postId = req.query.postId || null;
-        const document_share_id = req.query.document_share_id || null;
+        const userId = req.query.userId || null;
+        const type = req.query.type || null;
 
-        // Gọi service để lấy danh sách tags
-        const tagsData = await tagService.getAllTags({
+        // Gọi service để lấy danh sách reaction
+        const reactionsData = await reactionService.getAllReactions({
             page,
             pageSize,
             filters,
             sortField,
             sortOrder,
             populate,
-            pageId,
             postId,
-            document_share_id
+            userId,
+            type
         });
 
         // Trả về kết quả
-        return res.status(200).json(tagsData);
+        return res.status(200).json(reactionsData);
     } catch (error) {
         return res.status(500).json({
             err: -1,
@@ -56,15 +55,15 @@ export const getAllTags = async (req, res) => {
     }
 };
 
-export const getTagById = async (req, res) => {
+export const getReactionById = async (req, res) => {
     try {
         const { id } = req.params;
-        const tag = await tagService.getTagById(id);
+        const reaction = await reactionService.getReactionById(id);
         
         return res.status(200).json({
             err: 0,
-            message: 'Lấy thông tin tag thành công',
-            data: tag
+            message: 'Lấy thông tin reaction thành công',
+            data: reaction
         });
     } catch (error) {
         return res.status(404).json({
@@ -74,15 +73,25 @@ export const getTagById = async (req, res) => {
     }
 };
 
-export const createTag = async (req, res) => {
+
+export const createReaction = async (req, res) => {
     try {
-        const tagData = req.body;
-        const newTag = await tagService.createTag(tagData);
+        const reactionData = req.body;
+        
+        // Đảm bảo có đủ dữ liệu cần thiết
+        if (!reactionData.post_id || !reactionData.user_id || !reactionData.type) {
+            return res.status(400).json({
+                err: -1,
+                message: 'Thiếu thông tin cần thiết (post_id, user_id, type)'
+            });
+        }
+        
+        const newReaction = await reactionService.createReaction(reactionData);
         
         return res.status(201).json({
             err: 0,
-            message: 'Tạo tag mới thành công',
-            data: newTag
+            message: 'Tạo/cập nhật reaction thành công',
+            data: newReaction
         });
     } catch (error) {
         return res.status(500).json({
@@ -92,16 +101,16 @@ export const createTag = async (req, res) => {
     }
 };
 
-export const updateTag = async (req, res) => {
+export const updateReaction = async (req, res) => {
     try {
         const { id } = req.params;
-        const tagData = req.body;
-        const updatedTag = await tagService.updateTag(id, tagData);
+        const reactionData = req.body;
+        const updatedReaction = await reactionService.updateReaction(id, reactionData);
         
         return res.status(200).json({
             err: 0,
-            message: 'Cập nhật tag thành công',
-            data: updatedTag
+            message: 'Cập nhật reaction thành công',
+            data: updatedReaction
         });
     } catch (error) {
         return res.status(500).json({
@@ -111,10 +120,35 @@ export const updateTag = async (req, res) => {
     }
 };
 
-export const deleteTag = async (req, res) => {
+export const deleteReaction = async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await tagService.deleteTag(id);
+        const result = await reactionService.deleteReaction(id);
+        
+        return res.status(200).json({
+            err: 0,
+            message: result.message
+        });
+    } catch (error) {
+        return res.status(500).json({
+            err: -1,
+            message: error.message
+        });
+    }
+};
+
+export const deleteReactionByPostAndUser = async (req, res) => {
+    try {
+        const { postId, userId } = req.query;
+        
+        if (!postId || !userId) {
+            return res.status(400).json({
+                err: -1,
+                message: 'Thiếu tham số postId hoặc userId'
+            });
+        }
+        
+        const result = await reactionService.deleteReactionByPostAndUser(postId, userId);
         
         return res.status(200).json({
             err: 0,

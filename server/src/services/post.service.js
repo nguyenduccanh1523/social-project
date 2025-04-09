@@ -99,7 +99,7 @@ export const getAllPosts = async ({
                     as: 'shares',
                     separate: true,
                     limit: 5,
-                    attributes: ['documentId', 'created_at', 'updated_at']
+                    attributes: ['documentId', 'createdAt', 'updatedAt']
                 },
                 {
                     model: db.MarkPost,
@@ -271,7 +271,7 @@ export const getPostById = async (documentId, userId = null) => {
                 as: 'shares',
                 separate: true,
                 limit: 5,
-                attributes: ['documentId', 'created_at', 'updated_at']
+                attributes: ['documentId', 'createdAt', 'updatedt']
             },
             {
                 model: db.MarkPost,
