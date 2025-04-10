@@ -14,6 +14,11 @@ import reactionRouter from './reaction';
 import conversationRouter from './conversation';
 import markPostRouter from './mark-post';
 import mediaRouter from './media';
+import messagerRouter from './messager';
+import nationRouter from './nation';
+import userNotificationRouter from './user-noti';
+import pageRouter from './page';
+import storyRouter from './story';
 
 const initRoutes = (app) => {
     app.use('/api/v1/auth', authRouter);
@@ -32,6 +37,11 @@ const initRoutes = (app) => {
     app.use('/api/v1/conversations', conversationRouter);
     app.use('/api/v1/mark-posts', markPostRouter);
     app.use('/api/v1/medias', mediaRouter);
+    app.use('/api/v1/messagers', messagerRouter);
+    app.use('/api/v1/nations', nationRouter);
+    app.use('/api/v1/user-notifications', userNotificationRouter);
+    app.use('/api/v1/pages', pageRouter);
+    app.use('/api/v1/stories', storyRouter);
 
     return app.use('/', (req, res) => {
         res.send('server on...')

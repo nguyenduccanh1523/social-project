@@ -22,6 +22,13 @@ module.exports = (sequelize, DataTypes) => {
         as: 'media'
       });
       
+      // Một DocumentShare thuộc về một Type
+      DocumentShare.belongsTo(models.Type, {
+        foreignKey: 'type_id',
+        targetKey: 'documentId',
+        as: 'documentType'
+      });
+      
       // Một DocumentShare có nhiều PostTag
       DocumentShare.hasMany(models.PostTag, {
         foreignKey: 'document_share_id',
@@ -71,6 +78,14 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       references: {
         model: 'Medias',
+        key: 'documentId'
+      }
+    },
+    type_id: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      references: {
+        model: 'Types',
         key: 'documentId'
       }
     },

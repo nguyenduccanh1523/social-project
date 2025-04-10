@@ -5,7 +5,7 @@ import * as actions from "../../../actions/actions";
 import Loader from "../../../components/loading/loader";
 import Swal from "sweetalert2";
 import Overlay from "./style";
-
+import { useDispatch, useSelector } from "react-redux";
 
 //swiper
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -13,75 +13,89 @@ import SwiperCore, { Navigation, Autoplay } from "swiper";
 
 // Import Swiper styles
 import "swiper/swiper-bundle.min.css";
-// import 'swiper/components/navigation/navigation.scss';
 
 //img
 import logo from "../../../assets/images/logo-full.png";
 import login1 from "../../../assets/images/login/1.png";
 import login2 from "../../../assets/images/login/2.png";
 import login3 from "../../../assets/images/login/3.png";
-import { useDispatch, useSelector } from "react-redux";
 
 // install Swiper modules
 SwiperCore.use([Navigation, Autoplay]);
 
 const SignIn = () => {
-  //let history = useNavigate();
-  const { isLoggedIn, msg, update, loading } = useSelector(
+  const { isLoggedIn, msg, loading, user } = useSelector(
     (state) => state.root.auth || {}
   );
-  //const [loading, setLoading] = useState(false);
-  //console.log('loading: ', loading)
 
   const location = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: "",
+    identifier: "",
     password: "",
+    remember: false
   });
 
   const [errors, setErrors] = useState({
-    email: "",
+    identifier: "",
     password: "",
   });
 
   const handleChange = (e) => {
-    const { id, value } = e.target;
+    const { id, type, checked, value } = e.target;
     setFormData({
       ...formData,
-      [id]: value,
+      [id]: type === "checkbox" ? checked : value,
     });
   };
 
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && user) {
       const token = localStorage.getItem("token");
-      if (token) {
-        navigate("/"); // Chỉ navigate, không hiển thị toast ở đây
-        Swal.fire("Success!", "You have successfully logged in!", "success");
+      const isNewLogin = sessionStorage.getItem("isNewLogin");
+      if (token && isNewLogin === "true") {
+        navigate("/"); 
+        Swal.fire({
+          title: "Thành công!",
+          text: "Bạn đã đăng nhập thành công!",
+          icon: "success",
+          confirmButtonText: "OK"
+        });
+        sessionStorage.removeItem("isNewLogin");
+        dispatch(actions.clearMessage());
       }
     }
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn, user, navigate, dispatch]);
 
   useEffect(() => {
     if (msg && !isLoggedIn) {
-      Swal.fire("Error", msg, "error");
+      const icon = msg === "Đăng nhập thành công" ? "success" : "error";
+      const title = msg === "Đăng nhập thành công" ? "Thành công!" : "Lỗi";
+      
+      Swal.fire({
+        title: title,
+        text: msg,
+        icon: icon,
+        confirmButtonText: "OK"
+      }).then(() => {
+        dispatch(actions.clearMessage());
+      });
     }
-  }, [msg, isLoggedIn]);
+  }, [msg, isLoggedIn, dispatch]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     let valid = true;
-    let newErrors = { email: "", password: "" };
+    let newErrors = { identifier: "", password: "" };
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
+    if (!formData.identifier) {
+      newErrors.identifier = "Email hoặc tên đăng nhập là bắt buộc";
       valid = false;
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Mật khẩu là bắt buộc";
       valid = false;
     }
 
@@ -89,10 +103,10 @@ const SignIn = () => {
 
     if (valid) {
       const payload = {
-        identifier: formData.email,
+        identifier: formData.identifier,
         password: formData.password,
       };
-      //setLoading(true); // Hiển thị loader
+      
       dispatch(actions.login(payload));
     }
   };
@@ -173,35 +187,35 @@ const SignIn = () => {
             </Col>
             <Col md="6" className="bg-white pt-5 pt-5 pb-lg-0 pb-5">
               <div className="sign-in-from">
-                <h1 className="mb-0">Sign in</h1>
+                <h1 className="mb-0">Đăng nhập</h1>
                 <p>
-                  Enter your email address and password to access admin panel.
+                  Nhập thông tin đăng nhập của bạn để truy cập vào hệ thống.
                 </p>
                 <Form className="mt-4" onSubmit={handleSubmit}>
                   <Form.Group className="form-group">
-                    <Form.Label>Email address</Form.Label>
+                    <Form.Label>Email hoặc tên đăng nhập</Form.Label>
                     <Form.Control
-                      type="email"
+                      type="text"
                       className="mb-0"
-                      id="email"
-                      placeholder="Enter email"
-                      value={formData.email}
+                      id="identifier"
+                      placeholder="Nhập email hoặc tên đăng nhập"
+                      value={formData.identifier}
                       onChange={handleChange}
                     />
-                    {errors.password && (
-                      <div className="text-danger">{errors.email}</div>
+                    {errors.identifier && (
+                      <div className="text-danger">{errors.identifier}</div>
                     )}
                   </Form.Group>
                   <Form.Group className="form-group">
-                    <Form.Label>Password</Form.Label>
+                    <Form.Label>Mật khẩu</Form.Label>
                     <Link to="#" className="float-end">
-                      Forgot password?
+                      Quên mật khẩu?
                     </Link>
                     <Form.Control
                       type="password"
                       className="mb-0"
                       id="password"
-                      placeholder="Password"
+                      placeholder="Mật khẩu"
                       value={formData.password}
                       onChange={handleChange}
                     />
@@ -214,22 +228,23 @@ const SignIn = () => {
                       <Form.Check.Input
                         type="checkbox"
                         className="me-2"
-                        id="customCheck11"
+                        id="remember"
+                        onChange={handleChange}
+                        checked={formData.remember}
                       />
-                      <Form.Check.Label>Remember Me</Form.Check.Label>{" "}
+                      <Form.Check.Label>Ghi nhớ đăng nhập</Form.Check.Label>
                     </Form.Check>
                     <Button
                       variant="primary"
                       type="submit"
                       className="float-end"
-                      //  onClick={() => history.push("/")}
                     >
-                      Sign in
+                      Đăng nhập
                     </Button>
                   </div>
                   <div className="sign-info">
                     <span className="dark-color d-inline-block line-height-2">
-                      Don't have an account? <Link to="/sign-up">Sign up</Link>
+                      Bạn chưa có tài khoản? <Link to="/sign-up">Đăng ký</Link>
                     </span>
                     <ul className="iq-social-media">
                       <li>

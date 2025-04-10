@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Row, Col, Container, Form, Button, Image } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import * as actions from "../../../actions/actions";
+import Swal from "sweetalert2";
+import Overlay from "./style";
+import Loader from "../../../components/loading/loader";
 
 //swiper
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -8,7 +13,6 @@ import SwiperCore, { Navigation, Autoplay } from "swiper";
 
 // Import Swiper styles
 import "swiper/swiper-bundle.min.css";
-// import 'swiper/components/navigation/navigation.scss';
 
 //img
 import logo from "../../../assets/images/logo-full.png";
@@ -20,62 +24,134 @@ import login3 from "../../../assets/images/login/3.png";
 SwiperCore.use([Navigation, Autoplay]);
 
 const SignUp = () => {
-  let history = useNavigate();
-  const [formData, setFormData] = React.useState({
-    fullName: "",
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { isLoggedIn, msg, loading, user } = useSelector(
+    (state) => state.root.auth || {}
+  );
+  
+  const [formData, setFormData] = useState({
     email: "",
+    username: "",
     password: "",
+    confirmPassword: "",
     acceptTerms: false,
   });
-  const [errors, setErrors] = React.useState({
-    fullName: "",
+  
+  const [errors, setErrors] = useState({
     email: "",
+    username: "",
     password: "",
+    confirmPassword: "",
     acceptTerms: "",
   });
 
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      const token = localStorage.getItem("token");
+      if (token) {
+        navigate("/");
+        Swal.fire({
+          title: "Thành công!",
+          text: "Bạn đã đăng ký thành công!",
+          icon: "success",
+          confirmButtonText: "OK"
+        });
+        dispatch(actions.clearMessage());
+      }
+    }
+  }, [isLoggedIn, user, navigate, dispatch]);
+
+  useEffect(() => {
+    if (msg && !isLoggedIn) {
+      const icon = msg === "Đăng ký thành công" ? "success" : "error";
+      const title = msg === "Đăng ký thành công" ? "Thành công!" : "Lỗi";
+      
+      Swal.fire({
+        title: title,
+        text: msg,
+        icon: icon,
+        confirmButtonText: "OK"
+      }).then(() => {
+        dispatch(actions.clearMessage());
+      });
+    }
+  }, [msg, isLoggedIn, dispatch]);
+
   const handleChange = (e) => {
-    const { id, value, typem, checked } = e.target;
+    const { id, type, checked, value } = e.target;
     setFormData({
       ...formData,
-      [id]: typem === "checkbox" ? checked : value,
+      [id]: type === "checkbox" ? checked : value,
     });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     let valid = true;
-    let newErrors = { fullName: "", email: "", password: "", acceptTerms: "" };
-    if (!formData.fullName) {
-      newErrors.fullName = "Full Name is required";
+    let newErrors = { 
+      email: "", 
+      username: "", 
+      password: "", 
+      confirmPassword: "", 
+      acceptTerms: "" 
+    };
+    
+    if (!formData.email) {
+      newErrors.email = "Email là bắt buộc";
+      valid = false;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email không hợp lệ";
       valid = false;
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
+    if (!formData.username) {
+      newErrors.username = "Tên đăng nhập là bắt buộc";
       valid = false;
     }
 
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Mật khẩu là bắt buộc";
+      valid = false;
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+      valid = false;
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Xác nhận mật khẩu là bắt buộc";
+      valid = false;
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Mật khẩu không khớp";
       valid = false;
     }
 
     if (!formData.acceptTerms) {
-      newErrors.acceptTerms = "You must accept the terms and conditions";
+      newErrors.acceptTerms = "Bạn phải chấp nhận điều khoản và điều kiện";
       valid = false;
     }
 
     setErrors(newErrors);
 
     if (valid) {
-      // Handle form submission
-      console.log("Form data submitted:", formData);
+      const payload = {
+        email: formData.email,
+        username: formData.username,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword
+      };
+      
+      dispatch(actions.register(payload));
     }
   };
 
   return (
     <>
+      {loading && (
+        <Overlay>
+          <Loader />
+        </Overlay>
+      )}
       <section className="sign-in-page">
         <div id="container-inside">
           <div id="circle-small"></div>
@@ -145,32 +221,18 @@ const SignUp = () => {
             </Col>
             <Col md="6" className="bg-white pt-5 pt-5 pb-lg-0 pb-5">
               <div className="sign-in-from">
-                <h1 className="mb-0">Sign Up</h1>
+                <h1 className="mb-0">Đăng ký</h1>
                 <p>
-                  Enter your email address and password to access admin panel.
+                  Nhập thông tin của bạn để tạo tài khoản.
                 </p>
                 <Form className="mt-4" onSubmit={handleSubmit}>
                   <Form.Group className="form-group">
-                    <Form.Label>Your Full Name</Form.Label>
-                    <Form.Control
-                      type="text"
-                      className="mb-0"
-                      id="fullName"
-                      placeholder="Your Full Name"
-                      value={formData.fullName}
-                      onChange={handleChange}
-                    />
-                    {errors.fullName && (
-                      <div className="text-danger">{errors.fullName}</div>
-                    )}
-                  </Form.Group>
-                  <Form.Group className="form-group">
-                    <Form.Label>Email address</Form.Label>
+                    <Form.Label>Email</Form.Label>
                     <Form.Control
                       type="email"
                       className="mb-0"
                       id="email"
-                      placeholder="Enter email"
+                      placeholder="Nhập email"
                       value={formData.email}
                       onChange={handleChange}
                     />
@@ -179,17 +241,45 @@ const SignUp = () => {
                     )}
                   </Form.Group>
                   <Form.Group className="form-group">
-                    <Form.Label>Password</Form.Label>
+                    <Form.Label>Tên đăng nhập</Form.Label>
+                    <Form.Control
+                      type="text"
+                      className="mb-0"
+                      id="username"
+                      placeholder="Tên đăng nhập"
+                      value={formData.username}
+                      onChange={handleChange}
+                    />
+                    {errors.username && (
+                      <div className="text-danger">{errors.username}</div>
+                    )}
+                  </Form.Group>
+                  <Form.Group className="form-group">
+                    <Form.Label>Mật khẩu</Form.Label>
                     <Form.Control
                       type="password"
                       className="mb-0"
                       id="password"
-                      placeholder="Password"
+                      placeholder="Mật khẩu"
                       value={formData.password}
                       onChange={handleChange}
                     />
                     {errors.password && (
                       <div className="text-danger">{errors.password}</div>
+                    )}
+                  </Form.Group>
+                  <Form.Group className="form-group">
+                    <Form.Label>Xác nhận mật khẩu</Form.Label>
+                    <Form.Control
+                      type="password"
+                      className="mb-0"
+                      id="confirmPassword"
+                      placeholder="Xác nhận mật khẩu"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                    />
+                    {errors.confirmPassword && (
+                      <div className="text-danger">{errors.confirmPassword}</div>
                     )}
                   </Form.Group>
                   <div className="d-inline-block w-100">
@@ -199,10 +289,10 @@ const SignUp = () => {
                         className="me-2"
                         id="acceptTerms"
                         onChange={handleChange}
-                        value={formData.acceptTerms}
+                        checked={formData.acceptTerms}
                       />
                       <Form.Check.Label>
-                        I accept <Link to="#">Terms and Conditions</Link>
+                        Tôi đồng ý với <Link to="#">Điều khoản và Điều kiện</Link>
                       </Form.Check.Label>
                     </Form.Check>
                     {errors.acceptTerms && (
@@ -211,14 +301,13 @@ const SignUp = () => {
                     <Button
                       type="submit"
                       className="btn-primary float-end"
-                      //  onClick={() => history.push("/")}
                     >
-                      Sign Up
+                      Đăng ký
                     </Button>
                   </div>
                   <div className="sign-info">
                     <span className="dark-color d-inline-block line-height-2">
-                      Already Have Account ? <Link to="/sign-in">Log In</Link>
+                      Bạn đã có tài khoản? <Link to="/sign-in">Đăng nhập</Link>
                     </span>
                     <ul className="iq-social-media">
                       <li>

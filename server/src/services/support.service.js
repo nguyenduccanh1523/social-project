@@ -78,11 +78,6 @@ export const getSupportById = async (documentId) => {
         const support = await db.CategorySupport.findByPk(documentId, {
             include: [
                 {
-                    model: db.Tag,
-                    as: 'tag',
-                    attributes: ['documentId', 'name', 'description']
-                },
-                {
                     model: db.Post,
                     as: 'post',
                     attributes: ['documentId', 'content']

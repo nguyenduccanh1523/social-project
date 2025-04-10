@@ -25,7 +25,8 @@ const commonConfig = {
 const authConfig = {
     ...commonConfig,
     key: 'auth',
-    whitelist: ['isLoggedIn', 'token']
+    whitelist: ['isLoggedIn', 'token', 'user'],
+    blacklist: ['msg', 'loading', 'update']
 }
 
 const rootReducer = combineReducers({

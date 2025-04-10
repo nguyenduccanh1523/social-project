@@ -49,6 +49,13 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "documentId",
         as: "medias",
       });
+      
+      // Quan hệ với DocumentShare
+      Type.hasMany(models.DocumentShare, {
+        foreignKey: "type_id",
+        sourceKey: "documentId",
+        as: "documentShares",
+      });
     }
   }
   Type.init(
