@@ -1,6 +1,6 @@
-import * as statusActivityService from '../services/status-activity.service';
+import * as userSocialService from '../services/user-social.service';
 
-export const getAllStatusActivities = async (req, res) => {
+export const getAllUserSocials = async (req, res) => {
     try {
         // Lấy tham số phân trang từ query
         const pagination = req.query.pagination || {};
@@ -29,21 +29,21 @@ export const getAllStatusActivities = async (req, res) => {
         if (req.query.keyword) filters.keyword = req.query.keyword;
 
         // Lấy các tham số lọc
-        const typeId = req.query.typeId || null;
-
-        // Gọi service để lấy danh sách post-tags
-        const statusActivitiesData = await statusActivityService.getAllStatusActivities({
+        const userId = req.query.userId || null;
+        
+        // Gọi service để lấy danh sách user-socials
+        const userSocialsData = await userSocialService.getAllUserSocials({
             page,
             pageSize,
             filters,
             sortField,
             sortOrder,
             populate,
-            typeId,
+            userId
         });
 
         // Trả về kết quả
-        return res.status(200).json(statusActivitiesData);
+        return res.status(200).json(userSocialsData);
     } catch (error) {
         return res.status(500).json({
             err: -1,
@@ -52,15 +52,15 @@ export const getAllStatusActivities = async (req, res) => {
     }
 };
 
-export const getStatusActivityById = async (req, res) => {
+export const getUserSocialById = async (req, res) => {
     try {
         const { id } = req.params;
-        const statusActivity = await statusActivityService.getStatusActivityById(id);
+        const userSocial = await userSocialService.getUserSocialById(id);
         
         return res.status(200).json({
             err: 0,
-            message: 'Lấy thông tin status-activity thành công',
-            data: statusActivity
+            message: 'Lấy thông tin user-social thành công',
+            data: userSocial
         });
     } catch (error) {
         return res.status(404).json({
@@ -70,15 +70,15 @@ export const getStatusActivityById = async (req, res) => {
     }
 };
 
-export const createStatusActivity = async (req, res) => {
+export const createUserSocial = async (req, res) => {
     try {
-        const statusActivityData = req.body;
-        const newStatusActivity = await statusActivityService.createStatusActivity(statusActivityData);
+        const userSocialData = req.body;
+        const newUserSocial = await userSocialService.createUserSocial(userSocialData);
         
         return res.status(201).json({
             err: 0,
-            message: 'Tạo status-activity mới thành công',
-            data: newStatusActivity
+            message: 'Tạo user-social mới thành công',
+            data: newUserSocial
         });
     } catch (error) {
         return res.status(500).json({
@@ -88,16 +88,16 @@ export const createStatusActivity = async (req, res) => {
     }
 };
 
-export const updateStatusActivity = async (req, res) => {
+export const updateUserSocial = async (req, res) => {
     try {
         const { id } = req.params;
-        const statusActivityData = req.body;
-        const updatedStatusActivity = await statusActivityService.updateStatusActivity(id, statusActivityData);
+        const userSocialData = req.body;
+        const updatedUserSocial = await userSocialService.updateUserSocial(id, userSocialData);
         
         return res.status(200).json({
             err: 0,
-            message: 'Cập nhật status-activity thành công',
-            data: updatedStatusActivity
+            message: 'Cập nhật user-social thành công',
+            data: updatedUserSocial
         });
     } catch (error) {
         return res.status(500).json({
@@ -107,10 +107,10 @@ export const updateStatusActivity = async (req, res) => {
     }
 };
 
-export const deleteStatusActivity = async (req, res) => {
+export const deleteUserSocial = async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await statusActivityService.deleteStatusActivity(id);
+        const result = await userSocialService.deleteUserSocial(id);
         
         return res.status(200).json({
             err: 0,

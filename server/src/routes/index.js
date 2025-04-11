@@ -19,6 +19,7 @@ import nationRouter from './nation';
 import userNotificationRouter from './user-noti';
 import pageRouter from './page';
 import storyRouter from './story';
+import userSocialRouter from './user-social';
 
 const initRoutes = (app) => {
     app.use('/api/v1/auth', authRouter);
@@ -42,6 +43,7 @@ const initRoutes = (app) => {
     app.use('/api/v1/user-notifications', userNotificationRouter);
     app.use('/api/v1/pages', pageRouter);
     app.use('/api/v1/stories', storyRouter);
+    app.use('/api/v1/user-socials', userSocialRouter);
 
     return app.use('/', (req, res) => {
         res.send('server on...')

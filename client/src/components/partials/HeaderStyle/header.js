@@ -47,6 +47,8 @@ import user16 from "../../../assets/images/page-img/01.jpg";
 import CustomToggle from "../../dropdowns";
 import { useDispatch, useSelector } from "react-redux";
 import Status from "./status";
+import { useQuery } from "@tanstack/react-query";
+import { apiGetUserById } from "../../../services/user";
 // import DropdownMenu from "react-bootstrap/esm/DropdownMenu";
 
 const Header = () => {
@@ -62,6 +64,24 @@ const Header = () => {
   const { profile } = useSelector((state) => state.root.user || {});
   const { pendingFriends } = useSelector((state) => state.root.friend || {});
 
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
+
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['user', user?.documentId, token],
+    queryFn: () => apiGetUserById({ userId: user?.documentId, token }),
+    enabled: !!user?.documentId && !!token,
+    onSuccess: (data) => {
+      console.log("User data fetched successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching user data:", error);
+      toast.error("Không thể lấy thông tin người dùng");
+    }
+  });
+
+  const users = userData?.data?.data || {};
+
   const document1 = profile?.documentId;
   useEffect(() => {
     if (document1) {
@@ -69,11 +89,11 @@ const Header = () => {
     }
   }, [document1, dispatch]);
 
-  useEffect(() => {
-    if (isLoggedIn) {
-      dispatch(fetchUserProfile());
-    }
-  }, [isLoggedIn, dispatch]);
+  // useEffect(() => {
+  //   if (isLoggedIn) {
+  //     dispatch(fetchUserProfile());
+  //   }
+  // }, [isLoggedIn, dispatch]);
 
   return (
     <>
@@ -1386,20 +1406,20 @@ const Header = () => {
                   variant="d-flex align-items-center"
                 >
                   <Image
-                    src={profile?.profile_picture}
+                    src={users?.avatarMedia?.file_path}
                     className="img-fluid rounded-circle me-3"
                     alt="user"
                     loading="lazy"
                   />
                   <div className="caption d-none d-lg-block">
-                    <h6 className="mb-0 line-height">{profile?.username}</h6>
+                    <h6 className="mb-0 line-height">{users?.username}</h6>
                   </div>
                 </Dropdown.Toggle>
                 <Dropdown.Menu className="sub-drop caption-menu">
                   <Card className="shadow-none m-0">
                     <Card.Header>
                       <div className="header-title">
-                        <h5 className="mb-0 ">Hello {profile?.username}</h5>
+                        <h5 className="mb-0 ">Hello {users?.username}</h5>
                       </div>
                     </Card.Header>
                     <Card.Body className="p-0 ">
@@ -1460,7 +1480,7 @@ const Header = () => {
                         </div>
                       </div>
 
-                      <Status userId={profile} />
+                      <Status userId={users} />
                     </Card.Body>
                   </Card>
                 </Dropdown.Menu>

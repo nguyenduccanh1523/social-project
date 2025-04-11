@@ -19,6 +19,8 @@ import ReactFsLightbox from "fslightbox-react";
 import Swal from "sweetalert2";
 import "react-toastify/ReactToastify.css";
 import { toast } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
+import { apiGetUserById } from "../../../services/user";
 
 // images
 import img1 from "../../../assets/images/page-img/profile-bg1.jpg";
@@ -71,6 +73,7 @@ import {
 } from "../../../actions/actions";
 import PostProfile from "../component/Profile/postProfile";
 import CreatePost from "../component/Share/createPost";
+import { apiGetFriendAccepted } from "../../../services/friend";
 
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default
@@ -86,6 +89,40 @@ const UserProfile = () => {
 
   const { isLoggedIn } = useSelector((state) => state.root.auth);
   const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
+
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['user', user?.documentId, token],
+    queryFn: () => apiGetUserById({ userId: user?.documentId, token }),
+    enabled: !!user?.documentId && !!token,
+    onSuccess: (data) => {
+      console.log("User data fetched successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching user data:", error);
+      toast.error("Không thể lấy thông tin người dùng");
+    }
+  });
+
+  const { data: userAcceptData, isLoading: userAcceptLoading } = useQuery({
+    queryKey: ['userAccept', user?.documentId, token],
+    queryFn: () => apiGetFriendAccepted({ documentId: user?.documentId, token }),
+    enabled: !!user?.documentId && !!token,
+    onSuccess: (data) => {
+      console.log("User data fetched successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching user data:", error);
+      toast.error("Không thể lấy thông tin người dùng");
+    }
+  });
+
+
+  const users = userData?.data?.data || {};
+  const userAccepts = userAcceptData || {};
+  console.log("userAccepts", userAccepts);
+
   const { socials } = useSelector((state) => state.root.userSocials || {});
   const { acceptedFriends } = useSelector((state) => state.root.friend || {});
   const { recentFriends } = useSelector((state) => state.root.friend || {});
@@ -165,12 +202,6 @@ const UserProfile = () => {
       }
     });
   };
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      dispatch(fetchUserProfile());
-    }
-  }, [isLoggedIn, dispatch]);
 
   const [imageController, setImageController] = useState({
     toggler: false,
@@ -264,13 +295,13 @@ const UserProfile = () => {
                     <div className="profile-img">
                       <img
                         loading="lazy"
-                        src={profile?.profile_picture}
+                        src={users?.avatarMedia?.file_path}
                         alt="profile-img1"
                         className="avatar-130 img-fluid"
                       />
                     </div>
                     <div className="profile-detail">
-                      <h3>{profile?.username}</h3>
+                      <h3>{users?.fullname}</h3>
                     </div>
                   </div>
                   <div className="profile-info p-3 d-flex align-items-center justify-content-between position-relative">
@@ -610,7 +641,7 @@ const UserProfile = () => {
                               <div className="user-img">
                                 <img
                                   loading="lazy"
-                                  src={profile?.profile_picture}
+                                  src={users?.avatarMedia?.file_path}
                                   alt="userimg"
                                   className="avatar-60 rounded-circle"
                                 />
@@ -672,11 +703,11 @@ const UserProfile = () => {
                               </li>
                             </ul>
                           </Card.Body>
-                          <CreatePost show={show} handleClose={handleClose} profile={profile}/>
+                          <CreatePost show={show} handleClose={handleClose} profile={users}/>
                         </Card>
                         <Card>
                           <Card.Body>
-                            <PostProfile userId={profile} />
+                            <PostProfile userId={users} />
                           </Card.Body>
                         </Card>
                       </Col>
@@ -722,7 +753,7 @@ const UserProfile = () => {
                                     <h6>About Me:</h6>
                                   </div>
                                   <div className="col-9">
-                                    <p className="mb-0">{profile?.bio}</p>
+                                    <p className="mb-0">{users?.bio}</p>
                                   </div>
                                 </Row>
                                 <Row className="mb-2">
@@ -730,7 +761,7 @@ const UserProfile = () => {
                                     <h6>Email:</h6>
                                   </div>
                                   <div className="col-9">
-                                    <p className="mb-0">{profile?.email}</p>
+                                    <p className="mb-0">{users?.email}</p>
                                   </div>
                                 </Row>
                                 <Row className="mb-2">
@@ -738,17 +769,10 @@ const UserProfile = () => {
                                     <h6>Mobile:</h6>
                                   </div>
                                   <div className="col-9">
-                                    <p className="mb-0">{profile?.phone}</p>
+                                    <p className="mb-0">{users?.phone}</p>
                                   </div>
                                 </Row>
-                                <Row className="mb-2">
-                                  <div className="col-3">
-                                    <h6>Address:</h6>
-                                  </div>
-                                  <div className="col-9">
-                                    <p className="mb-0">{profile?.address}</p>
-                                  </div>
-                                </Row>
+                                
                                 <Row className="row mb-2">
                                   <div className="col-3">
                                     <h6>Social Link:</h6>
@@ -763,7 +787,9 @@ const UserProfile = () => {
                                   </div>
                                   <div className="col-9">
                                     <p className="mb-0">
-                                      {profile?.date_of_birthday}
+                                      {new Date(
+                                        users?.date_of_birth
+                                      ).toLocaleDateString()}
                                     </p>
                                   </div>
                                 </Row>
@@ -772,7 +798,7 @@ const UserProfile = () => {
                                     <h6>Lives in:</h6>
                                   </div>
                                   <div className="col-9">
-                                    <p className="mb-0">{profile?.live_in}</p>
+                                    <p className="mb-0">{users?.nation?.name}</p>
                                   </div>
                                 </Row>
                                 <Row className="mb-2">
@@ -780,7 +806,7 @@ const UserProfile = () => {
                                     <h6>Gender:</h6>
                                   </div>
                                   <div className="col-9">
-                                    <p className="mb-0">{profile?.gender}</p>
+                                    <p className="mb-0">{users?.gender}</p>
                                   </div>
                                 </Row>
                                 <Row className="mb-2">
@@ -788,7 +814,7 @@ const UserProfile = () => {
                                     <h6>language:</h6>
                                   </div>
                                   <div className="col-9">
-                                    <p className="mb-0">{profile?.language}</p>
+                                    <p className="mb-0">{users?.language}</p>
                                   </div>
                                 </Row>
                                 <Row className="mb-2">
@@ -798,7 +824,7 @@ const UserProfile = () => {
                                   <div className="col-9">
                                     <p className="mb-0">
                                       {new Date(
-                                        profile?.createdAt
+                                        users?.createdAt
                                       ).toLocaleDateString()}
                                     </p>
                                   </div>
@@ -809,7 +835,7 @@ const UserProfile = () => {
                                   </div>
                                   <div className="col-9">
                                     <p className="mb-0">
-                                      {profile?.relationship_status}
+                                      {users?.relationship_status}
                                     </p>
                                   </div>
                                 </Row>

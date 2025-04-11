@@ -8,12 +8,15 @@ import { apiUpadateStatusByUser } from "../../../services/statusActivity";
 const Status = ({ userId }) => {
     const dispatch = useDispatch();
     const { status } = useSelector((state) => state.root.status || {});
+    const { token } = useSelector((state) => state.root.auth || {});
+    console.log('status', status);
     const [selectedStatus, setSelectedStatus] = useState(null);
+    console.log('userId', userId);  
 
     useEffect(() => {
         dispatch(fetchStatus());
-        if (userId?.status_activities?.length > 0) {
-            const initialStatus = userId.status_activities[0].status_name;
+        if (userId?.status_id?.length > 0) {
+            const initialStatus = userId.status.name;
             setSelectedStatus(initialStatus);
         }
     }, [dispatch, userId]);
@@ -31,11 +34,11 @@ const Status = ({ userId }) => {
     const handleClick = async (documentId, statusName) => {
         console.log('Document ID:', documentId);
         const payload = {
-                status_activities: documentId // Add documentId to payload
+                status_id: documentId // Add documentId to payload
         };
         setSelectedStatus(statusName);
         try {
-            await apiUpadateStatusByUser({ userId: userId?.id, payload }); // Call the API to update status with payload
+            await apiUpadateStatusByUser({ userId: userId?.documentId, payload, token: token }); // Call the API to update status with payload
             notification.success({
                 message: 'Success',
                 description: 'Status updated successfully'
@@ -54,13 +57,13 @@ const Status = ({ userId }) => {
                 <div
                     key={index}
                     className="d-flex align-items-center iq-sub-card border-0"
-                    onClick={() => handleClick(item?.id, item?.status_name)}
+                    onClick={() => handleClick(item?.documentId, item?.name)}
                 >
                     <Radio
-                        checked={selectedStatus === item?.status_name}
-                        className={`status-radio ${statusColors[item?.status_name]}`}
+                        checked={selectedStatus === item?.name}
+                        className={`status-radio ${statusColors[item?.name]}`}
                     />
-                    <div className="ms-3">{item?.status_name}</div>
+                    <div className="ms-3">{item?.name}</div>
                 </div>
             ))}
         </>

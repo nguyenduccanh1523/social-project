@@ -50,3 +50,18 @@ export const apiGetPostByUserId = ({ userId }) => new Promise(async (resolve, re
         reject(error);
     }
 });
+
+export const apiGetUserById = ({ userId, token }) => new Promise(async (resolve, reject) => {
+    try {
+        const response = await axiosConfig({
+            method: 'get',
+            url: `/users/${userId}`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        resolve(response);
+    } catch (error) {
+        reject(error);
+    }
+});

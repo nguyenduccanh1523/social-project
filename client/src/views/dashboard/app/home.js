@@ -6,6 +6,7 @@ import CustomToggle from "../../../components/dropdowns";
 //import ShareOffcanvas from '../../components/share-offcanvas'
 import SuggestedPage from "../component/Home/SuggestedPage";
 import SuggestedGroup from "../component/Home/SuggestedGroup";
+import { useQuery } from "@tanstack/react-query";
 
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -27,6 +28,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { getAllPosts } from "../../../services/post";
 import { apiGetPageDetail } from "../../../services/page";
+import { apiGetUserById } from "../../../services/user";
 import CreatePost from "../component/Share/createPost";
 import CardPostHome from "../component/Share/cardPostHome";
 import Loader from "../icons/uiverse/Loading";
@@ -34,7 +36,25 @@ import Loader from "../icons/uiverse/Loading";
 const Index = () => {
   const dispatch = useDispatch();
   const { isLoggedIn } = useSelector((state) => state.root.auth || {});
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
+
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['user', user?.documentId, token],
+    queryFn: () => apiGetUserById({ userId: user?.documentId, token }),
+    enabled: !!user?.documentId && !!token,
+    onSuccess: (data) => {
+      console.log("User data fetched successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching user data:", error);
+      toast.error("Không thể lấy thông tin người dùng");
+    }
+  });
+
+  const users = userData?.data?.data || {};
+  console.log("userData", users);
+
 
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -45,6 +65,7 @@ const Index = () => {
   const [pageInfoMap, setPageInfoMap] = useState({});
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
 
 
 
@@ -218,26 +239,32 @@ const Index = () => {
                     </div>
                   </div>
                   <Card.Body>
-                    <div className="d-flex align-items-center">
-                      <div className="user-img">
-                        <img
-                          src={profile?.profile_picture}
-                          alt="user1"
-                          className="avatar-60 rounded-circle"
-                        />
+                    {userLoading ? (
+                      <div className="text-center">
+                        <Loader />
                       </div>
-                      <form
-                        className="post-text ms-3 w-100 "
-                        onClick={handleShow}
-                      >
-                        <input
-                          type="text"
-                          className="form-control rounded"
-                          placeholder="Write something here..."
-                          style={{ border: "none" }}
-                        />
-                      </form>
-                    </div>
+                    ) : (
+                      <div className="d-flex align-items-center">
+                        <div className="user-img">
+                          <img
+                            src={users?.avatarMedia?.file_path}
+                            alt="user1"
+                            className="avatar-60 rounded-circle"
+                          />
+                        </div>
+                        <form
+                          className="post-text ms-3 w-100 "
+                          onClick={handleShow}
+                        >
+                          <input
+                            type="text"
+                            className="form-control rounded"
+                            placeholder="Write something here..."
+                            style={{ border: "none" }}
+                          />
+                        </form>
+                      </div>
+                    )}
                     <hr></hr>
                     <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap" onClick={handleShow} >
                       <li className="me-3 mb-md-0 mb-2">
@@ -285,7 +312,7 @@ const Index = () => {
                       </li>
                     </ul>
                   </Card.Body>
-                  <CreatePost show={show} handleClose={handleClose} profile={profile} />
+                  <CreatePost show={show} handleClose={handleClose} profile={users} userData={userData?.data?.data} />
                 </Card>
               </Col>
               {isLoading ? (
@@ -294,13 +321,21 @@ const Index = () => {
                 </div>
               ) : (
                 <>
-                  {displayPosts.map((post, index) => (
-                    <CardPostHome
-                      key={`${post?.documentId}-${index}`}
-                      post={post}
-                      pageInfo={pageInfoMap[post.page?.documentId]}
-                    />
-                  ))}
+                  {userLoading ? (
+                    <div className="col-sm-12 text-center">
+                      <p>Đang tải thông tin người dùng...</p>
+                      <Loader />
+                    </div>
+                  ) : (
+                    displayPosts.map((post, index) => (
+                      <CardPostHome
+                        key={`${post?.documentId}-${index}`}
+                        post={post}
+                        pageInfo={pageInfoMap[post.page?.documentId]}
+                        userData={userData?.data?.data}
+                      />
+                    ))
+                  )}
                   
                   {loadingMore && (
                     <div className="col-sm-12 text-center">

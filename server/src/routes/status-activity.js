@@ -5,7 +5,7 @@ import { verifyToken } from '../middlewares/auth'
 const router = express.Router()
 
 // Lấy tất cả tags (có phân trang, lọc)
-router.get('/', verifyToken, statusActivityController.getAllStatusActivities)
+router.get('/', statusActivityController.getAllStatusActivities)
 
 // Lấy tag theo ID
 router.get('/:id', verifyToken, statusActivityController.getStatusActivityById)

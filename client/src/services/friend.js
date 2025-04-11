@@ -1,17 +1,35 @@
 import axiosConfig from "../axiosConfig";
 
-export const apiGetFriendAccepted = ({ documentId }) =>
+export const apiGetFriendAccepted = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/friends?filters[$or][0][user_id][documentId][$eq]=${documentId}&filters[$or][1][friend_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=accepted&populate=*&pagination[pageSize]=100&pagination[page]=1`,
+        url: `/friends?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${documentId}&statusId=vr8ygnd5y17xs4vcq6du3q7c`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
       reject(error);
     }
   });
+
+export const apiGetUserById = ({ userId, token }) => new Promise(async (resolve, reject) => {
+  try {
+    const response = await axiosConfig({
+      method: 'get',
+      url: `/users/${userId}`,
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    resolve(response);
+  } catch (error) {
+    reject(error);
+  }
+});
 
 export const apiUpdateFriendStatus = ({ friendId, status_type }) =>
   new Promise(async (resolve, reject) => {
