@@ -19,8 +19,9 @@ import ReactFsLightbox from "fslightbox-react";
 import Swal from "sweetalert2";
 import "react-toastify/ReactToastify.css";
 import { toast } from "react-toastify";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiGetUserById } from "../../../services/user";
+import { apiUpdateFriendStatus } from "../../../services/friend";
 
 // images
 import img1 from "../../../assets/images/page-img/profile-bg1.jpg";
@@ -73,7 +74,7 @@ import {
 } from "../../../actions/actions";
 import PostProfile from "../component/Profile/postProfile";
 import CreatePost from "../component/Share/createPost";
-import { apiGetFriendAccepted } from "../../../services/friend";
+import { apiGetFriendAccepted, apiGetFriendsByDate, apiGetFriendRequest, apiGetFriendSent } from "../../../services/friend";
 
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default
@@ -86,6 +87,7 @@ const UserProfile = () => {
   const handleShow = () => setShow(true);
   const dispatch = useDispatch();
   const toastId = "confirm-toast";
+  const queryClient = useQueryClient();
 
   const { isLoggedIn } = useSelector((state) => state.root.auth);
   const { profile } = useSelector((state) => state.root.user || {});
@@ -118,15 +120,26 @@ const UserProfile = () => {
     }
   });
 
+  const { data: friendsByDateData, isLoading: friendsByDateLoading } = useQuery({
+    queryKey: ['friendsByDate', user?.documentId, token],
+    queryFn: () => apiGetFriendsByDate({ documentId: user?.documentId, token }),
+    enabled: !!user?.documentId && !!token,
+  });
+
+  const { data: friendRequestData, isLoading: friendRequestLoading } = useQuery({
+    queryKey: ['friendRequest', user?.documentId, token],
+    queryFn: () => apiGetFriendRequest({ documentId: user?.documentId, token }),
+    enabled: !!user?.documentId && !!token,
+  });
+  
 
   const users = userData?.data?.data || {};
-  const userAccepts = userAcceptData || {};
-  console.log("userAccepts", userAccepts);
+  const userAccepts = userAcceptData?.data?.data || {};
+  const friendsByDate = friendsByDateData?.data?.data || {};
+  const friendRequest = friendRequestData?.data?.data || {};
 
   const { socials } = useSelector((state) => state.root.userSocials || {});
   const { acceptedFriends } = useSelector((state) => state.root.friend || {});
-  const { recentFriends } = useSelector((state) => state.root.friend || {});
-  const { pendingFriends } = useSelector((state) => state.root.friend || {});
   const { sentFriends } = useSelector((state) => state.root.friend || {});
 
   const document = profile?.documentId;
@@ -143,10 +156,13 @@ const UserProfile = () => {
 
   const handleConfirm = async (friendId) => {
     try {
-      await dispatch(confirmFriend(friendId)); // Gọi API để cập nhật trạng thái thành "accepted"
+      // Sử dụng API update friend status với trạng thái accept
+      await apiUpdateFriendStatus({ 
+        friendId, 
+        status_action_id: "vr8ygnd5y17xs4vcq6du3q7c", 
+        token 
+      });
 
-      // Tự động xóa bạn bè khỏi danh sách pending trong Redux
-      dispatch(fetchFriendRequest(document));
 
       // Hiển thị thông báo thành công
       toast.success("Friend request accepted successfully!", {
@@ -158,6 +174,8 @@ const UserProfile = () => {
         pauseOnHover: true,
         draggable: true,
       });
+      queryClient.invalidateQueries('friendRequest');
+      queryClient.invalidateQueries('friendAccepted');
     } catch (error) {
       // Hiển thị thông báo lỗi
       toast.error("Failed to accept friend request.", {
@@ -185,16 +203,20 @@ const UserProfile = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          // Gọi API hoặc action để từ chối bạn bè
-          await dispatch(deleteFriend(friendId));
-          await dispatch(fetchFriendRequest(document)); // Làm mới danh sách
-          await dispatch(fetchFriendSent(document)); // Làm mới danh sách
-
+          // Sử dụng API update friend status với trạng thái refuse
+          await apiUpdateFriendStatus({ 
+            friendId, 
+            status_action_id: "aei7fjtmxrzz3hkmorgwy0gm", 
+            token 
+          });
+          
           Swal.fire(
             "Rejected!",
             "Friend request has been rejected.",
             "success"
           );
+          queryClient.invalidateQueries('friendRequest');
+          queryClient.invalidateQueries('friendAccepted');
         } catch (error) {
           Swal.fire("Error!", "Failed to reject the friend request.", "error");
           console.error("Error rejecting friend:", error);
@@ -590,21 +612,21 @@ const UserProfile = () => {
                           </div>
                           <Card.Body>
                             <ul className="profile-img-gallary p-0 m-0 list-unstyled">
-                              {acceptedFriends &&
-                              acceptedFriends?.length > 0 ? (
-                                acceptedFriends.map((friend, index) => {
+                              {userAccepts &&
+                              userAccepts?.length > 0 ? (
+                                userAccepts.map((friend, index) => {
                                   const friendData =
-                                    friend?.user_id?.documentId === document
-                                      ? friend?.friend_id
-                                      : friend?.user_id;
+                                    friend?.user?.documentId === users?.documentId
+                                      ? friend?.friend
+                                      : friend?.user;
 
                                   return (
                                     <li key={friend?.id || index}>
                                       <Link to="#">
                                         <img
                                           loading="lazy"
-                                          src={friendData?.profile_picture}
-                                          alt={friendData?.username}
+                                          src={friendData?.avatarMedia?.file_path}
+                                          alt={friendData?.fullname}
                                           className="img-fluid"
                                           style={{
                                             width: "100px", // Đặt kích thước cố định
@@ -615,7 +637,7 @@ const UserProfile = () => {
                                         />
                                       </Link>
                                       <h6 className="mt-2 text-center">
-                                        {friendData?.username}
+                                        {friendData?.fullname}
                                       </h6>
                                     </li>
                                   );
@@ -950,13 +972,13 @@ const UserProfile = () => {
                             <Tab.Pane eventKey="all-friends">
                               <Card.Body className="p-0">
                                 <Row>
-                                  {acceptedFriends &&
-                                  acceptedFriends?.length > 0 ? (
-                                    acceptedFriends.map((friend, index) => {
+                                  {userAccepts &&
+                                  userAccepts?.length > 0 ? (
+                                    userAccepts.map((friend, index) => {
                                       const friendData =
-                                        friend?.user_id?.documentId === document
-                                          ? friend?.friend_id
-                                          : friend?.user_id;
+                                        friend?.user?.documentId === users?.documentId
+                                          ? friend?.friend
+                                          : friend?.user;
 
                                       return (
                                         <div
@@ -972,7 +994,7 @@ const UserProfile = () => {
                                                   <img
                                                     loading="lazy"
                                                     src={
-                                                      friendData?.profile_picture
+                                                      friendData?.avatarMedia?.file_path
                                                     }
                                                     alt="profile-img"
                                                     width={150}
@@ -985,10 +1007,10 @@ const UserProfile = () => {
                                                 </Link>
                                                 <div className="friend-info ms-3">
                                                   <h5>
-                                                    {friendData?.username}
+                                                    {friendData?.fullname}
                                                   </h5>
                                                   <p className="mb-0">
-                                                    {friend?.friendCount || 0}{" "}
+                                                    {friendData?.friendCount || 0}{" "}
                                                     friends
                                                   </p>
                                                 </div>
@@ -1036,13 +1058,13 @@ const UserProfile = () => {
                             <Tab.Pane eventKey="recently-add">
                               <div className="card-body p-0">
                                 <div className="row">
-                                  {recentFriends &&
-                                  recentFriends?.length > 0 ? (
-                                    recentFriends?.map((friend, index) => {
+                                  {friendsByDate &&
+                                  friendsByDate?.length > 0 ? (
+                                    friendsByDate?.map((friend, index) => {
                                       const friendData =
-                                        friend?.user_id?.documentId === document
-                                          ? friend?.friend_id
-                                          : friend?.user_id;
+                                        friend?.user?.documentId === users?.documentId
+                                          ? friend?.friend
+                                          : friend?.user;
 
                                       return (
                                         <div
@@ -1058,7 +1080,7 @@ const UserProfile = () => {
                                                   <img
                                                     loading="lazy"
                                                     src={
-                                                      friendData?.profile_picture
+                                                      friendData?.avatarMedia?.file_path
                                                     }
                                                     alt="profile-img"
                                                     width={150}
@@ -1071,10 +1093,10 @@ const UserProfile = () => {
                                                 </Link>
                                                 <div className="friend-info ms-3">
                                                   <h5>
-                                                    {friendData?.username}
+                                                    {friendData?.fullname}
                                                   </h5>
                                                   <p className="mb-0">
-                                                    {friend?.friendCount || 0}{" "}
+                                                    {friendData?.friendCount || 0}{" "}
                                                     friends
                                                   </p>
                                                 </div>
@@ -1122,78 +1144,80 @@ const UserProfile = () => {
                             <Tab.Pane eventKey="closefriends">
                               <div className="card-body p-0">
                                 <div className="row">
-                                  {pendingFriends &&
-                                  pendingFriends?.length > 0 ? (
-                                    pendingFriends.map((friend, index) => {
-                                      const friendData =
-                                        friend?.user_id?.documentId === document
-                                          ? friend?.friend_id
-                                          : friend?.user_id;
+                                  {friendRequest &&
+                                  friendRequest?.length > 0 ? (
+                                    friendRequest
+                                      .filter(friend => friend?.friend?.documentId === users?.documentId)
+                                      .map((friend, index) => {
+                                        const friendData =
+                                          friend?.user?.documentId === users?.documentId
+                                            ? friend?.friend
+                                            : friend?.user;
 
-                                      return (
-                                        <div
-                                          className="col-md-6 col-lg-6 mb-3"
-                                          key={`pending-${
-                                            friend?.documentId || index
-                                          }`} // Sử dụng `friend.id` nếu có, nếu không thì dùng `index`
-                                        >
-                                          <div className="iq-friendlist-block">
-                                            <div className="d-flex align-items-center justify-content-between">
-                                              <div className="d-flex align-items-center">
-                                                <Link to="#">
-                                                  <img
-                                                    loading="lazy"
-                                                    src={
-                                                      friendData?.profile_picture
-                                                    }
-                                                    alt="profile-img"
-                                                    width={150}
-                                                    height={150}
-                                                    style={{
-                                                      objectFit: "cover",
-                                                      borderRadius: "8px",
-                                                    }}
-                                                  />
-                                                </Link>
-                                                <div className="friend-info ms-3">
-                                                  <h5>
-                                                    {friendData?.username}
-                                                  </h5>
-                                                  <p className="mb-0">
-                                                    {friend?.friendCount || 0}{" "}
-                                                    friends
-                                                  </p>
+                                        return (
+                                          <div
+                                            className="col-md-6 col-lg-6 mb-3"
+                                            key={`pending-${
+                                              friend?.documentId || index
+                                            }`} // Sử dụng `friend.id` nếu có, nếu không thì dùng `index`
+                                          >
+                                            <div className="iq-friendlist-block">
+                                              <div className="d-flex align-items-center justify-content-between">
+                                                <div className="d-flex align-items-center">
+                                                  <Link to="#">
+                                                    <img
+                                                      loading="lazy"
+                                                      src={
+                                                        friendData?.avatarMedia?.file_path
+                                                      }
+                                                      alt="profile-img"
+                                                      width={150}
+                                                      height={150}
+                                                      style={{
+                                                        objectFit: "cover",
+                                                        borderRadius: "8px",
+                                                      }}
+                                                    />
+                                                  </Link>
+                                                  <div className="friend-info ms-3">
+                                                    <h5>
+                                                      {friendData?.fullname}
+                                                    </h5>
+                                                    <p className="mb-0">
+                                                      {friendData?.friendCount || 0}{" "}
+                                                      friends
+                                                    </p>
+                                                  </div>
                                                 </div>
-                                              </div>
-                                              <div className="d-flex align-items-center">
-                                                <Link
-                                                  to="#"
-                                                  onClick={() =>
-                                                    handleConfirm(
-                                                      friend?.documentId
-                                                    )
-                                                  }
-                                                  className="me-3 btn btn-primary rounded"
-                                                >
-                                                  Confirm
-                                                </Link>
-                                                <Link
-                                                  to="#"
-                                                  onClick={() =>
-                                                    handleReject(
-                                                      friend?.documentId
-                                                    )
-                                                  }
-                                                  className="me-3 btn btn-warning rounded"
-                                                >
-                                                  Rejected
-                                                </Link>
+                                                <div className="d-flex align-items-center">
+                                                  <Link
+                                                    to="#"
+                                                    onClick={() =>
+                                                      handleConfirm(
+                                                        friend?.documentId
+                                                      )
+                                                    }
+                                                    className="me-3 btn btn-primary rounded"
+                                                  >
+                                                    Confirm
+                                                  </Link>
+                                                  <Link
+                                                    to="#"
+                                                    onClick={() =>
+                                                      handleReject(
+                                                        friend?.documentId
+                                                      )
+                                                    }
+                                                    className="me-3 btn btn-warning rounded"
+                                                  >
+                                                    Rejected
+                                                  </Link>
+                                                </div>
                                               </div>
                                             </div>
                                           </div>
-                                        </div>
-                                      );
-                                    })
+                                        );
+                                      })
                                   ) : (
                                     <div className="text-center w-100">
                                       <p>No Friends</p>{" "}
@@ -1205,12 +1229,15 @@ const UserProfile = () => {
                             <Tab.Pane eventKey="friendsent">
                               <div className="card-body p-0">
                                 <div className="row">
-                                  {sentFriends && sentFriends?.length > 0 ? (
-                                    sentFriends.map((friend, index) => {
-                                      const friendData =
-                                        friend?.user_id?.documentId === document
-                                          ? friend?.friend_id
-                                          : friend?.user_id;
+                                  {friendRequest &&
+                                  friendRequest?.length > 0 ? (
+                                    friendRequest
+                                      .filter(friend => friend?.user?.documentId === users?.documentId)
+                                      .map((friend, index) => {
+                                        const friendData =
+                                          friend?.user?.documentId === users?.documentId
+                                            ? friend?.friend
+                                            : friend?.user;
 
                                       return (
                                         <div
@@ -1224,7 +1251,7 @@ const UserProfile = () => {
                                                   <img
                                                     loading="lazy"
                                                     src={
-                                                      friendData?.profile_picture
+                                                      friendData?.avatarMedia?.file_path
                                                     }
                                                     alt="profile-img"
                                                     width={150}
@@ -1237,10 +1264,10 @@ const UserProfile = () => {
                                                 </Link>
                                                 <div className="friend-info ms-3">
                                                   <h5>
-                                                    {friendData?.username}
+                                                    {friendData?.fullname}
                                                   </h5>
                                                   <p className="mb-0">
-                                                    {friend?.friendCount || 0}{" "}
+                                                    {friendData?.friendCount || 0}{" "}
                                                     friends
                                                   </p>
                                                 </div>

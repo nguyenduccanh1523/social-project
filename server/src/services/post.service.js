@@ -180,7 +180,6 @@ export const getAllPosts = async ({
         // Lọc kết quả để chỉ hiển thị bài viết mà người dùng có quyền xem
         let filteredAllPosts = allPostsQuery;
         if (userId) {
-            console.log(`userId: ${userId}`);
             filteredAllPosts = allPostsQuery.filter(post => {
                 // Nếu bài viết không thuộc nhóm nào, cho phép xem
                 if (!post.group_id) return true;

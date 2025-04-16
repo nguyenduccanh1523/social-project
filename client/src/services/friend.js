@@ -31,17 +31,18 @@ export const apiGetUserById = ({ userId, token }) => new Promise(async (resolve,
   }
 });
 
-export const apiUpdateFriendStatus = ({ friendId, status_type }) =>
+export const apiUpdateFriendStatus = ({ friendId, status_action_id, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "put",
         url: `/friends/${friendId}?populate=*`, // Sử dụng `friendId` chính xác trong URL
         data: {
-          data: {
-            status_type,
-          },
+            status_action_id,
         },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -49,17 +50,16 @@ export const apiUpdateFriendStatus = ({ friendId, status_type }) =>
     }
   });
 
-export const apiGetFriendsByDate = (documentId, daysAgo = 7) =>
+export const apiGetFriendsByDate = ({documentId, token}) =>
   new Promise(async (resolve, reject) => {
     try {
-      const today = new Date();
-      const pastDate = new Date(
-        today.setDate(today.getDate() - daysAgo)
-      ).toISOString(); // Tính ngày cách đây `daysAgo`
-
-      const response = await axiosConfig.get(
-        `/friends?filters[$or][0][user_id][documentId][$eq]=${documentId}&filters[$or][1][friend_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=accepted&filters[updatedAt][$gte]=${pastDate}&populate=*`
-      );
+      const response = await axiosConfig({
+        method: "get",
+        url: `/friends?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${documentId}&statusId=vr8ygnd5y17xs4vcq6du3q7c&lastSevenDays=true`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
 
       resolve(response);
     } catch (error) {
@@ -67,12 +67,15 @@ export const apiGetFriendsByDate = (documentId, daysAgo = 7) =>
     }
   });
 
-export const apiGetFriendRequest = ({ documentId }) =>
+export const apiGetFriendRequest = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/friends?filters[$or][1][friend_id][documentId][$eq]=${documentId}&filters[$and][0][status_type][$eq]=pending&populate=*&pagination[pageSize]=100&pagination[page]=1`,
+        url: `/friends?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${documentId}&statusId=w1t6ex59sh5auezhau5e2ovu`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {

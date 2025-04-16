@@ -2,7 +2,7 @@ import db from '../models';
 import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize';
 
-// Lấy tất cả post-tags có phân trang và lọc
+// Lấy tất cả bạn bè có phân trang và lọc
 export const getAllFriend = async ({
     page = 1,
     pageSize = 10,
@@ -106,11 +106,77 @@ export const getAllFriend = async ({
                 userMap[user.documentId] = user;
             });
             
+            // Lấy avatar_id từ tất cả users
+            const avatarIds = users
+                .map(user => user.avatar_id)
+                .filter(id => id !== null);
+            
+            // Truy vấn thông tin media cho avatar
+            const avatarMedia = await db.Media.findAll({
+                where: {
+                    documentId: { [Op.in]: avatarIds }
+                },
+                attributes: ['documentId', 'file_path']
+            });
+            
+            // Tạo map cho việc tra cứu nhanh thông tin media
+            const mediaMap = {};
+            avatarMedia.forEach(media => {
+                mediaMap[media.documentId] = media;
+            });
+            
+            // Lấy số lượng bạn bè cho mỗi user
+            const friendCountPromises = [...userIds, ...friendIds].map(async (id) => {
+                const count = await db.Friend.count({
+                    where: {
+                        [Op.or]: [
+                            { user_id: id },
+                            { friend_id: id }
+                        ],
+                        status_action_id: statusId || 'vr8ygnd5y17xs4vcq6du3q7c'
+                    }
+                });
+                return { id, count };
+            });
+            
+            const friendCounts = await Promise.all(friendCountPromises);
+            const friendCountMap = {};
+            friendCounts.forEach(({ id, count }) => {
+                friendCountMap[id] = count;
+            });
+            
             // Thêm thông tin user và friend vào mỗi kết quả
             const enrichedData = rows.map(friend => {
                 const plainFriend = friend.get({ plain: true });
-                plainFriend.user = userMap[friend.user_id];
-                plainFriend.friend = userMap[friend.friend_id];
+                const user = userMap[friend.user_id];
+                const friendUser = userMap[friend.friend_id];
+                
+                if (user) {
+                    const userData = user.toJSON();
+                    // Thêm thông tin avatar media nếu có
+                    if (userData.avatar_id && mediaMap[userData.avatar_id]) {
+                        userData.avatarMedia = mediaMap[userData.avatar_id];
+                    }
+                    
+                    plainFriend.user = {
+                        ...userData,
+                        friendCount: friendCountMap[friend.user_id] || 0
+                    };
+                }
+                
+                if (friendUser) {
+                    const friendData = friendUser.toJSON();
+                    // Thêm thông tin avatar media nếu có
+                    if (friendData.avatar_id && mediaMap[friendData.avatar_id]) {
+                        friendData.avatarMedia = mediaMap[friendData.avatar_id];
+                    }
+                    
+                    plainFriend.friend = {
+                        ...friendData,
+                        friendCount: friendCountMap[friend.friend_id] || 0
+                    };
+                }
+                
                 return plainFriend;
             });
 
@@ -337,5 +403,100 @@ export const getFriendsUpdatedBefore7Days = async ({
         };
     } catch (error) {
         throw new Error(`Lỗi khi lấy danh sách bạn bè cập nhật cách đây 7 ngày: ${error.message}`);
+    }
+};
+
+// Lấy danh sách bạn bè và đếm số lượng bạn bè
+export const getFriendsWithCount = async ({
+    page = 1,
+    pageSize = 10,
+    filters = {},
+    sortField = 'createdAt',
+    sortOrder = 'DESC',
+    populate = false,
+    userId = null,
+    statusId = null
+}) => {
+    try {
+        const offset = (page - 1) * pageSize;
+        const whereConditions = {};
+
+        // Áp dụng các bộ lọc nếu có
+        if (filters.status) {
+            whereConditions.status = filters.status;
+        }
+
+        if (filters.keyword) {
+            whereConditions[Op.or] = [
+                { name: { [Op.like]: `%${filters.keyword}%` } },
+                { description: { [Op.like]: `%${filters.keyword}%` } }
+            ];
+        }
+
+        // Lọc theo userId nếu được cung cấp
+        if (userId) {
+            whereConditions[Op.or] = [
+                { user_id: userId },
+                { friend_id: userId }
+            ];
+        }
+
+        // Lọc theo statusId nếu được cung cấp
+        if (statusId) {
+            whereConditions.status_action_id = statusId;
+        }
+
+        // Chuẩn bị các mối quan hệ cần include
+        const includes = [];
+
+        if (populate) {
+            includes.push(
+                {
+                    model: db.StatusAction,
+                    as: 'status',
+                    attributes: ['documentId', 'name', 'description']
+                }
+            );
+        }
+
+        // Thực hiện truy vấn để lấy danh sách bạn bè
+        const { count, rows } = await db.Friend.findAndCountAll({
+            where: whereConditions,
+            include: includes,
+            order: [[sortField, sortOrder]],
+            offset,
+            limit: pageSize,
+            distinct: true
+        });
+
+        // Đếm tổng số bạn bè của người dùng
+        let totalFriends = 0;
+        if (userId) {
+            const friendCount = await db.Friend.count({
+                where: {
+                    [Op.or]: [
+                        { user_id: userId },
+                        { friend_id: userId }
+                    ],
+                    status_action_id: 'vr8ygnd5y17xs4vcq6du3q7c' // Giả sử status_action_id = 1 là trạng thái đã kết bạn
+                }
+            });
+            totalFriends = friendCount;
+        }
+
+        return {
+            data: rows,
+            meta: {
+                pagination: {
+                    page: parseInt(page),
+                    pageSize: parseInt(pageSize),
+                    pageCount: Math.ceil(count / pageSize),
+                    total: count
+                },
+                totalFriends: totalFriends
+            }
+        };
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy danh sách bạn bè và đếm số lượng: ${error.message}`);
     }
 }; 
