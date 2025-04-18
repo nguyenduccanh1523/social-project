@@ -20,6 +20,12 @@ import userNotificationRouter from './user-noti';
 import pageRouter from './page';
 import storyRouter from './story';
 import userSocialRouter from './user-social';
+import statusActionRouter from './status-action';
+import noticeTypeRouter from './notice-type';
+import groupRouter from './group/group';
+import groupMemberRouter from './group/group-member';
+import groupInvitationRouter from './group/group-invitation';
+import groupRequestRouter from './group/group-request';
 
 const initRoutes = (app) => {
     app.use('/api/v1/auth', authRouter);
@@ -44,6 +50,12 @@ const initRoutes = (app) => {
     app.use('/api/v1/pages', pageRouter);
     app.use('/api/v1/stories', storyRouter);
     app.use('/api/v1/user-socials', userSocialRouter);
+    app.use('/api/v1/status-actions', statusActionRouter);
+    app.use('/api/v1/notice-types', noticeTypeRouter);
+    app.use('/api/v1/groups', groupRouter);
+    app.use('/api/v1/group-members', groupMemberRouter);
+    app.use('/api/v1/group-invitations', groupInvitationRouter);
+    app.use('/api/v1/group-requests', groupRequestRouter);
 
     return app.use('/', (req, res) => {
         res.send('server on...')

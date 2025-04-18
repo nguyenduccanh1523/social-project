@@ -17,33 +17,34 @@ import img7 from "../../../../assets/images/page-img/profile-bg7.jpg";
 import { apiGetGroupMembers } from "../../../../services/groupServices/groupMembers";
 
 const MyGroups = () => {
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { token } = useSelector((state) => state.root.auth || {});
+  const { user } = useSelector((state) => state.root.auth || {});
   const [currentPage, setCurrentPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pageSize = 6;
 
   const fetchGroups = async () => {
-    if (!profile?.documentId) return [];
+    if (!user?.documentId) return [];
 
     const [myGroupsRes, adminGroupsRes] = await Promise.all([
-      apiGetMyGroup({ userId: profile.documentId }),
-      apiMyAdminGroup({ userId: profile.documentId })
+      apiGetMyGroup({ userId: user.documentId, token }),
+      apiMyAdminGroup({ userId: user.documentId, token })
     ]);
 
     const myGroups = myGroupsRes?.data?.data || [];
     const adminGroups = adminGroupsRes?.data?.data || [];
-    console.log("My Groups:", myGroupsRes); // Log ra chi tiết nhóm
-    console.log("Admin Groups:", adminGroupsRes);
+    // console.log("My Groups:", myGroups);
+    // console.log("Admin Groups:", adminGroups);
 
     // Dùng Map để tránh trùng lặp
     const groupMap = new Map();
 
     // Thêm từ myGroups trước
     for (const group of myGroups) {
-      const groupId = group?.group_id?.documentId;
+      const groupId = group?.group?.documentId;
       if (!groupId) continue;
       groupMap.set(groupId, {
-        ...group,
+        group: group?.group,
         admin: false
       });
     }
@@ -60,9 +61,9 @@ const MyGroups = () => {
           admin: true // Ưu tiên cập nhật admin nếu trùng
         });
       } else {
-        // Nếu chưa có, tạo mới với admin = true
+        // Nếu chưa có, tạo mới với admin = true và chuẩn hóa cấu trúc
         groupMap.set(groupId, {
-          group_id: adminGroup,
+          group: adminGroup, // Để đảm bảo nhất quán, đặt adminGroup vào thuộc tính group
           admin: true
         });
       }
@@ -75,12 +76,15 @@ const MyGroups = () => {
     const groupMembers = {};
 
     for (const group of groups) {
-      const groupId = group?.group_id?.documentId;
+      const groupId = group?.group?.documentId;
+      
+
+      if (!groupId) continue; // Bỏ qua nếu không có groupId
 
       const [requestResponse, detailResponse, memberResponse] = await Promise.all([
-        apiGetGroupRequest({ groupId }),
-        apiFindOneGroup({ groupId }),
-        apiGetGroupMembers({ groupId })
+        apiGetGroupRequest({ groupId, token }),
+        apiFindOneGroup({ groupId, token }),
+        apiGetGroupMembers({ groupId, token })
       ]);
 
       groupRequests[groupId] = requestResponse?.data?.data?.length || 0;
@@ -93,9 +97,9 @@ const MyGroups = () => {
 
 
   const { data, isLoading } = useQuery({
-    queryKey: ["myGroups", profile?.documentId],
+    queryKey: ["myGroups", user?.documentId],
     queryFn: fetchGroups,
-    enabled: !!profile?.documentId,
+    enabled: !!user?.documentId,
   });
 
   if (isLoading) return <p>Loading...</p>;
@@ -115,15 +119,19 @@ const MyGroups = () => {
           <div className="d-grid gap-3 d-grid-template-1fr-19">
             {paginatedGroups.length > 0 ? (
               paginatedGroups.map((group) => {
-                //console.log("Group:", group); // Log ra chi tiết nhóm
-                const groupId = group?.group_id?.documentId;
-                const groupName = group?.group_id?.group_name;
-                const groupDescription = group?.group_id?.description;
+                // Lấy groupId một cách nhất quán từ cấu trúc đã chuẩn hóa
+                const groupId = group?.group?.documentId;
+                if (!groupId) return null; // Bỏ qua nếu không có groupId
+                
+                // Lấy thông tin từ group object
+                const groupData = group?.group || {};
+                const groupName = groupData?.group_name;
+                const groupDescription = groupData?.description;
+                
+                // Lấy thông tin chi tiết từ API
                 const groupDetailsData = groupDetails[groupId] || {};
-                const groupImage = group?.group_id?.image_group;
-                const groupType = group?.group_id?.type?.name;
+                console.log("Group Details:", groupDetailsData);
                 const groupMembersList = groupMembers[groupId] || [];
-                const groupPosts = group?.group_id?.posts || [];
 
                 return (
                   <Card className="mb-0" key={groupId} style={{ position: "relative" }}>
@@ -147,7 +155,7 @@ const MyGroups = () => {
                     )}
                     <div className="top-bg-image">
                       <img
-                        src={groupDetailsData?.media?.file_path}
+                        src={groupDetailsData?.image?.file_path}
                         className="img-fluid w-100"
                         alt="group-bg"
                         style={{ height: "350px" }}
@@ -157,10 +165,10 @@ const MyGroups = () => {
                       <div className="group-info pt-3 pb-3">
                         <h4>
                           <Link to={`/group-detail/${groupId}`} state={{ documentId: groupId }}>
-                            {groupName}
+                            {groupName || groupDetailsData?.group_name}
                           </Link>
                         </h4>
-                        <p>{groupDescription}</p>
+                        <p>{groupDescription || groupDetailsData?.description}</p>
                         <div className="d-flex align-items-center justify-content-center gap-2">
                           <span className="material-symbols-outlined">
                             {groupDetailsData?.type?.name === "private" ? "lock" : "public"}

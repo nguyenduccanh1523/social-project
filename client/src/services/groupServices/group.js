@@ -1,66 +1,66 @@
 import axiosConfig from "../../axiosConfig";
 
-export const apiGetGroup = (payload) =>
+export const apiGetGroup = ({ token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: "/groups?populate=*",
-        data: payload,
-      });
-      resolve(response);
-    } catch (error) {
-      reject(error);
-    }
-  });
-
-export const apiFindOneGroup = ({ groupId }) =>
-  new Promise(async (resolve, reject) => {
-    try {
-      const response = await axiosConfig({
-        method: "get",
-        url: `/groups/${groupId}?populate=*`, // Sử dụng `friendId` chính xác trong URL
-      });
-      resolve(response);
-    } catch (error) {
-      reject(error);
-    }
-  });
-
-export const apiMyAdminGroup = ({ userId }) =>
-  new Promise(async (resolve, reject) => {
-    try {
-      const response = await axiosConfig({
-        method: "get",
-        url: `/groups?filters[$and][0][admin_id][documentId][$eq]=${userId}&populate=*`, // Sử dụng `friendId` chính xác trong URL
-      });
-      resolve(response);
-    } catch (error) {
-      reject(error);
-    }
-  });
-
-
-export const apiGetMyGroup = ({ userId }) =>
-  new Promise(async (resolve, reject) => {
-    try {
-      // Kiểm tra groupId trước khi dùng trong URL
-      if (typeof userId !== "string") {
-        //console.error("Invalid groupId:", groupId);
-        return reject(new Error("groupId should be a string"));
+        url: "/groups?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC",
+        headers: {
+          Authorization: `Bearer ${token}`
       }
-
-      //console.log("Fetching group members for groupId:", groupId);
-
-      // Gọi API với URL đã được truyền đúng groupId
-      const response = await axiosConfig({
-        method: "get",
-        url: `/group-members?filters[$and][0][users_id][documentId][$eq]=${userId}&populate=*`,
       });
-      //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);
     } catch (error) {
-      console.error("Error fetching group members:", error.response || error);
+      reject(error);
+    }
+  });
+
+export const apiFindOneGroup = ({ groupId, token }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/groups/${groupId}`, // Sử dụng `friendId` chính xác trong URL
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const apiMyAdminGroup = ({ userId, token }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/groups?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&adminId=${userId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+
+export const apiGetMyGroup = ({ userId, token }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/group-members?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
       reject(error);
     }
   });

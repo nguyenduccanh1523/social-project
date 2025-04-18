@@ -1,11 +1,14 @@
 import axiosConfig from "../../axiosConfig";
 
-export const apiGetGroupRequest = ({ groupId }) =>
+export const apiGetGroupRequest = ({ groupId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/group-resquests?filters[$and][0][group_id][documentId][$eq]=${groupId}&populate=*&filters[$and][1][status_action][documentId][$eq]=w1t6ex59sh5auezhau5e2ovu&sort=createdAt:DESC`,
+                url: `/group-requests?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&groupId=${groupId}&statusId=w1t6ex59sh5auezhau5e2ovu`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
@@ -15,12 +18,15 @@ export const apiGetGroupRequest = ({ groupId }) =>
         }
     });
 
-export const apiGetGroupRequestUser = ({ groupId, userId }) =>{
+export const apiGetGroupRequestUser = ({ groupId, userId, token }) =>{
     return new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/group-resquests?filters[$and][0][group_id][documentId][$eq]=${groupId}&filters[$and][1][user_request][documentId][$eq]=${userId}&filters[$and][2][status_action][documentId][$eq]=w1t6ex59sh5auezhau5e2ovu&populate=*&sort=createdAt:DESC`,
+                url: `/group-requests?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&groupId=${groupId}&userId=${userId}&statusId=w1t6ex59sh5auezhau5e2ovu`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
@@ -32,12 +38,15 @@ export const apiGetGroupRequestUser = ({ groupId, userId }) =>{
 }
 
 
-export const apiCheckGroupRequestUser = ({ groupId, userId }) =>{
+export const apiCheckGroupRequestUser = ({ groupId, userId, token }) =>{
     return new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/group-resquests?filters[$and][0][group_id][documentId][$eq]=${groupId}&filters[$and][1][user_request][documentId][$eq]=${userId}&populate=*&sort=createdAt:DESC`,
+                url: `/group-requests?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&groupId=${groupId}&userId=${userId}`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
@@ -50,13 +59,16 @@ export const apiCheckGroupRequestUser = ({ groupId, userId }) =>{
 
 
 
-export const apiCreateGroupRequest = (payload) =>
+export const apiCreateGroupRequest = (payload, token) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "post",
-                url: "/group-resquests",
+                url: "/group-requests",
                 data: payload,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
@@ -64,13 +76,16 @@ export const apiCreateGroupRequest = (payload) =>
         }
     });
 
-export const apiUpdateGroupRequest = ({ documentId, payload }) =>
+export const apiUpdateGroupRequest = ({ documentId, payload, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "put",
-                url: `/group-resquests/${documentId}`,
+                url: `/group-requests/${documentId}/respond`,
                 data: payload,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {

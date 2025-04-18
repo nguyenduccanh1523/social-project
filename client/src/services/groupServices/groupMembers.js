@@ -1,20 +1,14 @@
 import axiosConfig from "../../axiosConfig";
 
-export const apiGetGroupMembers = ({ groupId }) =>
+export const apiGetGroupMembers = ({ groupId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
-            // Kiểm tra groupId trước khi dùng trong URL
-            if (typeof groupId !== "string") {
-                //console.error("Invalid groupId:", groupId);
-                return reject(new Error("groupId should be a string"));
-            }
-
-            //console.log("Fetching group members for groupId:", groupId);
-
-            // Gọi API với URL đã được truyền đúng groupId
             const response = await axiosConfig({
                 method: "get",
-                url: `/group-members?filters[$and][0][group_id][documentId][$eq]=${groupId}&populate=*`,
+                url: `/group-members?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&groupId=${groupId}`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);

@@ -7,85 +7,99 @@ import { notification } from "antd";
 
 // images
 import user05 from "../../../assets/images/user/05.jpg";
-import img1 from "../../../assets/images/page-img/profile-bg1.jpg";
-import img2 from "../../../assets/images/page-img/profile-bg2.jpg";
-import img3 from "../../../assets/images/page-img/profile-bg3.jpg";
-import img4 from "../../../assets/images/page-img/profile-bg4.jpg";
-import img5 from "../../../assets/images/page-img/profile-bg5.jpg";
-import img6 from "../../../assets/images/page-img/profile-bg6.jpg";
 import img7 from "../../../assets/images/page-img/profile-bg7.jpg";
-import img9 from "../../../assets/images/page-img/profile-bg9.jpg";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { fetchGroup, fetchGroupMembers } from "../../../actions/actions";
 import { apiGetGroupRequest } from "../../../services/groupServices/groupRequest";
-import { apiGetGroupMembersUser } from "../../../services/groupServices/groupMembers";
-import { useQuery } from "@tanstack/react-query";
+import { apiGetGroupMembers } from "../../../services/groupServices/groupMembers";
+import { apiGetGroup } from "../../../services/groupServices/group";
 import { apiGetGroupRequestUser, apiCreateGroupRequest, apiCheckGroupRequestUser, apiUpdateGroupRequest } from "../../../services/groupServices/groupRequest";
-import { useQueryClient } from "@tanstack/react-query";
+
 
 const Groups = () => {
-  const dispatch = useDispatch();
   const queryClient = useQueryClient();
-  const { profile } = useSelector((state) => state.root.user || {});
-  const { groups } = useSelector((state) => state.root.group || {});
-  const { members } = useSelector((state) => state.root.group || {});
-  const images = [img1, img2, img3, img4, img5, img6, img7, img9];
-  //console.log("mem: ", members);
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
 
-  const document = profile?.documentId;
+  const document = user?.documentId;
   const [groupRequests, setGroupRequests] = useState({});
 
-  useEffect(() => {
-    dispatch(fetchGroup());
-  }, [dispatch]);
+  // Fetch all groups
+  const { data: groupsData, isLoading: groupsLoading } = useQuery({
+    queryKey: ['groups', token],
+    queryFn: () => apiGetGroup({ token }),
+    enabled: !!token,
+    onSuccess: (data) => {
+      console.log("Groups data fetched successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching groups data:", error);
+    }
+  });
 
-  useEffect(() => {
-    groups?.data?.forEach((group) => {
-      dispatch(fetchGroupMembers(group.documentId)); // Truyền đúng giá trị groupId
-    });
-  }, [groups, dispatch]);
-  //console.log("groups: ", groups);
+  const groups = groupsData?.data?.data || [];
+
+  // Fetch group members for each group using useQuery
+  const { data: groupMembersMap = {}, isLoading: membersLoading } = useQuery({
+    queryKey: ['groupMembers', groups, token],
+    queryFn: async () => {
+      const membersMap = {};
+      if (groups.length > 0) {
+        for (const group of groups) {
+          const groupId = group.documentId;
+          try {
+            const response = await apiGetGroupMembers({ groupId, token });
+            membersMap[groupId] = response.data?.data || [];
+          } catch (error) {
+            console.error(`Error fetching members for group ${groupId}:`, error);
+            membersMap[groupId] = [];
+          }
+        }
+      }
+      return membersMap;
+    },
+    enabled: groups.length > 0 && !!token,
+  });
 
   useEffect(() => {
     const fetchGroupRequests = async () => {
       const requests = {};
-      for (const group of groups?.data || []) {
+      for (const group of groups || []) {
         const groupId = group?.documentId;
-        //console.log("groupId", groupId);
-        const response = await apiGetGroupRequest({ groupId: groupId });
-        //console.log("response", response);
+        const response = await apiGetGroupRequest({ groupId: groupId, token: token });
         requests[groupId] = response.data?.data.length;
       }
       setGroupRequests(requests);
     };
 
-    if (groups?.data?.length > 0) {
+    if (groups?.length > 0) {
       fetchGroupRequests();
     }
   }, [groups]);
 
   const fetchMembershipStatus = async () => {
     const status = {};
-    for (const group of groups?.data || []) {
+    for (const group of groups || []) {
       const groupId = group.documentId;
-      const isMember = await checkGroupMembership(groupId);
-      const requestSent = await checkGroupRequestSent(groupId);
+      const isMember = await checkGroupMembership(groupId, token);
+      const requestSent = await checkGroupRequestSent(groupId, token);
       status[groupId] = { isMember, requestSent };
     }
     return status;
   };
 
   const { data: membershipStatus = {}, refetch: refetchMembershipStatus } = useQuery({
-    queryKey: ["membershipStatus", groups],
+    queryKey: ["membershipStatus", groups, token],
     queryFn: fetchMembershipStatus,
-    enabled: !!groups?.data?.length,
+    enabled: !!groups?.length && !!token,
   });
 
-  const checkGroupMembership = async (groupId) => {
+  const checkGroupMembership = async (groupId, token) => {
     try {
-      const response = await apiGetGroupMembersUser({ groupId, userId: profile?.documentId });
-      return response.data?.data.length > 0;
+      const response = await apiGetGroupMembers({ groupId, token });
+      const members = response.data?.data || [];
+      return members.some(member => member.user_id === user?.documentId);
     } catch (error) {
       console.error("Error checking group membership:", error);
       return false;
@@ -94,7 +108,7 @@ const Groups = () => {
 
   const checkGroupRequestSent = async (groupId) => {
     try {
-      const response = await apiGetGroupRequestUser({ groupId, userId: profile?.documentId });
+      const response = await apiGetGroupRequestUser({ groupId, userId: user?.documentId });
       return response.data?.data.length > 0;
     } catch (error) {
       console.error("Error checking group request:", error);
@@ -104,24 +118,20 @@ const Groups = () => {
 
   const handleSendRequest = async (groupId) => {
     try {
-      const response = await apiCheckGroupRequestUser({ groupId, userId: profile?.documentId });
+      const response = await apiCheckGroupRequestUser({ groupId, userId: user?.documentId, token: token });
       if (response.data?.data.length > 0) {
         const requestId = response.data.data[0].documentId;
         const payload = {
-          data: {
-            status_action: "w1t6ex59sh5auezhau5e2ovu",
-          },
+          statusActionId: "w1t6ex59sh5auezhau5e2ovu",
         };
-        await apiUpdateGroupRequest({ documentId: requestId, payload });
+        await apiUpdateGroupRequest({ documentId: requestId, payload, token });
       } else {
         const payload = {
-          data: {
-            group_id: groupId,
-            user_request: profile?.documentId,
-            status_action: "w1t6ex59sh5auezhau5e2ovu",
-          },
+          groupId: groupId,
+          requestBy: user?.documentId,
+          statusActionId: "w1t6ex59sh5auezhau5e2ovu",
         };
-        await apiCreateGroupRequest(payload);
+        await apiCreateGroupRequest(payload, token);
       }
       queryClient.invalidateQueries('membershipStatus'); // Refetch membership status to update the UI
       notification.success({
@@ -139,15 +149,13 @@ const Groups = () => {
 
   const handleCancelRequest = async (groupId) => {
     try {
-      const response = await apiCheckGroupRequestUser({ groupId, userId: profile?.documentId });
+      const response = await apiCheckGroupRequestUser({ groupId, userId: user?.documentId, token: token });
       if (response.data?.data.length > 0) {
         const requestId = response.data.data[0].documentId;
         const payload = {
-          data: {
-            status_action: "aei7fjtmxrzz3hkmorgwy0gm",
-          },
+          statusActionId: "aei7fjtmxrzz3hkmorgwy0gm",
         };
-        await apiUpdateGroupRequest({ documentId: requestId, payload });
+        await apiUpdateGroupRequest({ documentId: requestId, payload, token });
         queryClient.invalidateQueries('membershipStatus'); // Refetch membership status to update the UI
         notification.success({
           message: "Success",
@@ -169,27 +177,23 @@ const Groups = () => {
       <div id="content-page" className="content-page mb-3">
         <Container>
           <div className="d-grid gap-3 d-grid-template-1fr-19">
-            {groups?.data?.length > 0 ? (
-              groups.data.map((group, index) => {
-                // Lấy thành viên của nhóm hiện tại từ Redux
-                const groupMembers = members[group.documentId]?.data || [];
-                // Đảm bảo groupMembers là mảng trước khi gọi .slice()
-                const validGroupMembers = Array.isArray(groupMembers)
-                  ? groupMembers
-                  : [];
-
+            {groups?.length > 0 ? (
+              groups.map((group, index) => {
+                // Lấy thành viên của nhóm hiện tại từ useQuery
+                const groupMembers = groupMembersMap[group.documentId] || [];
+                const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
                 const isJoined = validGroupMembers.some(
-                  (member) => member?.users_id?.documentId === document
+                  (member) => member?.user_id === document
                 );
                 const groupId = group.documentId;
                 const groupDetailsAvailable = group;
                 const { isMember, requestSent } = membershipStatus[groupId] || {};
 
                 return (
-                  <Card className="mb-0" key={group.id}>
+                  <Card className="mb-0" key={group.id || index}>
                     <div className="top-bg-image">
                       <img
-                        src={group?.media?.file_path}
+                        src={group?.image?.file_path}
                         className="img-fluid w-100"
                         alt="group-bg"
                         style={{ height: "300px" }}
@@ -214,8 +218,7 @@ const Groups = () => {
                           </li>
                           <li className="pe-3 ps-3">
                             <p className="mb-0">Member</p>
-                            <h6>{validGroupMembers.length || 0}</h6>{" "}
-                            {/* Hiển thị số lượng thành viên */}
+                            <h6>{validGroupMembers.length || 0}</h6>
                           </li>
                           <li className="pe-3 ps-3">
                             <p className="mb-0">Request</p>
@@ -231,8 +234,8 @@ const Groups = () => {
                               <Link to="#" className="iq-media" key={index}>
                                 <img
                                   className="img-fluid avatar-40 rounded-circle"
-                                  src={member?.users_id?.profile_picture || user05}
-                                  alt="profile-img"
+                                  src={member?.user?.avatarMedia?.file_path || user05}
+                                  alt="user-img"
                                 />
                               </Link>
                             ))}
@@ -254,14 +257,14 @@ const Groups = () => {
                           </Link>
                         ) : requestSent ? (
                           <div className="d-flex gap-2 align-items-center">
-                            <Link className="flex-fill">
+                            {/* <Link className="flex-fill">
                               <button
                                 type="submit"
                                 className="btn btn-success d-block w-100"
                               >
                                 Sent
                               </button>
-                            </Link>
+                            </Link> */}
                             <button
                               type="submit"
                               className="btn btn-danger d-block flex-fill"

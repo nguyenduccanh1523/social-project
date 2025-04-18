@@ -29,11 +29,11 @@ instance.interceptors.request.use(
     }
     
     // Log thông tin request để debug
-    console.log('Request:', {
-      url: config.url,
-      method: config.method,
-      data: config.data
-    });
+    // console.log('Request:', {
+    //   url: config.url,
+    //   method: config.method,
+    //   data: config.data
+    // });
     
     return config;
   },
@@ -46,7 +46,7 @@ instance.interceptors.request.use(
 // Interceptor cho responses
 instance.interceptors.response.use(
   (response) => {
-    console.log('Response OK:', response.data);
+    // console.log('Response OK:', response.data);
     return response;
   },
   async (error) => {
