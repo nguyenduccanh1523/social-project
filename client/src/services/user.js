@@ -26,14 +26,16 @@ export const apiGetUserSocial = ({ documentId }) => new Promise(async (resolve, 
     }
 });
 
-export const apiGetFriendData = ({ userId }) => new Promise(async (resolve, reject) => {
+export const apiGetFriendData = ({ userId, token }) => new Promise(async (resolve, reject) => {
     try {
         const response = await axiosConfig({
             method: 'get',
-            url: `/users?filters[$and][0][documentId][$eq]=${userId}&populate=*`,
+            url: `/users/${userId}`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         });
-        //console.log('response', response);
-        resolve(response);
+        resolve(response)
     } catch (error) {
         reject(error);
     }

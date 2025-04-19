@@ -24,7 +24,8 @@ export const getAllGroupInvitations = async (req, res) => {
         const populate = req.query.populate === '*' ? true : false;
 
         // Lấy các tham số lọc
-        const userId = req.query.userId || null;
+        const invitedBy = req.query.invitedBy || null;
+        const invitedTo = req.query.invitedTo || null;
         const groupId = req.query.groupId || null;
         const statusId = req.query.statusId || null;
 
@@ -35,7 +36,8 @@ export const getAllGroupInvitations = async (req, res) => {
             sortField,
             sortOrder,
             populate,
-            userId,
+            invitedBy,
+            invitedTo,
             groupId,
             statusId
         });
@@ -70,7 +72,7 @@ export const getGroupInvitationById = async (req, res) => {
 
 export const createGroupInvitation = async (req, res) => {
     try {
-        const { groupId, invitedTo, invitedBy } = req.body;
+        const { groupId, invitedTo, invitedBy, statusActionId } = req.body;
         
         // Kiểm tra xem groupId và invitedTo có được cung cấp không
         if (!groupId || !invitedTo || !invitedBy) {
@@ -87,6 +89,7 @@ export const createGroupInvitation = async (req, res) => {
             group_id: groupId,
             invited_by: invitedBy,
             invited_to: invitedTo,
+            status_action_id: statusActionId,
             created_at: new Date()
         });
         

@@ -85,12 +85,26 @@ export const getGroupMemberById = async (documentId) => {
                 {
                     model: db.User,
                     as: 'user',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path', 'file_type']
+                        }
+                    ]
                 },
                 {
                     model: db.Group,
                     as: 'group',
-                    attributes: ['documentId', 'group_name', 'description', 'admin_id']
+                    attributes: ['documentId', 'group_name', 'description', 'admin_id'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'image',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
                 }
             ]
         });
@@ -168,7 +182,14 @@ export const getGroupMembersByGroupId = async (groupId) => {
                 {
                     model: db.User,
                     as: 'user',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path', 'file_type']
+                        }
+                    ]
                 }
             ]
         });
@@ -192,7 +213,14 @@ export const getGroupMembersByUserId = async (userId) => {
                         {
                             model: db.User,
                             as: 'admin',
-                            attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                            attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                            include: [
+                                {
+                                    model: db.Media,
+                                    as: 'avatarMedia',
+                                    attributes: ['documentId', 'file_path', 'file_type']
+                                }
+                            ]
                         },
                         {
                             model: db.Media,

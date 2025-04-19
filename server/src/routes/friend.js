@@ -13,6 +13,9 @@ router.get('/with-count', verifyToken, friendController.getFriendsWithCount)
 // Lấy danh sách bạn bè cập nhật trước 7 ngày
 router.get('/updated-before-7-days', verifyToken, friendController.getFriendsUpdatedBefore7Days)
 
+// Lấy danh sách người dùng chưa kết bạn
+router.get('/non-friends', verifyToken, friendController.getNonFriendUsers)
+
 // Lấy bạn bè theo ID
 router.get('/:id', verifyToken, friendController.getFriendById)
 

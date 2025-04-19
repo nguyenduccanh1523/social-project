@@ -5,14 +5,16 @@ import { IoMdNotifications, IoMdNotificationsOff, IoMdLogOut, IoIosBug } from "r
 import { apiGetGroupNotification, apiEditGroupNotification } from "../../../../services/notification";
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { notification, Modal } from 'antd';
+import { useSelector } from "react-redux";
 
 const ActionGroup = ({ oldData, profile }) => {
+    const { token } = useSelector((state) => state.root.auth || {});
     // console.log("oldData", oldData);
     // console.log("profile", profile);
     const { data: groupNotifications } = useQuery({
         queryKey: ['groupNotifications', profile?.documentId, oldData?.documentId],
-        queryFn: () => apiGetGroupNotification({ groupId: oldData?.documentId, userId: profile?.documentId }),
-        enabled: !!profile?.documentId && !!oldData?.documentId,
+        queryFn: () => apiGetGroupNotification({ groupId: oldData?.documentId, userId: profile?.documentId, token: token }),
+        enabled: !!profile?.documentId && !!oldData?.documentId && !!token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
@@ -26,9 +28,7 @@ const ActionGroup = ({ oldData, profile }) => {
         try {
             const newStatus = !groupNotificationsData?.is_enabled;
             const payload = {
-                data: {
-                    is_enabled: newStatus,
-                },
+                is_enabled: newStatus,
             };
             const response = await apiEditGroupNotification({ documentId: groupNotificationsData?.documentId, payload });
             console.log("response", response);

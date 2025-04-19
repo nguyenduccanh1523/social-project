@@ -32,47 +32,54 @@ import user18 from '../../../../assets/images/user/18.jpg'
 import user19 from '../../../../assets/images/user/19.jpg'
 import { useSelector } from 'react-redux'
 import { apiGetFriendAccepted } from '../../../../services/friend'
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const { Search } = Input;
 
 const FriendList = () => {
     const { profile } = useSelector((state) => state.root.user || {});
+    const { token, user } = useSelector((state) => state.root.auth || {});
+
     const documentId = profile?.documentId;
-    const [friendList, setFriendList] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [isLoading, setIsLoading] = useState(true);
     const pageSize = 88;
-    useEffect(() => {
-        const fetchFriendList = async () => {
-            const response = await apiGetFriendAccepted({ documentId });
-            setFriendList(response.data);
-            setIsLoading(false);
-        };
-        fetchFriendList();
-    }, [documentId]);
-    console.log("friendList", friendList);
+    const { data: userAcceptData, isLoading: userAcceptLoading } = useQuery({
+        queryKey: ['userAccept', user?.documentId, token],
+        queryFn: () => apiGetFriendAccepted({ documentId: user?.documentId, token }),
+        enabled: !!user?.documentId && !!token,
+        onSuccess: (data) => {
+            console.log("User data fetched successfully:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching user data:", error);
+        }
+    });
 
+    const friendList = userAcceptData?.data?.data || [];
+
+    // console.log("friendList", friendList);
 
     // Lọc tags theo searchText
-    const filteredFriendList = friendList?.data?.filter(friend => {
+    const filteredFriendList = friendList?.filter(friend => {
         const searchLower = searchText.toLowerCase().trim();
-        const isMatchingUserId = friend?.user_id?.documentId === documentId; // Kiểm tra documentId
-        const isMatchingFriendId = friend?.friend_id?.documentId === documentId; // Kiểm tra friend_id.documentId
+        const isMatchingUserId = friend?.user?.documentId === user?.documentId; // Kiểm tra documentId
+        const isMatchingFriendId = friend?.friend?.documentId === user?.documentId; // Kiểm tra friend_id.documentId
 
         // Nếu documentId khớp với user_id, tìm kiếm trong friend_id.username
         if (isMatchingUserId) {
-            return !searchText || friend?.friend_id?.username?.toLowerCase().includes(searchLower);
+            return !searchText || friend?.friend?.fullname?.toLowerCase().includes(searchLower);
         }
 
         // Nếu documentId khớp với friend_id, tìm kiếm trong user_id.username
         if (isMatchingFriendId) {
-            return !searchText || friend?.user_id?.username?.toLowerCase().includes(searchLower);
+            return !searchText || friend?.user?.fullname?.toLowerCase().includes(searchLower);
         }
 
         // Nếu không khớp với cả hai, trả về false
         return false;
     });
+    // console.log("filteredFriendList", filteredFriendList);
 
     // Tính toán tags cho trang hiện tại từ danh sách đã lọc
     const getCurrentPageFriendList = () => {
@@ -80,6 +87,7 @@ const FriendList = () => {
         const startIndex = (currentPage - 1) * pageSize;
         return filteredFriendList.slice(startIndex, startIndex + pageSize);
     };
+    
 
     // Xử lý khi search thay đổi
     const handleSearch = (value) => {
@@ -112,7 +120,7 @@ const FriendList = () => {
                             </Card>
                         </Col>
                     </Row>
-                    {isLoading ? (
+                    {userAcceptLoading ? (
                         <div className="col-sm-12 text-center">
                             <Loader />
                         </div>
@@ -121,8 +129,8 @@ const FriendList = () => {
                             <Row>
                                 {getCurrentPageFriendList()?.map((friend, index) => {
                                     // Kiểm tra documentId và lấy friend_id hoặc user_id tương ứng
-                                    const friendData = friend?.user_id?.documentId === documentId ? friend?.friend_id : friend?.user_id;
-
+                                    const friendData = friend?.user?.documentId === user?.documentId ? friend?.friend : friend?.user;
+                                    // console.log("friendData", friendData);
                                     return (
                                         <Col md={6} key={friendData?.documentId}>
                                             <Card className="card-block card-stretch card-height">
@@ -136,18 +144,17 @@ const FriendList = () => {
                                                                 <div className="d-flex flex-wrap justify-content-between align-items-start">
                                                                     <div className="profile-detail d-flex">
                                                                         <div className="profile-img pe-4">
-                                                                            <img loading="lazy" src={friendData?.profile_picture} alt="profile-img" className="avatar-130 img-fluid" />
+                                                                            <img loading="lazy" src={friendData?.avatarMedia?.file_path} alt="profile-img" className="avatar-100 rounded-circle" />
                                                                         </div>
                                                                         <div className="user-data-block">
                                                                             <h4>
                                                                                 <Link to={`/friend-profile/${friendData?.documentId}`}
                                                                                     state={{
-                                                                                        friendId: friendData
+                                                                                        friendId: friendData?.documentId
                                                                                     }}
-                                                                                >{friendData?.username || 'Unknown'}</Link>
+                                                                                >{friendData?.fullname || 'Unknown'}</Link>
                                                                             </h4>
-                                                                            <h6>@{friendData?.username || 'unknown'}</h6>
-                                                                            <p>{friendData?.bio}</p>
+                                                                            <h6>@{friendData?.fullname || 'unknown'}</h6>
                                                                         </div>
                                                                     </div>
 

@@ -3,30 +3,48 @@ import { Modal, Button, Form, ListGroup, Row, Col } from 'react-bootstrap';
 import { Input, notification } from 'antd';
 import { apiGetFriendAccepted } from '../../../../../services/friend';
 import { apiCreateGroupInvited, apiGetGroupFriend, apiGetGroupInvationFriend, apiEditGroupInvited } from '../../../../../services/groupServices/group';
+import { useSelector } from 'react-redux';
 
 const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
     const [selectedFriends, setSelectedFriends] = useState([]);
+    const { token } = useSelector((state) => state.root.auth || {});
     const [friendList, setFriendList] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [participationStatus, setParticipationStatus] = useState({});
 
+    // console.log("InviteFriendsModal props:", { oldData, profile, show });
+
     useEffect(() => {
         const fetchFriendList = async () => {
-            const response = await apiGetFriendAccepted({ documentId: profile?.documentId });
-            setFriendList(response.data?.data || []);
-            setIsLoading(false);
+            if (!profile?.documentId) {
+                // console.log("profile documentId is missing", profile);
+                return;
+            }
+            try {
+                const response = await apiGetFriendAccepted({ documentId: profile?.documentId, token: token });
+                // console.log("Friend list response:", response);
+                setFriendList(response.data?.data || []);
+                setIsLoading(false);
+            } catch (error) {
+                console.error("Error fetching friend list:", error);
+                setIsLoading(false);
+            }
         };
-        fetchFriendList();
-    }, [profile?.documentId]);
+        if (show) {
+            fetchFriendList();
+        }
+    }, [profile?.documentId, show]);
 
     useEffect(() => {
         const checkParticipation = async () => {
             const status = {};
             await Promise.all(friendList.map(async (friend) => {
-                const friendData = friend?.user_id?.documentId === profile?.documentId ? friend?.friend_id : friend?.user_id;
+                const friendData = friend?.friend?.documentId === profile?.documentId ? friend?.user : friend?.friend;
+                // console.log("friendData", friendData);
                 try {
-                    const response = await apiGetGroupFriend({ groupId: oldData?.documentId, friendId: friendData?.documentId });
+                    const response = await apiGetGroupFriend({ groupId: oldData?.documentId, friendId: friendData?.documentId, token: token });
+
                     if (response.data?.data?.length > 0) {
                         status[friendData?.documentId] = true;
                     }
@@ -43,15 +61,15 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
 
     const filteredFriendList = friendList.filter(friend => {
         const searchLower = searchText.toLowerCase().trim();
-        const isMatchingUserId = friend?.user_id?.documentId === profile?.documentId;
-        const isMatchingFriendId = friend?.friend_id?.documentId === profile?.documentId;
+        const isMatchingUserId = friend?.user?.documentId === profile?.documentId;
+        const isMatchingFriendId = friend?.friend?.documentId === profile?.documentId;
 
         if (isMatchingUserId) {
-            return !searchText || friend?.friend_id?.username?.toLowerCase().includes(searchLower);
+            return !searchText || friend?.friend?.fullname?.toLowerCase().includes(searchLower);
         }
 
         if (isMatchingFriendId) {
-            return !searchText || friend?.user_id?.username?.toLowerCase().includes(searchLower);
+            return !searchText || friend?.user?.fullname?.toLowerCase().includes(searchLower);
         }
 
         return false;
@@ -72,33 +90,35 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
                 const response = await apiGetGroupInvationFriend({
                     groupId: oldData.documentId,
                     userId: profile.documentId,
-                    friendId: friend.documentId
+                    friendId: friend.documentId,
+                    token: token
                 });
+                console.log("response", response);
 
                 if (response.data?.data?.length > 0) {
                     const invitationId = response.data.data[0].documentId;
                     const payload = {
-                        data: {
-                            status_action: 'w1t6ex59sh5auezhau5e2ovu'
-                        }
+                        statusActionId: 'w1t6ex59sh5auezhau5e2ovu'
                     };
                     await apiEditGroupInvited({
                         documentId: invitationId,
-                        payload: payload
+                        payload: payload,
+                        token: token
                     });
                 } else {
                     await apiCreateGroupInvited({
-                        data: {
-                            group_id: oldData.documentId,
-                            invited_by: profile.documentId,
-                            invited_to: friend.documentId,
-                            status_action: 'w1t6ex59sh5auezhau5e2ovu',
-                        }
+                        payload: {
+                            groupId: oldData.documentId,
+                            invitedBy: profile.documentId,
+                            invitedTo: friend.documentId,
+                            statusActionId: 'w1t6ex59sh5auezhau5e2ovu',
+                        },
+                        token: token
                     });
                 }
             }));
 
-            const invitedFriendNames = selectedFriends.map(friend => friend.username).join(', ');
+            const invitedFriendNames = selectedFriends.map(friend => friend.fullname).join(', ');
             notification.success({
                 message: 'Success',
                 description: `Friends have been successfully invited: ${invitedFriendNames}`
@@ -130,7 +150,7 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
                         <Col>
                             <ListGroup>
                                 {filteredFriendList.map((friend) => {
-                                    const friendData = friend?.user_id?.documentId === profile?.documentId ? friend?.friend_id : friend?.user_id;
+                                    const friendData = friend?.friend?.documentId === profile?.documentId ? friend?.user : friend?.friend;
                                     const isParticipated = participationStatus[friendData?.documentId];
 
                                     return (
@@ -142,7 +162,7 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
                                                             type="checkbox"
                                                             checked={selectedFriends.includes(friendData)}
                                                             onChange={() => handleCheckboxChange(friendData)}
-                                                            label={friendData.username}
+                                                            label={friendData.fullname}
                                                             disabled={isParticipated}
                                                         />
                                                         {isParticipated && <small className="text-success d-flex" variant="primary">Participated<span className="material-symbols-outlined">
@@ -161,7 +181,7 @@ const InviteFriendsModal = ({ oldData, profile, show, handleClose }) => {
                             <ListGroup>
                                 {selectedFriends.map((friendData) => (
                                     <ListGroup.Item key={friendData?.documentId} className="d-flex justify-content-between align-items-center">
-                                        {friendData.username}
+                                        {friendData.fullname}
                                         <Button variant="danger" size="sm" onClick={() => handleCheckboxChange(friendData)}>
                                             X
                                         </Button>

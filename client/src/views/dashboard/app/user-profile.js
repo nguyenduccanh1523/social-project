@@ -76,6 +76,7 @@ import PostProfile from "../component/Profile/postProfile";
 import CreatePost from "../component/Share/createPost";
 import { apiGetFriendAccepted, apiGetFriendsByDate, apiGetFriendRequest, apiGetFriendSent } from "../../../services/friend";
 
+
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default
   ? ReactFsLightbox.default
@@ -89,7 +90,7 @@ const UserProfile = () => {
   const toastId = "confirm-toast";
   const queryClient = useQueryClient();
 
-  const { isLoggedIn } = useSelector((state) => state.root.auth);
+  
   const { profile } = useSelector((state) => state.root.user || {});
   const { user } = useSelector((state) => state.root.auth || {});
   const { token } = useSelector((state) => state.root.auth || {});
@@ -116,7 +117,6 @@ const UserProfile = () => {
     },
     onError: (error) => {
       console.error("Error fetching user data:", error);
-      toast.error("Không thể lấy thông tin người dùng");
     }
   });
 

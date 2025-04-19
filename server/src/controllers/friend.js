@@ -31,6 +31,7 @@ export const getAllFriend = async (req, res) => {
         // Lấy các tham số lọc
         const statusId = req.query.statusId || null;
         const userId = req.query.userId || null;
+        const friendId = req.query.friendId || null;
         const filterDate = req.query.filterDate || null;
         const lastSevenDays = req.query.lastSevenDays === 'true';
 
@@ -45,7 +46,8 @@ export const getAllFriend = async (req, res) => {
             userId,
             statusId,
             filterDate,
-            lastSevenDays
+            lastSevenDays,
+            friendId
         });
 
         // Trả về kết quả
@@ -222,6 +224,59 @@ export const getFriendsWithCount = async (req, res) => {
 
         // Trả về kết quả
         return res.status(200).json(friendsData);
+    } catch (error) {
+        return res.status(500).json({
+            err: -1,
+            message: 'Lỗi từ server: ' + error.message
+        });
+    }
+};
+
+export const getNonFriendUsers = async (req, res) => {
+    try {
+        // Lấy tham số phân trang từ query
+        const pagination = req.query.pagination || {};
+        const page = parseInt(pagination.page) || parseInt(req.query.page) || 1;
+        const pageSize = parseInt(pagination.pageSize) || parseInt(req.query.pageSize) || 10;
+
+        // Xử lý tham số sort
+        const sort = req.query.sort;
+        let sortField = 'createdAt';
+        let sortOrder = 'DESC';
+
+        if (sort) {
+            const sortParts = sort.split(':');
+            if (sortParts.length === 2) {
+                sortField = sortParts[0];
+                sortOrder = sortParts[1].toUpperCase();
+            }
+        }
+
+        // Xây dựng bộ lọc từ query params
+        const filters = {};
+        if (req.query.keyword) filters.keyword = req.query.keyword;
+
+        // Lấy userId (bắt buộc)
+        const userId = req.query.userId;
+        if (!userId) {
+            return res.status(400).json({
+                err: -1,
+                message: 'UserId là bắt buộc'
+            });
+        }
+
+        // Gọi service để lấy danh sách người dùng chưa kết bạn
+        const usersData = await friendService.getNonFriendUsers({
+            page,
+            pageSize,
+            filters,
+            sortField,
+            sortOrder,
+            userId
+        });
+
+        // Trả về kết quả
+        return res.status(200).json(usersData);
     } catch (error) {
         return res.status(500).json({
             err: -1,

@@ -13,7 +13,8 @@ export const getAllFriend = async ({
     userId = null,
     statusId = null,
     filterDate = null,
-    lastSevenDays = false
+    lastSevenDays = false,
+    friendId = null
 }) => {
     try {
         
@@ -40,6 +41,12 @@ export const getAllFriend = async ({
             ];
         }
 
+        if (friendId) {
+            whereConditions[Op.or] = [
+                { user_id: friendId },
+                { friend_id: friendId }
+            ];
+        }
         // Lọc theo statusId nếu được cung cấp
         if (statusId) {
             whereConditions.status_action_id = statusId;
@@ -498,5 +505,140 @@ export const getFriendsWithCount = async ({
         };
     } catch (error) {
         throw new Error(`Lỗi khi lấy danh sách bạn bè và đếm số lượng: ${error.message}`);
+    }
+};
+
+// Lấy danh sách người dùng chưa kết bạn với userId
+export const getNonFriendUsers = async ({
+    page = 1,
+    pageSize = 10,
+    filters = {},
+    sortField = 'createdAt',
+    sortOrder = 'DESC',
+    userId = null
+}) => {
+    try {
+        if (!userId) {
+            throw new Error('UserId là bắt buộc');
+        }
+
+        const offset = (page - 1) * pageSize;
+
+        // Lấy tất cả các ID user là bạn bè với userId truyền vào
+        const friendships = await db.Friend.findAll({
+            where: {
+                [Op.or]: [
+                    { user_id: userId },
+                    { friend_id: userId }
+                ]
+            },
+            attributes: ['user_id', 'friend_id']
+        });
+
+        // Tạo mảng chứa tất cả ID là bạn bè với userId
+        const friendIds = new Set();
+        
+        friendships.forEach(friendship => {
+            if (friendship.user_id === userId) {
+                friendIds.add(friendship.friend_id);
+            } else {
+                friendIds.add(friendship.user_id);
+            }
+        });
+        
+        // Thêm chính userId vào danh sách loại trừ
+        friendIds.add(userId);
+
+        // Xây dựng điều kiện WHERE để lấy người dùng không có trong danh sách bạn bè
+        const whereConditions = {
+            documentId: {
+                [Op.notIn]: Array.from(friendIds)
+            }
+        };
+
+        // Áp dụng bộ lọc nếu có
+        if (filters.keyword) {
+            whereConditions[Op.or] = [
+                { fullname: { [Op.like]: `%${filters.keyword}%` } },
+                { email: { [Op.like]: `%${filters.keyword}%` } }
+            ];
+        }
+
+        // Thực hiện truy vấn lấy danh sách người dùng chưa là bạn bè
+        const { count, rows } = await db.User.findAndCountAll({
+            where: whereConditions,
+            attributes: ['documentId', 'fullname', 'email', 'phone', 'avatar_id', 'cover_photo_id'],
+            order: [[sortField, sortOrder]],
+            offset,
+            limit: pageSize
+        });
+
+        // Lấy avatar_id từ tất cả users
+        const avatarIds = rows
+            .map(user => user.avatar_id)
+            .filter(id => id !== null);
+        
+        // Truy vấn thông tin media cho avatar
+        const avatarMedia = await db.Media.findAll({
+            where: {
+                documentId: { [Op.in]: avatarIds }
+            },
+            attributes: ['documentId', 'file_path']
+        });
+        
+        // Tạo map cho việc tra cứu nhanh thông tin media
+        const mediaMap = {};
+        avatarMedia.forEach(media => {
+            mediaMap[media.documentId] = media;
+        });
+
+        // Lấy số lượng bạn bè cho mỗi user
+        const friendCountPromises = rows.map(async (user) => {
+            const friendCount = await db.Friend.count({
+                where: {
+                    [Op.or]: [
+                        { user_id: user.documentId },
+                        { friend_id: user.documentId }
+                    ],
+                    status_action_id: 'vr8ygnd5y17xs4vcq6du3q7c'
+                }
+            });
+            return { id: user.documentId, count: friendCount };
+        });
+        
+        const friendCounts = await Promise.all(friendCountPromises);
+        const friendCountMap = {};
+        friendCounts.forEach(({ id, count }) => {
+            friendCountMap[id] = count;
+        });
+
+        // Thêm thông tin avatar và số lượng bạn bè vào kết quả
+        const enrichedData = rows.map(user => {
+            const userData = user.get({ plain: true });
+            
+            // Thêm thông tin avatar media nếu có
+            if (userData.avatar_id && mediaMap[userData.avatar_id]) {
+                userData.avatarMedia = mediaMap[userData.avatar_id];
+            }
+            
+            // Thêm số lượng bạn bè
+            userData.friendCount = friendCountMap[userData.documentId] || 0;
+            
+            return userData;
+        });
+
+        return {
+            data: enrichedData,
+            meta: {
+                pagination: {
+                    page: parseInt(page),
+                    pageSize: parseInt(pageSize),
+                    pageCount: Math.ceil(count / pageSize),
+                    total: count
+                }
+            }
+        };
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy danh sách người dùng chưa kết bạn: ${error.message}`);
     }
 }; 

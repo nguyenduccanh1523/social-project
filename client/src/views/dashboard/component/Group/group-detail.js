@@ -9,7 +9,7 @@ import {
   Tab,
   Nav,
 } from "react-bootstrap";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import PostItem from "../postItem";
 import { useQuery } from '@tanstack/react-query';
 import { MdGroup, MdGroups, MdChat } from "react-icons/md";
@@ -47,7 +47,19 @@ const GroupDetail = () => {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const location = useLocation();
-  const { documentId } = location?.state || {};
+  const params = useParams();
+  
+  // Lấy documentId từ state hoặc từ URL params nếu không có trong state
+  let { documentId } = location?.state || {};
+  
+  // Nếu không có documentId trong state, lấy từ URL params
+  if (!documentId && params.id) {
+    documentId = params.id;
+  }
+  
+  // console.log("documentId từ location:", documentId, "location state:", location.state, "params:", params);
+  
+  const { token, user } = useSelector((state) => state.root.auth || {});
   const { profile } = useSelector((state) => state.root.user || {});
   const images = [img12, img13, img14, img15, img16];
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -57,13 +69,14 @@ const GroupDetail = () => {
 
   const { data: GroupDatas } = useQuery({
     queryKey: ['groups', documentId],
-    queryFn: () => apiFindOneGroup({ groupId: documentId }),
-    enabled: !!documentId,
+    queryFn: () => apiFindOneGroup({ groupId: documentId, token: token }),
+    enabled: !!documentId && !!token,
     staleTime: 600000, // 10 minutes
     refetchOnWindowFocus: false,
   });
-  //console.log("GroupDatas", GroupDatas);
   const oldData = GroupDatas?.data?.data || {};
+  // console.log("user", user);
+  // console.log("oldData", oldData);
 
   const { data: groupMembersData } = useQuery({
     queryKey: ['groupMembers', oldData?.documentId],
@@ -95,7 +108,7 @@ const GroupDetail = () => {
   const groupPosts = groupPostsData?.data?.data || [];
   const groupRequests = groupRequestsData?.data?.data || [];
   const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
-
+  // console.log("validGroupMembers", validGroupMembers);
 
    //console.log("oldData  ", groupRequests);
   // console.log("groupMembers", groupMembers);
@@ -105,7 +118,7 @@ const GroupDetail = () => {
     <>
       <div className="header-for-bg">
         <div className="background-header position-relative text-center" >
-          <img src={oldData?.media?.file_path} className="img-fluid" alt="header-bg" style={{ width: '1000px', height: '350px' }} />
+          <img src={oldData?.image?.file_path} className="img-fluid" alt="header-bg" style={{ width: '1000px', height: '350px' }} />
           <div className="title-on-header">
           </div>
         </div>
@@ -123,16 +136,16 @@ const GroupDetail = () => {
                         {oldData?.type?.name === "private" ? "lock" : "public"}
                       </span>
                       {oldData?.type?.name === "private" ? "Private Group" : "Public Group"} .{" "}
-                      {oldData?.member_ids?.length} members
+                      {oldData?.members?.length} members
                     </p>
                     <div className="iq-media-group me-3 mt-2 ">
                       {validGroupMembers
                         .slice(0, 8) // Change slice to show 8 members instead of 6
                         .map((member, index) => (
-                          <Link to="#" className="iq-media" key={member?.users_id?.documentId || index}>
+                          <Link to="#" className="iq-media" key={member?.users?.documentId || index}>
                             <img
                               className="img-fluid avatar-40 rounded-circle"
-                              src={member?.users_id?.profile_picture || user1} // Use user1 as fallback
+                              src={member?.user?.avatarMedia?.file_path || user1} // Use user1 as fallback
                               alt="profile-img"
                             />
                           </Link>
@@ -160,7 +173,7 @@ const GroupDetail = () => {
                       Participated
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
-                      <ActionGroup oldData={oldData} profile={profile} />
+                      <ActionGroup oldData={oldData} profile={user} />
                     </Dropdown.Menu>
                   </Dropdown>
                 </div>
@@ -303,7 +316,7 @@ const GroupDetail = () => {
                                   <MdGroup style={{ fontSize: '22px' }} />
                                 </div>
                                 <div className="flex-grow-1 ms-3">
-                                  <h6>Total {oldData?.member_ids?.length} members</h6>
+                                  <h6>Total {oldData?.members?.length} members</h6>
                                   <p className="mb-0">
                                     Anyone can find this group.
                                   </p>
@@ -333,7 +346,7 @@ const GroupDetail = () => {
                         </Card.Body>
                       </Card>
                     </Col>
-                    {oldData?.admin_id?.documentId === profile?.documentId && (
+                    {oldData?.admin?.documentId === user?.documentId && (
                       <Col lg="1" className="d-flex align-items-center">
                         <div onClick={() => setDrawerOpen(true)}>
                           <IconEdit />
@@ -356,7 +369,7 @@ const GroupDetail = () => {
                           <div className="d-flex align-items-center">
                             <div className="user-img">
                               <img
-                                src={profile?.profile_picture}
+                                src={user?.avatarMedia?.file_path}
                                 alt="userimg"
                                 className="avatar-60 rounded-circle"
                               />
@@ -414,7 +427,7 @@ const GroupDetail = () => {
                             </li>
                           </ul>
                         </Card.Body>
-                        <CreatePost show={show} handleClose={handleClose} profile={profile} group={oldData} />
+                        <CreatePost show={show} handleClose={handleClose} profile={user} group={oldData} />
                       </Card>
                       <Card>
                         <Card.Body>
@@ -492,9 +505,9 @@ const GroupDetail = () => {
                   </Row>
                 </Tab.Pane>
                 <Tab.Pane eventKey="f2">
-                  {groupRequests.length > 0 && oldData?.admin_id?.documentId === profile?.documentId && <MemberRequest requests={groupRequests} />}
+                  {groupRequests.length > 0 && oldData?.admin?.documentId === user?.documentId && <MemberRequest requests={groupRequests} />}
                   <Row>
-                    {oldData?.admin_id && (
+                    {oldData?.admin && (
                       <Col md={6}>
                         <Card className=" card-block card-stretch card-height">
                           <Card.Body className=" profile-page p-0">
@@ -515,8 +528,7 @@ const GroupDetail = () => {
                                         <img
                                           loading="lazy"
                                           src={
-                                            oldData?.admin_id
-                                              ?.profile_picture || user1
+                                            oldData?.admin?.avatarMedia?.file_path || user1
                                           }
                                           alt="profile-img"
                                           className="avatar-130 img-fluid"
@@ -525,7 +537,7 @@ const GroupDetail = () => {
                                       <div className="user-data-block">
                                         <h4>
                                           <Link to="/dashboard/app/friend-profile">
-                                            {oldData?.admin_id?.username ||
+                                            {oldData?.admin?.fullname ||
                                               "Admin"}
                                           </Link>
                                         </h4>
@@ -549,11 +561,11 @@ const GroupDetail = () => {
                     {validGroupMembers
                       .filter(
                         (member) =>
-                          member?.users_id?.documentId !==
-                          oldData?.admin_id?.documentId // Exclude admin from members
+                          member?.user?.documentId !==
+                          oldData?.admin?.documentId // Exclude admin from members
                       )
                       .map((member, index) => (
-                        <Col md={6} key={member?.users_id?.documentId || index}>
+                        <Col md={6} key={member?.user?.documentId || index}>
                           <Card className=" card-block card-stretch card-height">
                             <Card.Body className=" profile-page p-0">
                               <div className="profile-header-image">
@@ -573,8 +585,7 @@ const GroupDetail = () => {
                                           <img
                                             loading="lazy"
                                             src={
-                                              member?.users_id
-                                                ?.profile_picture || user1
+                                              member?.user?.avatarMedia?.file_path || user1
                                             }
                                             alt="profile-img"
                                             className="avatar-130 img-fluid"
@@ -583,7 +594,7 @@ const GroupDetail = () => {
                                         <div className="user-data-block">
                                           <h4>
                                             <Link to="/dashboard/app/friend-profile">
-                                              {member?.users_id?.username ||
+                                              {member?.user?.fullname ||
                                                 "Anonymous"}
                                             </Link>
                                           </h4>
@@ -611,7 +622,7 @@ const GroupDetail = () => {
           </Row>
         </Container>
       </div>
-      <InviteFriendsModal oldData={oldData} profile={profile} show={inviteModalShow} handleClose={() => setInviteModalShow(false)} />
+      <InviteFriendsModal oldData={oldData} profile={user} show={inviteModalShow} handleClose={() => setInviteModalShow(false)} />
     </>
   );
 };

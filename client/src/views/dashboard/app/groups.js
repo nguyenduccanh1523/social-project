@@ -246,7 +246,7 @@ const Groups = () => {
                         isMember ? (
                           <Link
                             to={`/group-detail/${groupId}`}
-                            state={{ documentId: groupDetailsAvailable?.documentId }}
+                            state={{ documentId: groupId }}
                           >
                             <button
                               type="submit"
@@ -275,7 +275,7 @@ const Groups = () => {
                             {group?.type?.name === "public" && (
                               <Link
                                 to={`/group-detail/${groupId}`}
-                                state={{ documentId: groupDetailsAvailable?.documentId }}
+                                state={{ documentId: groupId }}
                               >
                                 <button
                                   type="submit"
@@ -306,7 +306,7 @@ const Groups = () => {
                               </button>
                               <Link
                                 to={`/group-detail/${groupId}`}
-                                state={{ documentId: groupDetailsAvailable?.documentId }}
+                                state={{ documentId: groupId }}
                                 className="flex-fill"
                               >
                                 <button

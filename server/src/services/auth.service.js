@@ -120,6 +120,16 @@ export const registerUser = async (userData) => {
       refresh_token_expires: refreshExpires
     });
     
+    // Lấy thêm thông tin avatar nếu có
+    const userWithAvatar = await User.findOne({
+      where: { documentId: user.documentId },
+      include: [{
+        model: db.Media,
+        as: 'avatarMedia',
+        attributes: ['documentId', 'file_path', 'file_type']
+      }]
+    });
+    
     return {
       success: true,
       statusCode: 201,
@@ -136,7 +146,9 @@ export const registerUser = async (userData) => {
           blocked: user.is_blocked,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
-          publishedAt: user.createdAt
+          publishedAt: user.createdAt,
+          avatar_id: userWithAvatar.avatar_id,
+          avatarMedia: userWithAvatar.avatarMedia
         },
         refresh_token: refreshToken
       }
@@ -170,9 +182,14 @@ export const loginUser = async (credentials) => {
     // Kiểm tra định dạng email
     const isEmail = /\S+@\S+\.\S+/.test(identifier);
     
-    // Tìm user theo email hoặc username
+    // Tìm user theo email hoặc username và include avatarMedia
     const user = await User.findOne({ 
-      where: isEmail ? { email: identifier } : { username: identifier } 
+      where: isEmail ? { email: identifier } : { username: identifier },
+      include: [{
+        model: db.Media,
+        as: 'avatarMedia',
+        attributes: ['documentId', 'file_path', 'file_type']
+      }]
     });
     
     if (!user) {
@@ -225,7 +242,8 @@ export const loginUser = async (credentials) => {
           blocked: user.is_blocked,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
-          publishedAt: user.createdAt
+          publishedAt: user.createdAt,
+          avatarMedia: user.avatarMedia
         },
         refresh_token: refreshToken
       }

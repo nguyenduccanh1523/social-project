@@ -130,8 +130,9 @@ const MyGroups = () => {
                 
                 // Lấy thông tin chi tiết từ API
                 const groupDetailsData = groupDetails[groupId] || {};
-                console.log("Group Details:", groupDetailsData);
+                
                 const groupMembersList = groupMembers[groupId] || [];
+                console.log("Group Members:", groupMembersList);
 
                 return (
                   <Card className="mb-0" key={groupId} style={{ position: "relative" }}>
@@ -199,7 +200,7 @@ const MyGroups = () => {
                             <Link to="#" className="iq-media" key={index}>
                               <img
                                 className="img-fluid avatar-40 rounded-circle"
-                                src={member?.users_id?.profile_picture || user05}
+                                src={member?.user?.avatarMedia?.file_path || user05}
                                 alt="profile-img"
                               />
                             </Link>

@@ -13,11 +13,8 @@ import user1 from '../../../../assets/images/user/1.jpg'
 import user05 from '../../../../assets/images/user/05.jpg'
 import user02 from '../../../../assets/images/user/02.jpg'
 import user03 from '../../../../assets/images/user/03.jpg'
-import user06 from '../../../../assets/images/user/06.jpg'
-import user07 from '../../../../assets/images/user/07.jpg'
 import user08 from '../../../../assets/images/user/08.jpg'
 import user09 from '../../../../assets/images/user/09.jpg'
-import user10 from '../../../../assets/images/user/10.jpg'
 import icon1 from '../../../../assets/images/icon/01.png'
 import icon2 from '../../../../assets/images/icon/02.png'
 import icon3 from '../../../../assets/images/icon/03.png'
@@ -59,6 +56,7 @@ import img59 from '../../../../assets/images/page-img/59.jpg'
 import { useQuery } from '@tanstack/react-query'
 import { apiGetFriendData } from '../../../../services/user'
 import { apiGetFriendAccepted } from '../../../../services/friend'
+import { useSelector } from 'react-redux'
 // Fslightbox plugin
 const FsLightbox = ReactFsLightbox.default ? ReactFsLightbox.default : ReactFsLightbox;
 
@@ -68,6 +66,7 @@ const FriendProfile = () => {
       friendId
    } = location.state || {};
    console.log('friendId', friendId);
+   const { token } = useSelector((state) => state.root.auth || {});
 
    const [show, setShow] = useState(false);
    const handleClose = () => setShow(false);
@@ -75,35 +74,21 @@ const FriendProfile = () => {
    const [userFriendCounts, setUserFriendCounts] = useState([]);
 
    const { data: friendData, isLoading, error } = useQuery({
-      queryKey: ['friendData', friendId],
-      queryFn: () => apiGetFriendData({ userId: friendId?.documentId }),
+      queryKey: ['friendData', friendId, token],
+      queryFn: () => apiGetFriendData({ userId: friendId, token }),
    });
-   const friendUserData = friendData?.data?.[0] || [];
-   //console.log('friendUserData', friendUserData);
+   const friendUserData = friendData?.data?.data || [];
 
-   // Chuyển logic vào useEffect
-   useEffect(() => {
-      const fetchFriendCounts = async () => {
-         const counts = await Promise.all(
-            friendData?.data?.map(async (request) => {
-               const response = await apiGetFriendAccepted({
-                  documentId: request?.documentId,
-               });
-               const friendCount = response?.data || 0; // Đếm số lượng bạn bè\
-               setUserFriendCounts(friendCount);
-               return {
-                  ...request,
-                  friendsCount: friendCount,
-               };
-            })
-         );
-      };
 
-      if (friendData?.data?.length > 0) { // Chỉ gọi fetchFriendCounts nếu có dữ liệu
-         fetchFriendCounts();
-      }
-   }, [friendUserData]);
-   console.log('userFriendCounts', userFriendCounts);
+   const { data: friendCountData, isLoading: friendCountLoading, error: friendCountError } = useQuery({
+      queryKey: ['friendCount', friendId, token],
+      queryFn: () => apiGetFriendAccepted({ documentId: friendId, token }),
+   });
+   const friendCount = friendCountData?.data?.data || 0;
+   const friend = friendCount?.filter(item => item?.user?.documentId !== friendId);
+   setUserFriendCounts(friend);
+   console.log('userFriendCounts', friend);
+
 
    const [imageController, setImageController] = useState({
       toggler: false,
@@ -151,10 +136,10 @@ const FriendProfile = () => {
                            </div>
                            <div className="user-detail text-center mb-3">
                               <div className="profile-img">
-                                 <img loading="lazy" src={friendUserData?.profile_picture} alt="profile-img" className="avatar-130 img-fluid" />
+                                 <img loading="lazy" src={friendUserData?.avatarMedia?.file_path} alt="profile-img" className="avatar-130 img-fluid" />
                               </div>
                               <div className="profile-detail">
-                                 <h3>{friendUserData?.username}</h3>
+                                 <h3>{friendUserData?.fullname}</h3>
                               </div>
                            </div>
                            <div className="profile-info p-4 d-flex align-items-center justify-content-between position-relative">
@@ -188,7 +173,7 @@ const FriendProfile = () => {
                                     </li>
                                     <li className="text-center pe-3">
                                        <h6>Friends</h6>
-                                       <p className="mb-0">{userFriendCounts?.data?.length || 0}</p>
+                                       <p className="mb-0">{friendUserData?.friendCount || 0}</p>
                                     </li>
                                  </ul>
                               </div>
@@ -211,7 +196,7 @@ const FriendProfile = () => {
                                  <span className="material-symbols-outlined md-18">
                                     person
                                  </span>
-                                 <p className="mb-0 ms-2">{friendUserData?.bio}</p>
+                                 <p className="mb-0 ms-2">{friendUserData?.about}</p>
                               </li>
                               <li className="mb-2 d-flex align-items-center">
                                  <span className="material-symbols-outlined md-18">
@@ -229,7 +214,7 @@ const FriendProfile = () => {
                                  <span className="material-symbols-outlined md-18">
                                     place
                                  </span>
-                                 <p className="mb-0 ms-2">{friendUserData?.live_in}</p>
+                                 <p className="mb-0 ms-2">{friendUserData?.nation?.name}</p>
                               </li>
                               <li className="d-flex align-items-center">
                                  <span className="material-symbols-outlined md-18">

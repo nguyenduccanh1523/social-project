@@ -26,6 +26,10 @@ import groupRouter from './group/group';
 import groupMemberRouter from './group/group-member';
 import groupInvitationRouter from './group/group-invitation';
 import groupRequestRouter from './group/group-request';
+import notificationRouter from './notification/notification';
+import notificationCreatedRouter from './notification/notification-created';
+import notificationSettingRouter from './notification/notification-setting';
+import userNotificationsNewRouter from './notification/user-notification';
 
 const initRoutes = (app) => {
     app.use('/api/v1/auth', authRouter);
@@ -56,6 +60,10 @@ const initRoutes = (app) => {
     app.use('/api/v1/group-members', groupMemberRouter);
     app.use('/api/v1/group-invitations', groupInvitationRouter);
     app.use('/api/v1/group-requests', groupRequestRouter);
+    app.use('/api/v1/notifications', notificationRouter);
+    app.use('/api/v1/notification-creators', notificationCreatedRouter);
+    app.use('/api/v1/notification-settings', notificationSettingRouter);
+    app.use('/api/v1/user-notifications-new', userNotificationsNewRouter);
 
     return app.use('/', (req, res) => {
         res.send('server on...')

@@ -45,7 +45,14 @@ export const getAllGroups = async ({
                 {
                     model: db.User,
                     as: 'admin',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path', 'file_type']
+                        }
+                    ]
                 },
                 {
                     model: db.Media,
@@ -117,7 +124,14 @@ export const getGroupById = async (documentId) => {
                 {
                     model: db.User,
                     as: 'admin',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path', 'file_type']
+                        }
+                    ]
                 },
                 {
                     model: db.Media,
@@ -136,7 +150,14 @@ export const getGroupById = async (documentId) => {
                         {
                             model: db.User,
                             as: 'user',
-                            attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                            attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                            include: [
+                                {
+                                    model: db.Media,
+                                    as: 'avatarMedia',
+                                    attributes: ['documentId', 'file_path', 'file_type']
+                                }
+                            ]
                         }
                     ]
                 }
@@ -224,7 +245,14 @@ export const getGroupsByUserId = async (userId) => {
                 {
                     model: db.User,
                     as: 'admin',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                    attributes: ['documentId', 'fullname', 'email'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path', 'file_type']
+                        }
+                    ]
                 },
                 {
                     model: db.Media,
@@ -268,7 +296,14 @@ export const getGroupsAdminByUserId = async (userId) => {
                         {
                             model: db.User,
                             as: 'user',
-                            attributes: ['documentId', 'fullname', 'email', 'avatar_id']
+                            attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                            include: [
+                                {
+                                    model: db.Media,
+                                    as: 'avatarMedia',
+                                    attributes: ['documentId', 'file_path', 'file_type']
+                                }
+                            ]
                         }
                     ]
                 }

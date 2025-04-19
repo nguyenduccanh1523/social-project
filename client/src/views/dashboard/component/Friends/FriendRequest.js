@@ -13,55 +13,30 @@ import {
   apiGetFriendRequest,
   apiGetFriendAccepted,
 } from "../../../../services/friend";
-import { useQuery } from "@tanstack/react-query";
-import { useSelector } from "react-redux";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import FriendMore from "./FriendMore";
 import Loader from "../../icons/uiverse/Loading";
+import { useSelector } from "react-redux";
 
 const FriendRequest = () => {
-  const { profile } = useSelector((state) => state.root.user || {});
-  const documentId = profile?.documentId;
+  const { token, user } = useSelector((state) => state.root.auth || {});
 
-  // Tạo state để lưu số lượng bạn bè
-  const [userFriendCounts, setUserFriendCounts] = useState([]);
 
   // Lấy danh sách yêu cầu kết bạn
   const { data: friendRequest, isLoading, error } = useQuery({
-    queryKey: ['friendRequest', documentId],
-    queryFn: () => apiGetFriendRequest({ documentId }),
-    enabled: !!documentId,
+    queryKey: ['friendRequest', user?.documentId, token],
+    queryFn: () => apiGetFriendRequest({ documentId: user?.documentId, token }),
+    enabled: !!user?.documentId && !!token,
   });
 
-  const friendRequestData = friendRequest?.data?.data || [];
+  const friendRequests = friendRequest?.data?.data || [];
 
-  // Chuyển logic vào useEffect
-  useEffect(() => {
-    const fetchFriendCounts = async () => {
-      const counts = await Promise.all(
-        friendRequestData.map(async (request) => {
-          const response = await apiGetFriendAccepted({
-            documentId: request.user_id.documentId,
-          });
-          const friendCount = response?.data?.data?.length || 0; // Đếm số lượng bạn bè
-          return {
-            ...request,
-            friendsCount: friendCount,
-          };
-        })
-      );
-      setUserFriendCounts(counts);
-    };
-
-    if (friendRequestData.length > 0) { // Chỉ gọi fetchFriendCounts nếu có dữ liệu
-      fetchFriendCounts();
-    }
-  }, [friendRequestData]);
+  const friendRequestData = friendRequests?.filter(request => request.user.documentId !== user?.documentId);
 
   // Kiểm tra trạng thái loading và error
   if (isLoading) return <Loader />;
   if (error) return <div>Error fetching friend requests</div>;
 
-  console.log("userFriendCounts", userFriendCounts);
 
   const questionAlert = () => {
     const swalWithBootstrapButtons = Swal.mixin({
@@ -133,27 +108,27 @@ const FriendRequest = () => {
                 </Card.Header>
                 <Card.Body>
                   <ul className="request-list list-inline m-0 p-0">
-                    {userFriendCounts.map((user) => (
+                    {friendRequestData.map((user) => (
                       <li
                         key={user.documentId}
                         className="d-flex align-items-center justify-content-between flex-wrap"
                       >
                         <div className="user-img img-fluid flex-shrink-0">
                           <img
-                            src={user?.user_id?.profile_picture || user5}
+                            src={user?.user?.avatarMedia?.file_path || user5}
                             alt="story-img"
                             className="rounded-circle avatar-40"
                           />
                         </div>
                         <div className="flex-grow-1 ms-3">
                           <Link
-                            to={`/friend-profile/${user.user_id.documentId}`}
+                            to={`/friend-profile/${user?.user?.documentId}`}
                             className="text-decoration-none"
                           >
-                            <h6>{user?.user_id?.username}</h6>
+                            <h6>{user?.user?.fullname}</h6>
                           </Link>
                           <p className="mb-0">
-                            {user.friendsCount || 0} friends
+                            {user?.user?.friendCount || 0} friends
                           </p>
                         </div>
                         <div className="d-flex align-items-center mt-2 mt-md-0">

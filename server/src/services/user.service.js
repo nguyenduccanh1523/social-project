@@ -132,7 +132,22 @@ export const getUserById = async (documentId) => {
             throw new Error('Không tìm thấy user');
         }
 
-        return user;
+        // Lấy số lượng bạn bè của người dùng
+        const friendCount = await db.Friend.count({
+            where: {
+                [Op.or]: [
+                    { user_id: documentId },
+                    { friend_id: documentId }
+                ],
+                status_action_id: 'vr8ygnd5y17xs4vcq6du3q7c' // Status đã kết bạn
+            }
+        });
+
+        // Chuyển đổi user thành object thuần túy để thêm thông tin
+        const userWithFriendCount = user.get({ plain: true });
+        userWithFriendCount.friendCount = friendCount;
+
+        return userWithFriendCount;
     } catch (error) {
         throw new Error(`Lỗi khi lấy thông tin user: ${error.message}`);
     }

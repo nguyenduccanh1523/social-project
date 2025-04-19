@@ -81,7 +81,7 @@ export const apiEditGroup = ({ documentId, payload }) =>
 
 
 
-export const apiCreateGroupInvited = (payload) =>
+export const apiCreateGroupInvited = ({ payload, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -89,7 +89,7 @@ export const apiCreateGroupInvited = (payload) =>
         url: "/group-invitations",
         data: payload,
         headers: {
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`
         }
       });
       resolve(response);
@@ -99,23 +99,16 @@ export const apiCreateGroupInvited = (payload) =>
   });
 
 
-export const apiGetGroupInvationFriend = ({ groupId, userId, friendId }) =>
+export const apiGetGroupInvationFriend = ({ groupId, userId, friendId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
-      // Kiểm tra groupId trước khi dùng trong URL
-      if (typeof groupId !== "string") {
-        //console.error("Invalid groupId:", groupId);
-        return reject(new Error("groupId should be a string"));
-      }
-
-      //console.log("Fetching group members for groupId:", groupId);
-
-      // Gọi API với URL đã được truyền đúng groupId
       const response = await axiosConfig({
         method: "get",
-        url: `/group-invitations?filters[$and][0][group_id][documentId][$eq]=${groupId}&filters[$and][1][invited_by][documentId][$eq]=${userId}&filters[$and][2][invited_to][documentId][$eq]=${friendId}&populate=*`,
+        url: `/group-invitations?populate=*&sort=createdAt:DESC&invitedBy=${userId}&group_id=${groupId}&invitedTo=${friendId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
-      //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);
     } catch (error) {
       console.error("Error fetching group members:", error.response || error);
@@ -126,15 +119,15 @@ export const apiGetGroupInvationFriend = ({ groupId, userId, friendId }) =>
 
 
 
-export const apiEditGroupInvited = ({ documentId, payload }) =>
+export const apiEditGroupInvited = ({ documentId, payload, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "put",
-        url: `/group-invitations/${documentId}`,
+        url: `/group-invitations/${documentId}/respond`,
         data: payload,
         headers: {
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`
         }
       });
       resolve(response);
@@ -144,7 +137,7 @@ export const apiEditGroupInvited = ({ documentId, payload }) =>
   });
 
 
-export const apiCreateGroup = (payload) =>
+export const apiCreateGroup = ({ payload, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -152,8 +145,8 @@ export const apiCreateGroup = (payload) =>
         url: "/groups",
         data: payload,
         headers: {
-          "Content-Type": "application/json",
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -166,14 +159,17 @@ export const apiCreateGroup = (payload) =>
 
 
 //check friend invited group
-export const apiGetGroupFriend = ({ groupId, friendId }) =>
+export const apiGetGroupFriend = ({ groupId, friendId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/group-members?filters[$and][0][group_id][documentId][$eq]=${groupId}&filters[$and][1][users_id][documentId][$eq]=${friendId}&populate=*`,
-      });
-      //console.log("Response:", response); // Log ra chi tiết phản hồi
+        url: `/group-members?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${friendId}&groupId=${groupId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+        });
+        //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);
     } catch (error) {
       console.error("Error fetching group members:", error.response || error);

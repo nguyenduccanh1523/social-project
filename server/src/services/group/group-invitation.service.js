@@ -9,7 +9,8 @@ export const getAllGroupInvitations = async ({
     sortField = 'created_at',
     sortOrder = 'DESC',
     populate = false,
-    userId = null,
+    invitedBy = null,
+    invitedTo = null,
     groupId = null,
     statusId = null
 }) => {
@@ -17,12 +18,14 @@ export const getAllGroupInvitations = async ({
         const offset = (page - 1) * pageSize;
         const whereConditions = {};
 
-        // Lọc theo userId nếu được cung cấp (có thể là người gửi hoặc người nhận)
-        if (userId) {
-            whereConditions[Op.or] = [
-                { invited_by: userId },
-                { invited_to: userId }
-            ];
+        // Lọc theo invitedBy nếu được cung cấp
+        if (invitedBy) {
+            whereConditions.invited_by = invitedBy;
+        }
+
+        // Lọc theo invitedTo nếu được cung cấp
+        if (invitedTo) {
+            whereConditions.invited_to = invitedTo;
         }
 
         // Lọc theo groupId nếu được cung cấp
@@ -43,12 +46,12 @@ export const getAllGroupInvitations = async ({
                 {
                     model: db.User,
                     as: 'inviter',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
                 },
                 {
                     model: db.User,
                     as: 'invitee',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
                 },
                 {
                     model: db.Group,
@@ -97,12 +100,12 @@ export const getGroupInvitationById = async (documentId) => {
                 {
                     model: db.User,
                     as: 'inviter',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
                 },
                 {
                     model: db.User,
                     as: 'invitee',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
                 },
                 {
                     model: db.Group,
@@ -173,21 +176,21 @@ export const checkCancelPermission = async (userId, invitation) => {
 // Tạo lời mời vào nhóm
 export const createGroupInvitation = async (invitationData) => {
     try {
-        // Kiểm tra xem người dùng đã có lời mời vào nhóm này chưa
-        const existingInvitation = await db.group_invitation.findOne({
-            where: {
-                group_id: invitationData.group_id,
-                invited_to: invitationData.invited_to,
-                [Op.or]: [
-                    { status_action_id: null },
-                    { status_action_id: { [Op.eq]: null } }
-                ]
-            }
-        });
+        // // Kiểm tra xem người dùng đã có lời mời vào nhóm này chưa
+        // const existingInvitation = await db.group_invitation.findOne({
+        //     where: {
+        //         group_id: invitationData.group_id,
+        //         invited_to: invitationData.invited_to,
+        //         [Op.or]: [
+        //             { status_action_id: null },
+        //             { status_action_id: { [Op.eq]: null } }
+        //         ]
+        //     }
+        // });
 
-        if (existingInvitation) {
-            throw new Error('Người dùng này đã có lời mời vào nhóm chưa được phản hồi');
-        }
+        // if (existingInvitation) {
+        //     throw new Error('Người dùng này đã có lời mời vào nhóm chưa được phản hồi');
+        // }
 
         // Kiểm tra xem người dùng đã là thành viên của nhóm chưa
         const isMember = await groupMemberService.checkGroupMembership(invitationData.invited_to, invitationData.group_id);
@@ -272,12 +275,12 @@ export const getInvitationsByGroupId = async (groupId) => {
                 {
                     model: db.User,
                     as: 'inviter',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
                 },
                 {
                     model: db.User,
                     as: 'invitee',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
                 },
                 {
                     model: db.StatusAction,
@@ -302,7 +305,7 @@ export const getInvitationsByUserId = async (userId) => {
                 {
                     model: db.User,
                     as: 'inviter',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar']
+                    attributes: ['documentId', 'fullname', 'email', 'avatar_id']
                 },
                 {
                     model: db.Group,

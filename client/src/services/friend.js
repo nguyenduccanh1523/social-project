@@ -96,16 +96,16 @@ export const apiGetFriendSent = ({ documentId }) =>
     }
   });
 
-export const apiGetFriendMore = ({ documentId }) =>
+export const apiGetFriendMore = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
         url:
-          `/friends?populate=*` +
-          `&filters[$and][0][friend_id][documentId][$ne]=${documentId}` +
-          `&filters[$and][1][user_id][documentId][$ne]=${documentId}` +
-          `&pagination[pageSize]=100&pagination[page]=1`,
+          `/friends/non-friends?populate=*&sort=createdAt:DESC&userId=${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
