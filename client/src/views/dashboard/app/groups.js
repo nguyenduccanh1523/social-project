@@ -12,10 +12,14 @@ import { useSelector } from "react-redux";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { apiGetGroupRequest } from "../../../services/groupServices/groupRequest";
-import { apiGetGroupMembers } from "../../../services/groupServices/groupMembers";
+import { apiCreateMemberGroup, apiGetGroupMembers } from "../../../services/groupServices/groupMembers";
 import { apiGetGroup } from "../../../services/groupServices/group";
-import { apiGetGroupRequestUser, apiCreateGroupRequest, apiCheckGroupRequestUser, apiUpdateGroupRequest } from "../../../services/groupServices/groupRequest";
-
+import {
+  apiGetGroupRequestUser,
+  apiCreateGroupRequest,
+  apiCheckGroupRequestUser,
+  apiUpdateGroupRequest,
+} from "../../../services/groupServices/groupRequest";
 
 const Groups = () => {
   const queryClient = useQueryClient();
@@ -27,7 +31,7 @@ const Groups = () => {
 
   // Fetch all groups
   const { data: groupsData, isLoading: groupsLoading } = useQuery({
-    queryKey: ['groups', token],
+    queryKey: ["groups", token],
     queryFn: () => apiGetGroup({ token }),
     enabled: !!token,
     onSuccess: (data) => {
@@ -35,14 +39,14 @@ const Groups = () => {
     },
     onError: (error) => {
       console.error("Error fetching groups data:", error);
-    }
+    },
   });
 
   const groups = groupsData?.data?.data || [];
 
   // Fetch group members for each group using useQuery
   const { data: groupMembersMap = {}, isLoading: membersLoading } = useQuery({
-    queryKey: ['groupMembers', groups, token],
+    queryKey: ["groupMembers", groups, token],
     queryFn: async () => {
       const membersMap = {};
       if (groups.length > 0) {
@@ -52,7 +56,10 @@ const Groups = () => {
             const response = await apiGetGroupMembers({ groupId, token });
             membersMap[groupId] = response.data?.data || [];
           } catch (error) {
-            console.error(`Error fetching members for group ${groupId}:`, error);
+            console.error(
+              `Error fetching members for group ${groupId}:`,
+              error
+            );
             membersMap[groupId] = [];
           }
         }
@@ -67,7 +74,10 @@ const Groups = () => {
       const requests = {};
       for (const group of groups || []) {
         const groupId = group?.documentId;
-        const response = await apiGetGroupRequest({ groupId: groupId, token: token });
+        const response = await apiGetGroupRequest({
+          groupId: groupId,
+          token: token,
+        });
         requests[groupId] = response.data?.data.length;
       }
       setGroupRequests(requests);
@@ -89,17 +99,18 @@ const Groups = () => {
     return status;
   };
 
-  const { data: membershipStatus = {}, refetch: refetchMembershipStatus } = useQuery({
-    queryKey: ["membershipStatus", groups, token],
-    queryFn: fetchMembershipStatus,
-    enabled: !!groups?.length && !!token,
-  });
+  const { data: membershipStatus = {}, refetch: refetchMembershipStatus } =
+    useQuery({
+      queryKey: ["membershipStatus", groups, token],
+      queryFn: fetchMembershipStatus,
+      enabled: !!groups?.length && !!token,
+    });
 
   const checkGroupMembership = async (groupId, token) => {
     try {
       const response = await apiGetGroupMembers({ groupId, token });
       const members = response.data?.data || [];
-      return members.some(member => member.user_id === user?.documentId);
+      return members.some((member) => member.user_id === user?.documentId);
     } catch (error) {
       console.error("Error checking group membership:", error);
       return false;
@@ -108,17 +119,49 @@ const Groups = () => {
 
   const checkGroupRequestSent = async (groupId) => {
     try {
-      const response = await apiGetGroupRequestUser({ groupId, userId: user?.documentId });
+      const response = await apiGetGroupRequestUser({
+        groupId,
+        userId: user?.documentId,
+      });
       return response.data?.data.length > 0;
     } catch (error) {
       console.error("Error checking group request:", error);
       return false;
     }
   };
+  
+  const handleSendRequestPublic = async (groupId) => {
+    try {
+      // const response = await apiCheckGroupRequestUser({ groupId, userId: user?.documentId, token: token });
+
+      const payload = {
+        groupId: groupId,
+        userId: user?.documentId
+      };
+
+      await apiCreateMemberGroup({ payload, token });
+
+      queryClient.invalidateQueries("membershipStatus"); // Refetch membership status to update the UI
+      notification.success({
+        message: "Success",
+        description: "Joined successfully",
+      });
+    } catch (error) {
+      console.error("Error sending group request:", error);
+      notification.error({
+        message: "Error",
+        description: "Failed to send request",
+      });
+    }
+  };
 
   const handleSendRequest = async (groupId) => {
     try {
-      const response = await apiCheckGroupRequestUser({ groupId, userId: user?.documentId, token: token });
+      const response = await apiCheckGroupRequestUser({
+        groupId,
+        userId: user?.documentId,
+        token: token,
+      });
       if (response.data?.data.length > 0) {
         const requestId = response.data.data[0].documentId;
         const payload = {
@@ -133,7 +176,7 @@ const Groups = () => {
         };
         await apiCreateGroupRequest(payload, token);
       }
-      queryClient.invalidateQueries('membershipStatus'); // Refetch membership status to update the UI
+      queryClient.invalidateQueries("membershipStatus"); // Refetch membership status to update the UI
       notification.success({
         message: "Success",
         description: "Request sent successfully",
@@ -149,14 +192,18 @@ const Groups = () => {
 
   const handleCancelRequest = async (groupId) => {
     try {
-      const response = await apiCheckGroupRequestUser({ groupId, userId: user?.documentId, token: token });
+      const response = await apiCheckGroupRequestUser({
+        groupId,
+        userId: user?.documentId,
+        token: token,
+      });
       if (response.data?.data.length > 0) {
         const requestId = response.data.data[0].documentId;
         const payload = {
           statusActionId: "aei7fjtmxrzz3hkmorgwy0gm",
         };
         await apiUpdateGroupRequest({ documentId: requestId, payload, token });
-        queryClient.invalidateQueries('membershipStatus'); // Refetch membership status to update the UI
+        queryClient.invalidateQueries("membershipStatus"); // Refetch membership status to update the UI
         notification.success({
           message: "Success",
           description: "Request cancelled successfully",
@@ -181,13 +228,16 @@ const Groups = () => {
               groups.map((group, index) => {
                 // Lấy thành viên của nhóm hiện tại từ useQuery
                 const groupMembers = groupMembersMap[group.documentId] || [];
-                const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
+                const validGroupMembers = Array.isArray(groupMembers)
+                  ? groupMembers
+                  : [];
                 const isJoined = validGroupMembers.some(
                   (member) => member?.user_id === document
                 );
                 const groupId = group.documentId;
                 const groupDetailsAvailable = group;
-                const { isMember, requestSent } = membershipStatus[groupId] || {};
+                const { isMember, requestSent } =
+                  membershipStatus[groupId] || {};
 
                 return (
                   <Card className="mb-0" key={group.id || index}>
@@ -205,9 +255,13 @@ const Groups = () => {
                         <p>{group.description}</p>
                         <div className="d-flex align-items-center justify-content-center gap-2">
                           <span className="material-symbols-outlined">
-                            {group?.type?.name === "private" ? "lock" : "public"}
+                            {group?.type?.name === "private"
+                              ? "lock"
+                              : "public"}
                           </span>
-                          {group?.type?.name === "private" ? " Private Group" : " Public Group"}
+                          {group?.type?.name === "private"
+                            ? " Private Group"
+                            : " Public Group"}
                         </div>
                       </div>
                       <div className="group-details d-inline-block pb-3">
@@ -234,7 +288,10 @@ const Groups = () => {
                               <Link to="#" className="iq-media" key={index}>
                                 <img
                                   className="img-fluid avatar-40 rounded-circle"
-                                  src={member?.user?.avatarMedia?.file_path || user05}
+                                  src={
+                                    member?.user?.avatarMedia?.file_path ||
+                                    user05
+                                  }
                                   alt="user-img"
                                 />
                               </Link>
@@ -242,8 +299,8 @@ const Groups = () => {
                         </div>
                       </div>
 
-                      {isMember !== undefined && (
-                        isMember ? (
+                      {isMember !== undefined &&
+                        (isMember ? (
                           <Link
                             to={`/group-detail/${groupId}`}
                             state={{ documentId: groupId }}
@@ -286,40 +343,37 @@ const Groups = () => {
                               </Link>
                             )}
                           </div>
+                        ) : group?.type?.name === "private" ? (
+                          <button
+                            type="submit"
+                            className="btn btn-primary d-block w-100"
+                            onClick={() => handleSendRequest(groupId)}
+                          >
+                            Send request
+                          </button>
                         ) : (
-                          group?.type?.name === "private" ? (
+                          <div className="d-flex gap-2 align-items-center">
                             <button
                               type="submit"
-                              className="btn btn-primary d-block w-100"
-                              onClick={() => handleSendRequest(groupId)}
+                              className="btn btn-primary d-block w-100 flex-fill"
+                              onClick={() => handleSendRequestPublic(groupId)}
                             >
-                              Send request
+                              Join
                             </button>
-                          ) : (
-                            <div className="d-flex gap-2 align-items-center">
+                            <Link
+                              to={`/group-detail/${groupId}`}
+                              state={{ documentId: groupId }}
+                              className="flex-fill"
+                            >
                               <button
                                 type="submit"
-                                className="btn btn-primary d-block w-100 flex-fill"
-                                onClick={() => handleSendRequest(groupId)}
+                                className="btn btn-secondary d-block w-100"
                               >
-                                Send request
+                                Access
                               </button>
-                              <Link
-                                to={`/group-detail/${groupId}`}
-                                state={{ documentId: groupId }}
-                                className="flex-fill"
-                              >
-                                <button
-                                  type="submit"
-                                  className="btn btn-secondary d-block w-100"
-                                >
-                                  Access
-                                </button>
-                              </Link>
-                            </div>
-                          )
-                        )
-                      )}
+                            </Link>
+                          </div>
+                        ))}
                     </Card.Body>
                   </Card>
                 );

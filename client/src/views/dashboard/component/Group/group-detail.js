@@ -11,9 +11,8 @@ import {
 } from "react-bootstrap";
 import { Link, useLocation, useParams } from "react-router-dom";
 import PostItem from "../postItem";
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MdGroup, MdGroups, MdChat } from "react-icons/md";
-
 
 //image
 import user1 from "../../../../assets/images/user/05.jpg";
@@ -35,40 +34,42 @@ import IconEdit from "../../icons/uiverse/iconEdit";
 import EditGroup from "./editGroup";
 import InviteFriendsModal from "./actionGroup/modalInvited";
 import MemberRequest from "./actionGroup/memberRequest";
-import { apiGetGroupMembers } from "../../../../services/groupServices/groupMembers";
+import { apiCreateMemberGroup, apiGetGroupMembers } from "../../../../services/groupServices/groupMembers";
 import { apiGetGroupPost } from "../../../../services/groupServices/groupPost";
 import { apiGetGroupRequest } from "../../../../services/groupServices/groupRequest";
 import { apiFindOneGroup } from "../../../../services/groupServices/group";
-
+import { apiGetGroupMembersUser } from "../../../../services/groupServices/groupMembers";
+import axios from "axios";
+import { notification } from "antd";
 
 const GroupDetail = () => {
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [show, setShow] = useState(false);
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const location = useLocation();
   const params = useParams();
-  
+
   // Lấy documentId từ state hoặc từ URL params nếu không có trong state
   let { documentId } = location?.state || {};
-  
+
   // Nếu không có documentId trong state, lấy từ URL params
   if (!documentId && params.id) {
     documentId = params.id;
   }
-  
+
   // console.log("documentId từ location:", documentId, "location state:", location.state, "params:", params);
-  
+
   const { token, user } = useSelector((state) => state.root.auth || {});
   const { profile } = useSelector((state) => state.root.user || {});
   const images = [img12, img13, img14, img15, img16];
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inviteModalShow, setInviteModalShow] = useState(false);
-  
-
+  const [isJoining, setIsJoining] = useState(false);
 
   const { data: GroupDatas } = useQuery({
-    queryKey: ['groups', documentId],
+    queryKey: ["groups", documentId],
     queryFn: () => apiFindOneGroup({ groupId: documentId, token: token }),
     enabled: !!documentId && !!token,
     staleTime: 600000, // 10 minutes
@@ -79,7 +80,7 @@ const GroupDetail = () => {
   // console.log("oldData", oldData);
 
   const { data: groupMembersData } = useQuery({
-    queryKey: ['groupMembers', oldData?.documentId],
+    queryKey: ["groupMembers", oldData?.documentId],
     queryFn: () => apiGetGroupMembers({ groupId: oldData.documentId }),
     enabled: !!oldData?.documentId,
     staleTime: 600000, // 10 minutes
@@ -87,22 +88,34 @@ const GroupDetail = () => {
   });
 
   const { data: groupPostsData } = useQuery({
-    queryKey: ['groupPosts', oldData?.documentId],
+    queryKey: ["groupPosts", oldData?.documentId],
     queryFn: () => apiGetGroupPost({ groupId: oldData.documentId }),
     enabled: !!oldData?.documentId,
     staleTime: 600000, // 10 minutes
     refetchOnWindowFocus: false,
   });
 
-  const {data: groupRequestsData} = useQuery({
-    queryKey: ['groupRequests', oldData?.documentId],
+  const { data: groupRequestsData } = useQuery({
+    queryKey: ["groupRequests", oldData?.documentId],
     queryFn: () => apiGetGroupRequest({ groupId: oldData.documentId }),
     enabled: !!oldData?.documentId,
     staleTime: 600000, // 10 minutes
     refetchOnWindowFocus: false,
   });
 
-
+  // Check if current user is a member of the group
+  const { data: userMembershipData } = useQuery({
+    queryKey: ["groupMembership", oldData?.documentId, user?.documentId],
+    queryFn: () =>
+      apiGetGroupMembersUser({
+        groupId: oldData.documentId,
+        userId: user.documentId,
+        token: token,
+      }),
+    enabled: !!oldData?.documentId && !!user?.documentId && !!token,
+    staleTime: 600000, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
 
   const groupMembers = groupMembersData?.data?.data || [];
   const groupPosts = groupPostsData?.data?.data || [];
@@ -110,17 +123,53 @@ const GroupDetail = () => {
   const validGroupMembers = Array.isArray(groupMembers) ? groupMembers : [];
   // console.log("validGroupMembers", validGroupMembers);
 
-   //console.log("oldData  ", groupRequests);
+  //console.log("oldData  ", groupRequests);
   // console.log("groupMembers", groupMembers);
   // console.log("groupPosts", groupPosts);
+
+  const isMember = userMembershipData?.data?.data?.length > 0;
+
+  const handleSendRequestPublic = async (groupId) => {
+    if (!groupId || isJoining) return;
+
+    setIsJoining(true);
+    try {
+      
+
+      const payload = {
+        groupId: groupId,
+        userId: user?.documentId
+      };
+
+      await apiCreateMemberGroup({ payload, token });
+
+      queryClient.invalidateQueries("groupMembership"); // Refetch membership status to update the UI
+      notification.success({
+        message: "Success",
+        description: "Joined successfully",
+      });
+    } catch (error) {
+      console.error("Error sending group request:", error);
+        notification.error({
+          message: "Error",
+          description: "Failed to send request",
+        });
+    } finally {
+      setIsJoining(false);
+    }
+  };
 
   return (
     <>
       <div className="header-for-bg">
-        <div className="background-header position-relative text-center" >
-          <img src={oldData?.image?.file_path} className="img-fluid" alt="header-bg" style={{ width: '1000px', height: '350px' }} />
-          <div className="title-on-header">
-          </div>
+        <div className="background-header position-relative text-center">
+          <img
+            src={oldData?.image?.file_path}
+            className="img-fluid"
+            alt="header-bg"
+            style={{ width: "1000px", height: "350px" }}
+          />
+          <div className="title-on-header"></div>
         </div>
       </div>
       <div id="content-page" className="content-page">
@@ -135,17 +184,25 @@ const GroupDetail = () => {
                       <span className="material-symbols-outlined">
                         {oldData?.type?.name === "private" ? "lock" : "public"}
                       </span>
-                      {oldData?.type?.name === "private" ? "Private Group" : "Public Group"} .{" "}
-                      {oldData?.members?.length} members
+                      {oldData?.type?.name === "private"
+                        ? "Private Group"
+                        : "Public Group"}{" "}
+                      . {oldData?.members?.length} members
                     </p>
                     <div className="iq-media-group me-3 mt-2 ">
                       {validGroupMembers
                         .slice(0, 8) // Change slice to show 8 members instead of 6
                         .map((member, index) => (
-                          <Link to="#" className="iq-media" key={member?.users?.documentId || index}>
+                          <Link
+                            to="#"
+                            className="iq-media"
+                            key={member?.users?.documentId || index}
+                          >
                             <img
                               className="img-fluid avatar-40 rounded-circle"
-                              src={member?.user?.avatarMedia?.file_path || user1} // Use user1 as fallback
+                              src={
+                                member?.user?.avatarMedia?.file_path || user1
+                              } // Use user1 as fallback
                               alt="profile-img"
                             />
                           </Link>
@@ -155,27 +212,56 @@ const GroupDetail = () => {
                 </div>
 
                 <div className="group-member d-flex align-items-center mt-2 mt-md-0">
-                  <Button variant="primary" className="mb-2 me-2 d-flex align-items-center" onClick={() => setInviteModalShow(true)}>
+                  <Button
+                    variant="primary"
+                    className="mb-2 me-2 d-flex align-items-center"
+                    onClick={() => setInviteModalShow(true)}
+                  >
                     <span className="material-symbols-outlined">
                       add_circle
-                    </span>Invite
-                  </Button>
-                  
-                  <Button variant="danger" className="mb-2 me-2 d-flex align-items-center">
-                    <span className="material-symbols-outlined">
-                      share
-                    </span>Share
+                    </span>
+                    Invite
                   </Button>
 
-                  <Dropdown>
-                    <Dropdown.Toggle as={Button} variant="secondary" className="mb-2 d-flex align-items-center gap-1">
-                      <span className="material-symbols-outlined">groups</span>
-                      Participated
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu>
-                      <ActionGroup oldData={oldData} profile={user} />
-                    </Dropdown.Menu>
-                  </Dropdown>
+                  <Button
+                    variant="danger"
+                    className="mb-2 me-2 d-flex align-items-center"
+                  >
+                    <span className="material-symbols-outlined">share</span>
+                    Share
+                  </Button>
+
+                  {isMember ? (
+                    <Dropdown>
+                      <Dropdown.Toggle
+                        as={Button}
+                        variant="secondary"
+                        className="mb-2 d-flex align-items-center gap-1"
+                      >
+                        <span className="material-symbols-outlined">
+                          groups
+                        </span>
+                        Participated
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <ActionGroup oldData={oldData} profile={user} />
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      className="mb-2 d-flex align-items-center gap-1"
+                      onClick={() =>
+                        handleSendRequestPublic(oldData?.documentId)
+                      }
+                      disabled={isJoining}
+                    >
+                      <span className="material-symbols-outlined">
+                        person_add
+                      </span>
+                      {isJoining ? "Joining..." : "Join Group"}
+                    </Button>
+                  )}
                 </div>
               </div>
             </Col>
@@ -230,7 +316,8 @@ const GroupDetail = () => {
                                   <div className="flex-grow-1 ms-3">
                                     <h6>Private</h6>
                                     <p className="mb-0">
-                                      Only members can see everyone in the group and what they post.
+                                      Only members can see everyone in the group
+                                      and what they post.
                                     </p>
                                   </div>
                                 </div>
@@ -244,7 +331,8 @@ const GroupDetail = () => {
                                   <div className="flex-grow-1 ms-3">
                                     <h6>Public</h6>
                                     <p className="mb-0">
-                                      Anyone can see who's in the group and what they post.
+                                      Anyone can see who's in the group and what
+                                      they post.
                                     </p>
                                   </div>
                                 </div>
@@ -275,9 +363,18 @@ const GroupDetail = () => {
                                 <div className="flex-grow-1 ms-3">
                                   <h6>History</h6>
                                   <p className="mb-0">
-                                    {oldData?.createdAt && oldData?.updatedAt ? (
+                                    {oldData?.createdAt &&
+                                    oldData?.updatedAt ? (
                                       <>
-                                        Group created on {convertToVietnamDate(oldData?.createdAt)}. Last name changed on {convertToVietnamDate(oldData?.updatedAt)}.
+                                        Group created on{" "}
+                                        {convertToVietnamDate(
+                                          oldData?.createdAt
+                                        )}
+                                        . Last name changed on{" "}
+                                        {convertToVietnamDate(
+                                          oldData?.updatedAt
+                                        )}
+                                        .
                                       </>
                                     ) : (
                                       "Loading history..."
@@ -300,23 +397,25 @@ const GroupDetail = () => {
                             <li className="mb-3">
                               <div className="d-flex">
                                 <div className="flex-shrink-0">
-                                  <MdChat style={{ fontSize: '22px' }} />
+                                  <MdChat style={{ fontSize: "22px" }} />
                                 </div>
                                 <div className="flex-grow-1 ms-3">
-                                  <h6>There are {oldData?.posts?.length} posts</h6>
-                                  <p className="mb-0">
-                                    News post.
-                                  </p>
+                                  <h6>
+                                    There are {oldData?.posts?.length} posts
+                                  </h6>
+                                  <p className="mb-0">News post.</p>
                                 </div>
                               </div>
                             </li>
                             <li className="mb-3">
                               <div className="d-flex">
                                 <div className="flex-shrink-0">
-                                  <MdGroup style={{ fontSize: '22px' }} />
+                                  <MdGroup style={{ fontSize: "22px" }} />
                                 </div>
                                 <div className="flex-grow-1 ms-3">
-                                  <h6>Total {oldData?.members?.length} members</h6>
+                                  <h6>
+                                    Total {oldData?.members?.length} members
+                                  </h6>
                                   <p className="mb-0">
                                     Anyone can find this group.
                                   </p>
@@ -326,14 +425,18 @@ const GroupDetail = () => {
                             <li>
                               <div className="d-flex">
                                 <div className="flex-shrink-0">
-                                  <MdGroups style={{ fontSize: '22px' }} />
+                                  <MdGroups style={{ fontSize: "22px" }} />
                                 </div>
                                 <div className="flex-grow-1 ms-3">
                                   <h6>Date Created: </h6>
                                   <p className="mb-0">
-                                    {oldData?.createdAt && oldData?.updatedAt ? (
+                                    {oldData?.createdAt &&
+                                    oldData?.updatedAt ? (
                                       <>
-                                        {formatDistanceToNow(new Date(oldData?.createdAt), { addSuffix: true })}
+                                        {formatDistanceToNow(
+                                          new Date(oldData?.createdAt),
+                                          { addSuffix: true }
+                                        )}
                                       </>
                                     ) : (
                                       "Loading history..."
@@ -353,7 +456,11 @@ const GroupDetail = () => {
                         </div>
                       </Col>
                     )}
-                    <EditGroup oldData={oldData} open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+                    <EditGroup
+                      oldData={oldData}
+                      open={drawerOpen}
+                      onClose={() => setDrawerOpen(false)}
+                    />
                   </Row>
                 </Tab.Pane>
                 <Tab.Pane eventKey="f1">
@@ -387,7 +494,10 @@ const GroupDetail = () => {
                             </form>
                           </div>
                           <hr />
-                          <ul className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap" onClick={handleShow}>
+                          <ul
+                            className=" post-opt-block d-flex list-inline m-0 p-0 flex-wrap"
+                            onClick={handleShow}
+                          >
                             <li className="bg-soft-primary rounded p-2 pointer d-flex align-items-center me-3 mb-md-0 mb-2">
                               <img
                                 src={small1}
@@ -427,7 +537,12 @@ const GroupDetail = () => {
                             </li>
                           </ul>
                         </Card.Body>
-                        <CreatePost show={show} handleClose={handleClose} profile={user} group={oldData} />
+                        <CreatePost
+                          show={show}
+                          handleClose={handleClose}
+                          profile={user}
+                          group={oldData}
+                        />
                       </Card>
                       <Card>
                         <Card.Body>
@@ -463,7 +578,8 @@ const GroupDetail = () => {
                                   <div className="flex-grow-1 ms-3">
                                     <h6>Private</h6>
                                     <p className="mb-0">
-                                      Only members can see everyone in the group and what they post.
+                                      Only members can see everyone in the group
+                                      and what they post.
                                     </p>
                                   </div>
                                 </div>
@@ -477,7 +593,8 @@ const GroupDetail = () => {
                                   <div className="flex-grow-1 ms-3">
                                     <h6>Public</h6>
                                     <p className="mb-0">
-                                      Anyone can see who's in the group and what they post.
+                                      Anyone can see who's in the group and what
+                                      they post.
                                     </p>
                                   </div>
                                 </div>
@@ -505,7 +622,10 @@ const GroupDetail = () => {
                   </Row>
                 </Tab.Pane>
                 <Tab.Pane eventKey="f2">
-                  {groupRequests.length > 0 && oldData?.admin?.documentId === user?.documentId && <MemberRequest requests={groupRequests} />}
+                  {groupRequests.length > 0 &&
+                    oldData?.admin?.documentId === user?.documentId && (
+                      <MemberRequest requests={groupRequests} />
+                    )}
                   <Row>
                     {oldData?.admin && (
                       <Col md={6}>
@@ -528,7 +648,8 @@ const GroupDetail = () => {
                                         <img
                                           loading="lazy"
                                           src={
-                                            oldData?.admin?.avatarMedia?.file_path || user1
+                                            oldData?.admin?.avatarMedia
+                                              ?.file_path || user1
                                           }
                                           alt="profile-img"
                                           className="avatar-130 img-fluid"
@@ -585,7 +706,8 @@ const GroupDetail = () => {
                                           <img
                                             loading="lazy"
                                             src={
-                                              member?.user?.avatarMedia?.file_path || user1
+                                              member?.user?.avatarMedia
+                                                ?.file_path || user1
                                             }
                                             alt="profile-img"
                                             className="avatar-130 img-fluid"
@@ -622,11 +744,14 @@ const GroupDetail = () => {
           </Row>
         </Container>
       </div>
-      <InviteFriendsModal oldData={oldData} profile={user} show={inviteModalShow} handleClose={() => setInviteModalShow(false)} />
+      <InviteFriendsModal
+        oldData={oldData}
+        profile={user}
+        show={inviteModalShow}
+        handleClose={() => setInviteModalShow(false)}
+      />
     </>
   );
 };
 
 export default GroupDetail;
-
-

@@ -132,7 +132,6 @@ const MyGroups = () => {
                 const groupDetailsData = groupDetails[groupId] || {};
                 
                 const groupMembersList = groupMembers[groupId] || [];
-                console.log("Group Members:", groupMembersList);
 
                 return (
                   <Card className="mb-0" key={groupId} style={{ position: "relative" }}>

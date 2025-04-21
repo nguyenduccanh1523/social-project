@@ -34,13 +34,15 @@ const SignIn = () => {
   const [formData, setFormData] = useState({
     identifier: "",
     password: "",
-    remember: false
+    remember: false,
   });
 
   const [errors, setErrors] = useState({
     identifier: "",
     password: "",
   });
+
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { id, type, checked, value } = e.target;
@@ -55,12 +57,12 @@ const SignIn = () => {
       const token = localStorage.getItem("token");
       const isNewLogin = sessionStorage.getItem("isNewLogin");
       if (token && isNewLogin === "true") {
-        navigate("/"); 
+        navigate("/");
         Swal.fire({
-          title: "Thành công!",
-          text: "Bạn đã đăng nhập thành công!",
+          title: "Success!",
+          text: "You have successfully logged in!",
           icon: "success",
-          confirmButtonText: "OK"
+          confirmButtonText: "OK",
         });
         sessionStorage.removeItem("isNewLogin");
         dispatch(actions.clearMessage());
@@ -70,14 +72,14 @@ const SignIn = () => {
 
   useEffect(() => {
     if (msg && !isLoggedIn) {
-      const icon = msg === "Đăng nhập thành công" ? "success" : "error";
-      const title = msg === "Đăng nhập thành công" ? "Thành công!" : "Lỗi";
-      
+      const icon = msg === "Login successful" ? "success" : "error";
+      const title = msg === "Login successful" ? "Success!" : "Error";
+
       Swal.fire({
         title: title,
         text: msg,
         icon: icon,
-        confirmButtonText: "OK"
+        confirmButtonText: "OK",
       }).then(() => {
         dispatch(actions.clearMessage());
       });
@@ -90,12 +92,12 @@ const SignIn = () => {
     let newErrors = { identifier: "", password: "" };
 
     if (!formData.identifier) {
-      newErrors.identifier = "Email hoặc tên đăng nhập là bắt buộc";
+      newErrors.identifier = "Email or username is required";
       valid = false;
     }
 
     if (!formData.password) {
-      newErrors.password = "Mật khẩu là bắt buộc";
+      newErrors.password = "Password is required";
       valid = false;
     }
 
@@ -106,7 +108,7 @@ const SignIn = () => {
         identifier: formData.identifier,
         password: formData.password,
       };
-      
+
       dispatch(actions.login(payload));
     }
   };
@@ -187,18 +189,16 @@ const SignIn = () => {
             </Col>
             <Col md="6" className="bg-white pt-5 pt-5 pb-lg-0 pb-5">
               <div className="sign-in-from">
-                <h1 className="mb-0">Đăng nhập</h1>
-                <p>
-                  Nhập thông tin đăng nhập của bạn để truy cập vào hệ thống.
-                </p>
+                <h1 className="mb-0">Sign In</h1>
+                <p>Enter your login information to access the system.</p>
                 <Form className="mt-4" onSubmit={handleSubmit}>
                   <Form.Group className="form-group">
-                    <Form.Label>Email hoặc tên đăng nhập</Form.Label>
+                    <Form.Label>Email or Username</Form.Label>
                     <Form.Control
                       type="text"
                       className="mb-0"
                       id="identifier"
-                      placeholder="Nhập email hoặc tên đăng nhập"
+                      placeholder="Enter email or username"
                       value={formData.identifier}
                       onChange={handleChange}
                     />
@@ -207,18 +207,40 @@ const SignIn = () => {
                     )}
                   </Form.Group>
                   <Form.Group className="form-group">
-                    <Form.Label>Mật khẩu</Form.Label>
+                    <Form.Label>Password</Form.Label>
                     <Link to="#" className="float-end">
-                      Quên mật khẩu?
+                      Forgot password?
                     </Link>
-                    <Form.Control
-                      type="password"
-                      className="mb-0"
-                      id="password"
-                      placeholder="Mật khẩu"
-                      value={formData.password}
-                      onChange={handleChange}
-                    />
+                    <div className="position-relative">
+                      <Form.Control
+                        type={showPassword ? "text" : "password"}
+                        className="mb-0"
+                        id="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-link position-absolute end-0 top-0 text-decoration-none"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          height: "100%",
+                        }}
+                      >
+                        {showPassword ? (
+                          <span class="material-symbols-outlined">
+                            visibility_off
+                          </span>
+                        ) : (
+                          <span class="material-symbols-outlined">
+                            visibility
+                          </span>
+                        )}
+                      </button>
+                    </div>
                     {errors.password && (
                       <div className="text-danger">{errors.password}</div>
                     )}
@@ -232,19 +254,19 @@ const SignIn = () => {
                         onChange={handleChange}
                         checked={formData.remember}
                       />
-                      <Form.Check.Label>Ghi nhớ đăng nhập</Form.Check.Label>
+                      <Form.Check.Label>Remember me</Form.Check.Label>
                     </Form.Check>
                     <Button
                       variant="primary"
                       type="submit"
                       className="float-end"
                     >
-                      Đăng nhập
+                      Sign In
                     </Button>
                   </div>
                   <div className="sign-info">
                     <span className="dark-color d-inline-block line-height-2">
-                      Bạn chưa có tài khoản? <Link to="/sign-up">Đăng ký</Link>
+                      Don't have an account? <Link to="/sign-up">Sign Up</Link>
                     </span>
                     <ul className="iq-social-media">
                       <li>

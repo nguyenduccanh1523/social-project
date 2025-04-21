@@ -102,7 +102,7 @@ export const removeGroupMember = async (req, res) => {
         const { id } = req.params;
         
         // Lấy thông tin thành viên nhóm
-        const groupMember = await groupMemberService.getGroupMemberById(id);
+        // const groupMember = await groupMemberService.getGroupMemberById(id);
         
         const result = await groupMemberService.removeGroupMember(id);
         

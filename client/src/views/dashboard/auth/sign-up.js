@@ -29,7 +29,7 @@ const SignUp = () => {
   const { isLoggedIn, msg, loading, user } = useSelector(
     (state) => state.root.auth || {}
   );
-  
+
   const [formData, setFormData] = useState({
     email: "",
     username: "",
@@ -37,7 +37,7 @@ const SignUp = () => {
     confirmPassword: "",
     acceptTerms: false,
   });
-  
+
   const [errors, setErrors] = useState({
     email: "",
     username: "",
@@ -46,16 +46,19 @@ const SignUp = () => {
     acceptTerms: "",
   });
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   useEffect(() => {
     if (isLoggedIn && user) {
       const token = localStorage.getItem("token");
       if (token) {
         navigate("/");
         Swal.fire({
-          title: "Thành công!",
-          text: "Bạn đã đăng ký thành công!",
+          title: "Success!",
+          text: "You have successfully registered!",
           icon: "success",
-          confirmButtonText: "OK"
+          confirmButtonText: "OK",
         });
         dispatch(actions.clearMessage());
       }
@@ -64,14 +67,14 @@ const SignUp = () => {
 
   useEffect(() => {
     if (msg && !isLoggedIn) {
-      const icon = msg === "Đăng ký thành công" ? "success" : "error";
-      const title = msg === "Đăng ký thành công" ? "Thành công!" : "Lỗi";
-      
+      const icon = msg === "Registration successful" ? "success" : "error";
+      const title = msg === "Registration successful" ? "Success!" : "Error";
+
       Swal.fire({
         title: title,
         text: msg,
         icon: icon,
-        confirmButtonText: "OK"
+        confirmButtonText: "OK",
       }).then(() => {
         dispatch(actions.clearMessage());
       });
@@ -89,45 +92,45 @@ const SignUp = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     let valid = true;
-    let newErrors = { 
-      email: "", 
-      username: "", 
-      password: "", 
-      confirmPassword: "", 
-      acceptTerms: "" 
+    let newErrors = {
+      email: "",
+      username: "",
+      password: "",
+      confirmPassword: "",
+      acceptTerms: "",
     };
-    
+
     if (!formData.email) {
-      newErrors.email = "Email là bắt buộc";
+      newErrors.email = "Email is required";
       valid = false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email không hợp lệ";
+      newErrors.email = "Email is invalid";
       valid = false;
     }
 
     if (!formData.username) {
-      newErrors.username = "Tên đăng nhập là bắt buộc";
+      newErrors.username = "Username is required";
       valid = false;
     }
 
     if (!formData.password) {
-      newErrors.password = "Mật khẩu là bắt buộc";
+      newErrors.password = "Password is required";
       valid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = "Mật khẩu phải có ít nhất 6 ký tự";
+      newErrors.password = "Password must be at least 6 characters";
       valid = false;
     }
 
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Xác nhận mật khẩu là bắt buộc";
+      newErrors.confirmPassword = "Confirm password is required";
       valid = false;
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Mật khẩu không khớp";
+      newErrors.confirmPassword = "Passwords do not match";
       valid = false;
     }
 
     if (!formData.acceptTerms) {
-      newErrors.acceptTerms = "Bạn phải chấp nhận điều khoản và điều kiện";
+      newErrors.acceptTerms = "You must accept the Terms and Conditions";
       valid = false;
     }
 
@@ -138,9 +141,9 @@ const SignUp = () => {
         email: formData.email,
         username: formData.username,
         password: formData.password,
-        confirmPassword: formData.confirmPassword
+        confirmPassword: formData.confirmPassword,
       };
-      
+
       dispatch(actions.register(payload));
     }
   };
@@ -221,10 +224,8 @@ const SignUp = () => {
             </Col>
             <Col md="6" className="bg-white pt-5 pt-5 pb-lg-0 pb-5">
               <div className="sign-in-from">
-                <h1 className="mb-0">Đăng ký</h1>
-                <p>
-                  Nhập thông tin của bạn để tạo tài khoản.
-                </p>
+                <h1 className="mb-0">Sign Up</h1>
+                <p>Enter your information to create an account.</p>
                 <Form className="mt-4" onSubmit={handleSubmit}>
                   <Form.Group className="form-group">
                     <Form.Label>Email</Form.Label>
@@ -232,7 +233,7 @@ const SignUp = () => {
                       type="email"
                       className="mb-0"
                       id="email"
-                      placeholder="Nhập email"
+                      placeholder="Enter email"
                       value={formData.email}
                       onChange={handleChange}
                     />
@@ -241,12 +242,12 @@ const SignUp = () => {
                     )}
                   </Form.Group>
                   <Form.Group className="form-group">
-                    <Form.Label>Tên đăng nhập</Form.Label>
+                    <Form.Label>Username</Form.Label>
                     <Form.Control
                       type="text"
                       className="mb-0"
                       id="username"
-                      placeholder="Tên đăng nhập"
+                      placeholder="Username"
                       value={formData.username}
                       onChange={handleChange}
                     />
@@ -255,31 +256,79 @@ const SignUp = () => {
                     )}
                   </Form.Group>
                   <Form.Group className="form-group">
-                    <Form.Label>Mật khẩu</Form.Label>
-                    <Form.Control
-                      type="password"
-                      className="mb-0"
-                      id="password"
-                      placeholder="Mật khẩu"
-                      value={formData.password}
-                      onChange={handleChange}
-                    />
+                    <Form.Label>Password</Form.Label>
+                    <div className="position-relative">
+                      <Form.Control
+                        type={showPassword ? "text" : "password"}
+                        className="mb-0"
+                        id="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-link position-absolute end-0 top-0 text-decoration-none"
+                        onClick={() => setShowPassword(!showPassword)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          height: "100%",
+                        }}
+                      >
+                        {showPassword ? (
+                          <span class="material-symbols-outlined">
+                            visibility_off
+                          </span>
+                        ) : (
+                          <span class="material-symbols-outlined">
+                            visibility
+                          </span>
+                        )}
+                      </button>
+                    </div>
                     {errors.password && (
                       <div className="text-danger">{errors.password}</div>
                     )}
                   </Form.Group>
                   <Form.Group className="form-group">
-                    <Form.Label>Xác nhận mật khẩu</Form.Label>
-                    <Form.Control
-                      type="password"
-                      className="mb-0"
-                      id="confirmPassword"
-                      placeholder="Xác nhận mật khẩu"
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
-                    />
+                    <Form.Label>Confirm Password</Form.Label>
+                    <div className="position-relative">
+                      <Form.Control
+                        type={showConfirmPassword ? "text" : "password"}
+                        className="mb-0"
+                        id="confirmPassword"
+                        placeholder="Confirm password"
+                        value={formData.confirmPassword}
+                        onChange={handleChange}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-link position-absolute end-0 top-0 text-decoration-none"
+                        onClick={() =>
+                          setShowConfirmPassword(!showConfirmPassword)
+                        }
+                        style={{
+                          background: "none",
+                          border: "none",
+                          height: "100%",
+                        }}
+                      >
+                        {showConfirmPassword ? (
+                          <span class="material-symbols-outlined">
+                            visibility_off
+                          </span>
+                        ) : (
+                          <span class="material-symbols-outlined">
+                            visibility
+                          </span>
+                        )}
+                      </button>
+                    </div>
                     {errors.confirmPassword && (
-                      <div className="text-danger">{errors.confirmPassword}</div>
+                      <div className="text-danger">
+                        {errors.confirmPassword}
+                      </div>
                     )}
                   </Form.Group>
                   <div className="d-inline-block w-100">
@@ -292,22 +341,20 @@ const SignUp = () => {
                         checked={formData.acceptTerms}
                       />
                       <Form.Check.Label>
-                        Tôi đồng ý với <Link to="#">Điều khoản và Điều kiện</Link>
+                        I agree to the <Link to="#">Terms and Conditions</Link>
                       </Form.Check.Label>
                     </Form.Check>
                     {errors.acceptTerms && (
                       <div className="text-danger">{errors.acceptTerms}</div>
                     )}
-                    <Button
-                      type="submit"
-                      className="btn-primary float-end"
-                    >
-                      Đăng ký
+                    <Button type="submit" className="btn-primary float-end">
+                      Sign Up
                     </Button>
                   </div>
                   <div className="sign-info">
                     <span className="dark-color d-inline-block line-height-2">
-                      Bạn đã có tài khoản? <Link to="/sign-in">Đăng nhập</Link>
+                      Already have an account?{" "}
+                      <Link to="/sign-in">Sign In</Link>
                     </span>
                     <ul className="iq-social-media">
                       <li>

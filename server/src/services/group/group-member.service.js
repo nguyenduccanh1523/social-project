@@ -153,7 +153,9 @@ export const addGroupMember = async (memberData) => {
 // Xóa thành viên khỏi nhóm
 export const removeGroupMember = async (documentId) => {
     try {
+        
         const groupMember = await db.group_members.findByPk(documentId);
+        
         
         if (!groupMember) {
             throw new Error('Không tìm thấy thành viên nhóm');
