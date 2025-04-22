@@ -15,12 +15,15 @@ export const apiGetEventRequest = ({ eventId }) =>
         }
     });
 
-export const apiGetEventRequestUser = ({ eventId, userId }) =>{
+export const apiGetEventRequestUser = ({ eventId, userId, token }) =>{
     return new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/event-requests?filters[$and][0][event_id][documentId][$eq]=${eventId}&filters[$and][1][user_request][documentId][$eq]=${userId}&filters[$and][2][request_status][documentId][$eq]=w1t6ex59sh5auezhau5e2ovu&populate=*&sort=createdAt:DESC`,
+                url: `/event-requests?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}&eventId=${eventId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
@@ -50,13 +53,16 @@ export const apiCheckEventRequestUser = ({ eventId, userId }) =>{
 
 
 
-export const apiCreateEventRequest = (payload) =>
+export const apiCreateEventRequest = ({payload, token}) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "post",
                 url: "/event-requests",
                 data: payload,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
@@ -64,16 +70,35 @@ export const apiCreateEventRequest = (payload) =>
         }
     });
 
-export const apiUpdateEventRequest = ({ documentId, payload }) =>
+export const apiUpdateEventRequest = ({ documentId, payload, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "put",
-                url: `/event-requests/${documentId}`,
+                url: `/event-requests/${documentId}/respond`,
                 data: payload,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
             reject(error);
         }
     });
+
+export const apiCancelEventRequest = ({ documentId, token }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "delete",
+                url: `/event-requests/${documentId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    }); 

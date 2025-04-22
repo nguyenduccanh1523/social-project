@@ -48,16 +48,16 @@ export const getAllEventMembers = async ({
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+            "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
         }
       );
     }
 
     // Thực hiện truy vấn
-    const { count, rows } = await db.event_members.findAndCountAll({
+    const { count, rows } = await db.EventMember.findAndCountAll({
       where: whereConditions,
       include: includes,
       order: [[sortField, sortOrder]],
@@ -87,7 +87,7 @@ export const getAllEventMembers = async ({
 // Lấy event-member theo ID
 export const getEventMemberById = async (documentId) => {
   try {
-    const eventMember = await db.event_members.findByPk(documentId, {
+    const eventMember = await db.EventMember.findByPk(documentId, {
       include: [
         {
           model: db.User,
@@ -106,9 +106,9 @@ export const getEventMemberById = async (documentId) => {
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+            "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
           include: [
             {
@@ -145,19 +145,19 @@ export const getEventById = async (eventId) => {
 // Thêm người tham gia vào sự kiện
 export const addEventMember = async (memberData) => {
   try {
-    // Kiểm tra xem đã tồn tại người tham gia trong sự kiện chưa
-    const existingMember = await db.event_members.findOne({
+    //Kiểm tra xem đã tồn tại người tham gia trong sự kiện chưa
+    const existingMember = await db.EventMember.findOne({
       where: {
         event_id: memberData.event_id,
         user_id: memberData.user_id,
+        status: memberData.status,
       },
     });
-
     if (existingMember) {
       throw new Error("Người dùng đã tham gia sự kiện này");
     }
 
-    const newEventMember = await db.event_members.create(memberData);
+    const newEventMember = await db.EventMember.create(memberData);
     return await getEventMemberById(newEventMember.documentId);
   } catch (error) {
     throw new Error(
@@ -169,7 +169,7 @@ export const addEventMember = async (memberData) => {
 // Xóa người tham gia khỏi sự kiện
 export const removeEventMember = async (documentId) => {
   try {
-    const eventMember = await db.event_members.findByPk(documentId);
+    const eventMember = await db.EventMember.findByPk(documentId);
 
     if (!eventMember) {
       throw new Error("Không tìm thấy người tham gia sự kiện");
@@ -196,7 +196,7 @@ export const removeEventMember = async (documentId) => {
 // Lấy danh sách người tham gia của một sự kiện
 export const getEventMembersByEventId = async (eventId) => {
   try {
-    const members = await db.event_members.findAll({
+    const members = await db.EventMember.findAll({
       where: { event_id: eventId },
       include: [
         {
@@ -225,7 +225,7 @@ export const getEventMembersByEventId = async (eventId) => {
 // Lấy danh sách sự kiện mà một người dùng tham gia
 export const getEventMembersByUserId = async (userId) => {
   try {
-    const memberships = await db.event_members.findAll({
+    const memberships = await db.EventMember.findAll({
       where: { user_id: userId },
       include: [
         {
@@ -265,7 +265,7 @@ export const getEventMembersByUserId = async (userId) => {
 // Kiểm tra xem một người dùng có tham gia một sự kiện hay không
 export const checkEventMembership = async (userId, eventId) => {
   try {
-    const membership = await db.event_members.findOne({
+    const membership = await db.EventMember.findOne({
       where: {
         event_id: eventId,
         user_id: userId,

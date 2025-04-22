@@ -84,7 +84,7 @@ export const createEventRequest = async (req, res) => {
     const newRequest = await eventRequestService.createEventRequest({
       event_id: eventId,
       user_request: requestBy,
-      status_action_id: statusActionId,
+      request_status: statusActionId,
       created_at: new Date(),
     });
 

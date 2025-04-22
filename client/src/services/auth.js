@@ -38,7 +38,7 @@ export const apiRefreshToken = (refreshToken) => new Promise(async (resolve, rej
         const response = await axiosConfig({
             method: 'post',
             url: 'auth/refresh',
-            data: { refreshToken }
+            data: { refreshToken },
         })
         console.log('Kết quả refresh token:', response.data);
         resolve(response)

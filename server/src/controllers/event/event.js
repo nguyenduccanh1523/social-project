@@ -78,10 +78,10 @@ export const createEvent = async (req, res) => {
   try {
     const eventData = req.body;
 
-    // Lấy ID của người tạo sự kiện từ token (người đăng nhập)
-    if (!eventData.organizer_id) {
-      eventData.organizer_id = req.user.documentId;
-    }
+    // // Lấy ID của người tạo sự kiện từ token (người đăng nhập)
+    // if (!eventData.organizer_id) {
+    //   eventData.organizer_id = req.user.documentId;
+    // }
 
     const newEvent = await eventService.createEvent(eventData);
 

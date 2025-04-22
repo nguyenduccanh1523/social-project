@@ -3,28 +3,35 @@ import { Modal, Button, Form, ListGroup, Row, Col } from 'react-bootstrap';
 import { Input, notification } from 'antd';
 import { apiGetFriendAccepted } from '../../../../../services/friend';
 import { apiCreateEventInvited, apiEditEventInvited, apiGetEventFriend, apiGetEventInvationFriend } from '../../../../../services/eventServices/event';
+import { useSelector } from 'react-redux';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
 
 const EventInvited = ({ oldData, profile, show, handleClose }) => {
+    const { token } = useSelector((state) => state.root.auth || {});
     const [selectedFriends, setSelectedFriends] = useState([]);
-    const [friendList, setFriendList] = useState([]);
     const [searchText, setSearchText] = useState("");
-    const [isLoading, setIsLoading] = useState(true);
     const [participationStatus, setParticipationStatus] = useState({});
 
-    useEffect(() => {
-        const fetchFriendList = async () => {
-            const response = await apiGetFriendAccepted({ documentId: profile?.documentId });
-            setFriendList(response.data?.data || []);
-            setIsLoading(false);
-        };
-        fetchFriendList();
-    }, [profile?.documentId]);
+    const { data: userAcceptData, isLoading: userAcceptLoading } = useQuery({
+        queryKey: ['userAccept', profile?.documentId, token],
+        queryFn: () => apiGetFriendAccepted({ documentId: profile?.documentId, token: token }),
+        enabled: !!profile?.documentId && !!token,
+        onSuccess: (data) => {
+            console.log("User data fetched successfully:", data);
+        },
+        onError: (error) => {
+            console.error("Error fetching user data:", error);
+        }
+    });
+
+    const friendList = userAcceptData?.data?.data || [];
 
     useEffect(() => {
         const checkParticipation = async () => {
             const status = {};
-            await Promise.all(friendList.map(async (friend) => {
-                const friendData = friend?.user_id?.documentId === profile?.documentId ? friend?.friend_id : friend?.user_id;
+            await Promise.all(friendList?.map(async (friend) => {
+                const friendData = friend?.user?.documentId === profile?.documentId ? friend?.friend : friend?.user;
                 try {
                     const response = await apiGetEventFriend({ eventId: oldData?.documentId, friendId: friendData?.documentId });
                     if (response.data?.data?.length > 0) {
@@ -43,19 +50,21 @@ const EventInvited = ({ oldData, profile, show, handleClose }) => {
 
     const filteredFriendList = friendList.filter(friend => {
         const searchLower = searchText.toLowerCase().trim();
-        const isMatchingUserId = friend?.user_id?.documentId === profile?.documentId;
-        const isMatchingFriendId = friend?.friend_id?.documentId === profile?.documentId;
+        const isMatchingUserId = friend?.user?.documentId === profile?.documentId;
+        const isMatchingFriendId = friend?.friend?.documentId === profile?.documentId;
 
         if (isMatchingUserId) {
-            return !searchText || friend?.friend_id?.username?.toLowerCase().includes(searchLower);
+            return !searchText || friend?.friend?.fullname?.toLowerCase().includes(searchLower);
         }
 
         if (isMatchingFriendId) {
-            return !searchText || friend?.user_id?.username?.toLowerCase().includes(searchLower);
+            return !searchText || friend?.user?.fullname?.toLowerCase().includes(searchLower);
         }
 
         return false;
     });
+
+    console.log('filteredFriendList', filteredFriendList);
 
     const handleCheckboxChange = (documentId) => {
         setSelectedFriends(prevSelected => {
@@ -130,9 +139,10 @@ const EventInvited = ({ oldData, profile, show, handleClose }) => {
                         <Col>
                             <ListGroup>
                                 {filteredFriendList.map((friend) => {
-                                    const friendData = friend?.user_id?.documentId === profile?.documentId ? friend?.friend_id : friend?.user_id;
+                                    const friendData = friend?.user?.documentId === profile?.documentId ? friend?.friend : friend?.user;
                                     const isParticipated = participationStatus[friendData?.documentId];
 
+                    
                                     return (
                                         <ListGroup.Item key={friendData?.documentId}>
                                             {friendData && (
@@ -142,7 +152,7 @@ const EventInvited = ({ oldData, profile, show, handleClose }) => {
                                                             type="checkbox"
                                                             checked={selectedFriends.includes(friendData)}
                                                             onChange={() => handleCheckboxChange(friendData)}
-                                                            label={friendData.username}
+                                                            label={friendData.fullname}
                                                             disabled={isParticipated}
                                                         />
                                                         {isParticipated && <small className="text-success d-flex" variant="primary">Participated<span className="material-symbols-outlined">
@@ -161,7 +171,7 @@ const EventInvited = ({ oldData, profile, show, handleClose }) => {
                             <ListGroup>
                                 {selectedFriends.map((friendData) => (
                                     <ListGroup.Item key={friendData?.documentId} className="d-flex justify-content-between align-items-center">
-                                        {friendData.username}
+                                        {friendData.fullname}
                                         <Button variant="danger" size="sm" onClick={() => handleCheckboxChange(friendData)}>
                                             X
                                         </Button>

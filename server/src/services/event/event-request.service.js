@@ -29,7 +29,7 @@ export const getAllEventRequests = async ({
 
     // Lọc theo statusId nếu được cung cấp
     if (statusId) {
-      whereConditions.status_action_id = statusId;
+      whereConditions.request_status = statusId;
     }
 
     // Chuẩn bị các mối quan hệ cần include
@@ -54,27 +54,30 @@ export const getAllEventRequests = async ({
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+            "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
         },
         {
           model: db.StatusAction,
-          as: "statusAction",
-          attributes: ["documentId", "name", "description"],
+          as: "status",
+          attributes: ["documentId", "name"],
         }
       );
     }
 
     // Thực hiện truy vấn
-    const { count, rows } = await db.event_request.findAndCountAll({
+    const { count, rows } = await db.EventRequest.findAndCountAll({
       where: whereConditions,
       include: includes,
       order: [[sortField, sortOrder]],
       offset,
       limit: pageSize,
       distinct: true,
+      attributes: {
+        exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+      }
     });
 
     return {
@@ -98,7 +101,7 @@ export const getAllEventRequests = async ({
 // Lấy event-request theo ID
 export const getEventRequestById = async (documentId) => {
   try {
-    const request = await db.event_request.findByPk(documentId, {
+    const request = await db.EventRequest.findByPk(documentId, {
       include: [
         {
           model: db.User,
@@ -117,17 +120,20 @@ export const getEventRequestById = async (documentId) => {
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+            "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
         },
         {
           model: db.StatusAction,
-          as: "statusAction",
-          attributes: ["documentId", "name", "description"],
+          as: "status",
+          attributes: ["documentId", "name"],
         },
       ],
+      attributes: {
+        exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+      }
     });
 
     if (!request) {
@@ -146,7 +152,7 @@ export const getEventRequestById = async (documentId) => {
 export const checkEventOrganizer = async (userId, eventId) => {
   try {
     const event = await db.Event.findByPk(eventId);
-    return event && event.organizer_id === userId;
+    return event && event.host_id === userId;
   } catch (error) {
     throw new Error(`Lỗi khi kiểm tra quyền người tổ chức: ${error.message}`);
   }
@@ -156,11 +162,14 @@ export const checkEventOrganizer = async (userId, eventId) => {
 export const createEventRequest = async (requestData) => {
   try {
     // Kiểm tra xem người dùng đã có yêu cầu tham gia sự kiện này chưa
-    const existingRequest = await db.event_request.findOne({
+    const existingRequest = await db.EventRequest.findOne({
       where: {
         event_id: requestData.event_id,
         user_request: requestData.user_request,
       },
+      attributes: {
+        exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+      }
     });
 
     if (existingRequest) {
@@ -178,7 +187,13 @@ export const createEventRequest = async (requestData) => {
       throw new Error("Bạn đã tham gia sự kiện này");
     }
 
-    const newRequest = await db.event_request.create(requestData);
+    // Đảm bảo dữ liệu sử dụng request_status thay vì status_action_id
+    if (requestData.status_action_id) {
+      requestData.request_status = requestData.status_action_id;
+      delete requestData.status_action_id;
+    }
+
+    const newRequest = await db.EventRequest.create(requestData);
     return await getEventRequestById(newRequest.documentId);
   } catch (error) {
     throw new Error(`Lỗi khi tạo yêu cầu tham gia sự kiện: ${error.message}`);
@@ -188,7 +203,11 @@ export const createEventRequest = async (requestData) => {
 // Phản hồi yêu cầu tham gia sự kiện
 export const respondToRequest = async (requestId, statusActionId) => {
   try {
-    const request = await db.event_request.findByPk(requestId);
+    const request = await db.EventRequest.findByPk(requestId, {
+      attributes: {
+        exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+      }
+    });
 
     if (!request) {
       throw new Error("Không tìm thấy yêu cầu tham gia sự kiện");
@@ -196,12 +215,13 @@ export const respondToRequest = async (requestId, statusActionId) => {
 
     // Cập nhật trạng thái yêu cầu
     await request.update({
-      status_action_id: statusActionId,
+      request_status: statusActionId,
     });
 
     // Nếu chấp nhận yêu cầu, thêm người dùng vào sự kiện
     const acceptStatus = await db.StatusAction.findOne({
       where: { name: "accepted" },
+  
     });
 
     if (statusActionId === acceptStatus.documentId) {
@@ -223,14 +243,19 @@ export const respondToRequest = async (requestId, statusActionId) => {
 // Hủy yêu cầu tham gia sự kiện
 export const cancelRequest = async (requestId) => {
   try {
-    const request = await db.event_request.findByPk(requestId);
+    const request = await db.EventRequest.findByPk(requestId, {
+      attributes: {
+        exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+      }
+    });
 
     if (!request) {
       throw new Error("Không tìm thấy yêu cầu tham gia sự kiện");
     }
 
+    
     // Nếu yêu cầu đã được phản hồi
-    if (request.status_action_id) {
+    if (request.createdAt === request.updatedAt) {
       throw new Error("Yêu cầu này đã được phản hồi, không thể hủy");
     }
 
@@ -245,7 +270,7 @@ export const cancelRequest = async (requestId) => {
 // Lấy danh sách yêu cầu tham gia một sự kiện
 export const getRequestsByEventId = async (eventId) => {
   try {
-    const requests = await db.event_request.findAll({
+    const requests = await db.EventRequest.findAll({
       where: { event_id: eventId },
       include: [
         {
@@ -262,10 +287,13 @@ export const getRequestsByEventId = async (eventId) => {
         },
         {
           model: db.StatusAction,
-          as: "statusAction",
+          as: "status",
           attributes: ["documentId", "name", "description"],
         },
       ],
+      attributes: {
+        exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+      }
     });
 
     return requests;
@@ -279,7 +307,7 @@ export const getRequestsByEventId = async (eventId) => {
 // Lấy danh sách yêu cầu tham gia sự kiện của một người dùng
 export const getRequestsByUserId = async (userId) => {
   try {
-    const requests = await db.event_request.findAll({
+    const requests = await db.EventRequest.findAll({
       where: { user_request: userId },
       include: [
         {
@@ -287,17 +315,20 @@ export const getRequestsByUserId = async (userId) => {
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+            "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
         },
         {
           model: db.StatusAction,
-          as: "statusAction",
+          as: "status",
           attributes: ["documentId", "name", "description"],
         },
       ],
+      attributes: {
+        exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+      }
     });
 
     return requests;
@@ -311,17 +342,17 @@ export const getRequestsByUserId = async (userId) => {
 // Lấy số lượng yêu cầu đang chờ xử lý của một sự kiện
 export const getPendingRequestCount = async (eventId) => {
   try {
-    const count = await db.event_request.count({
+    const count = await db.EventRequest.count({
       where: {
         event_id: eventId,
-        status_action_id: null,
+        request_status: null,
       },
     });
 
     return count;
   } catch (error) {
     throw new Error(
-      `Lỗi khi lấy số lượng yêu cầu đang chờ xử lý: ${error.message}`
+      `Lỗi khi lấy số lượng yêu cầu đang chờ xử lý: ${error.message}` 
     );
   }
 };

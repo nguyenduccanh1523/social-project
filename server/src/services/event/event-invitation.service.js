@@ -6,7 +6,7 @@ import * as eventMemberService from "./event-member.service";
 export const getAllEventInvitations = async ({
   page = 1,
   pageSize = 10,
-  sortField = "created_at",
+  sortField = "createdAt",
   sortOrder = "DESC",
   populate = false,
   invitedBy = null,
@@ -35,7 +35,7 @@ export const getAllEventInvitations = async ({
 
     // Lọc theo statusId nếu được cung cấp
     if (statusId) {
-      whereConditions.status_action_id = statusId;
+      whereConditions.invitation_status = statusId;
     }
 
     // Chuẩn bị các mối quan hệ cần include
@@ -45,12 +45,12 @@ export const getAllEventInvitations = async ({
       includes.push(
         {
           model: db.User,
-          as: "inviter",
+          as: "sentEventInvitations",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
         },
         {
           model: db.User,
-          as: "invitee",
+          as: "receivedEventInvitations",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
         },
         {
@@ -58,9 +58,9 @@ export const getAllEventInvitations = async ({
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+            "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
         },
         {
@@ -72,7 +72,7 @@ export const getAllEventInvitations = async ({
     }
 
     // Thực hiện truy vấn
-    const { count, rows } = await db.event_invitation.findAndCountAll({
+    const { count, rows } = await db.EventInvitation.findAndCountAll({
       where: whereConditions,
       include: includes,
       order: [[sortField, sortOrder]],
@@ -102,7 +102,7 @@ export const getAllEventInvitations = async ({
 // Lấy event-invitation theo ID
 export const getEventInvitationById = async (documentId) => {
   try {
-    const invitation = await db.event_invitation.findByPk(documentId, {
+    const invitation = await db.EventInvitation.findByPk(documentId, {
       include: [
         {
           model: db.User,
@@ -119,9 +119,9 @@ export const getEventInvitationById = async (documentId) => {
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+              "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
         },
         {
@@ -200,7 +200,7 @@ export const createEventInvitation = async (invitationData) => {
       throw new Error("Người dùng này đã là người tham gia của sự kiện");
     }
 
-    const newInvitation = await db.event_invitation.create(invitationData);
+    const newInvitation = await db.EventInvitation.create(invitationData);
     return await getEventInvitationById(newInvitation.documentId);
   } catch (error) {
     throw new Error(`Lỗi khi tạo lời mời tham gia sự kiện: ${error.message}`);
@@ -210,20 +210,20 @@ export const createEventInvitation = async (invitationData) => {
 // Phản hồi lời mời tham gia sự kiện
 export const respondToInvitation = async (invitationId, statusActionId) => {
   try {
-    const invitation = await db.event_invitation.findByPk(invitationId);
+    const invitation = await db.EventInvitation.findByPk(invitationId);
 
     if (!invitation) {
       throw new Error("Không tìm thấy lời mời");
     }
 
     // Nếu lời mời đã được phản hồi
-    if (invitation.status_action_id) {
+    if (invitation.invitation_status) {
       throw new Error("Lời mời này đã được phản hồi");
     }
 
     // Cập nhật trạng thái lời mời
     await invitation.update({
-      status_action_id: statusActionId,
+      invitation_status: statusActionId,
       responded_at: new Date(),
     });
 
@@ -249,14 +249,14 @@ export const respondToInvitation = async (invitationId, statusActionId) => {
 // Hủy lời mời tham gia sự kiện
 export const cancelInvitation = async (invitationId) => {
   try {
-    const invitation = await db.event_invitation.findByPk(invitationId);
+    const invitation = await db.EventInvitation.findByPk(invitationId);
 
     if (!invitation) {
       throw new Error("Không tìm thấy lời mời");
     }
 
     // Nếu lời mời đã được phản hồi
-    if (invitation.status_action_id) {
+    if (invitation.invitation_status) {
       throw new Error("Lời mời này đã được phản hồi, không thể hủy");
     }
 
@@ -271,7 +271,7 @@ export const cancelInvitation = async (invitationId) => {
 // Lấy danh sách lời mời của một sự kiện
 export const getInvitationsByEventId = async (eventId) => {
   try {
-    const invitations = await db.event_invitation.findAll({
+    const invitations = await db.EventInvitation.findAll({
       where: { event_id: eventId },
       include: [
         {
@@ -303,7 +303,7 @@ export const getInvitationsByEventId = async (eventId) => {
 // Lấy danh sách lời mời của một người dùng
 export const getInvitationsByUserId = async (userId) => {
   try {
-    const invitations = await db.event_invitation.findAll({
+    const invitations = await db.EventInvitation.findAll({
       where: { invited_to: userId },
       include: [
         {
@@ -316,9 +316,9 @@ export const getInvitationsByUserId = async (userId) => {
           as: "event",
           attributes: [
             "documentId",
-            "event_name",
+            "name",
             "description",
-            "organizer_id",
+            "host_id",
           ],
         },
         {

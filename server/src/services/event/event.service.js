@@ -27,14 +27,14 @@ export const getAllEvents = async ({
 
     if (filters.keyword) {
       whereConditions[Op.or] = [
-        { event_name: { [Op.like]: `%${filters.keyword}%` } },
+        { name: { [Op.like]: `%${filters.keyword}%` } },
         { description: { [Op.like]: `%${filters.keyword}%` } },
       ];
     }
 
     // Nếu có organizerId, tìm sự kiện có organizer_id bằng organizerId
     if (organizerId) {
-      whereConditions.organizer_id = organizerId;
+      whereConditions.host_id = organizerId;
     }
 
     // Chuẩn bị các mối quan hệ cần include
@@ -44,7 +44,7 @@ export const getAllEvents = async ({
       includes.push(
         {
           model: db.User,
-          as: "organizer",
+          as: "host",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
           include: [
             {
@@ -60,9 +60,15 @@ export const getAllEvents = async ({
           attributes: ["documentId", "file_path"],
         },
         {
-          model: db.Type,
-          as: "type",
-          attributes: ["documentId", "name", "description"],
+          model: db.EventMember,
+          as: "members",
+          include: [
+            {
+              model: db.User,
+              as: "user",
+              attributes: ["documentId", "fullname", "email", "avatar_id"],
+            }
+          ]
         }
       );
     }
@@ -139,11 +145,6 @@ export const getEventById = async (documentId) => {
           attributes: ["documentId", "file_path"],
         },
         {
-          model: db.Type,
-          as: "type",
-          attributes: ["documentId", "name", "description"],
-        },
-        {
           model: db.event_members,
           as: "members",
           include: [
@@ -181,7 +182,7 @@ export const createEvent = async (eventData) => {
 
     // Tự động thêm người tạo sự kiện vào danh sách người tham gia
     await db.event_members.create({
-      user_id: eventData.organizer_id,
+      user_id: eventData.host_id,
       event_id: newEvent.documentId,
       joined_at: new Date(),
     });
@@ -259,11 +260,6 @@ export const getEventsByUserId = async (userId) => {
           as: "image",
           attributes: ["documentId", "file_path"],
         },
-        {
-          model: db.Type,
-          as: "type",
-          attributes: ["documentId", "name", "description"],
-        },
       ],
     });
 
@@ -285,11 +281,6 @@ export const getEventsOrganizerByUserId = async (userId) => {
           model: db.Media,
           as: "image",
           attributes: ["documentId", "file_path"],
-        },
-        {
-          model: db.Type,
-          as: "type",
-          attributes: ["documentId", "name", "description"],
         },
         {
           model: db.event_members,

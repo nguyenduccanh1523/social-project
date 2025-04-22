@@ -10,7 +10,7 @@ export const getAllEventMembers = async (req, res) => {
 
     // Xử lý tham số sort
     const sort = req.query.sort;
-    let sortField = "joined_at";
+    let sortField = "createdAt";
     let sortOrder = "DESC";
 
     if (sort) {
@@ -69,7 +69,7 @@ export const getEventMemberById = async (req, res) => {
 
 export const addEventMember = async (req, res) => {
   try {
-    const { eventId, userId } = req.body;
+    const { eventId, userId, status } = req.body;
 
     // Kiểm tra xem eventId và userId có được cung cấp không
     if (!eventId || !userId) {
@@ -82,7 +82,7 @@ export const addEventMember = async (req, res) => {
     const newEventMember = await eventMemberService.addEventMember({
       event_id: eventId,
       user_id: userId,
-      joined_at: new Date(),
+      status: status,
     });
 
     return res.status(201).json({

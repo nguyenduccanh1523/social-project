@@ -15,7 +15,7 @@ import { getMonthAndDay } from '../others/format';
 import { useSelector } from 'react-redux';
 import Loader from "../icons/uiverse/Loading";
 import EventInvited from '../../dashboard/component/Event/actionEvent/evenInvited';
-import { apiUpdateEventRequest, apiCheckEventRequestUser, apiCreateEventRequest, apiGetEventRequestUser } from '../../../services/eventServices/eventRequest';
+import { apiUpdateEventRequest, apiCheckEventRequestUser, apiCreateEventRequest, apiGetEventRequestUser, apiCancelEventRequest } from '../../../services/eventServices/eventRequest';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const { Search } = Input;
@@ -28,32 +28,33 @@ const Events = () => {
     const queryClient = useQueryClient();
     const pageSize = 9;
 
-    const { profile } = useSelector((state) => state.root.user || {});
-    const document = profile?.documentId;
+    const { token, user } = useSelector((state) => state.root.auth || {});
 
     const { data: eventUser, isLoading: isEventUserLoading } = useQuery({
-        queryKey: ['eventUser', document],
-        queryFn: () => apiGetEventUser({ userId: document }).then(res => res.data),
-        enabled: !!document,
+        queryKey: ['eventUser', user?.documentId, token],
+        queryFn: () => apiGetEventUser({ userId: user?.documentId, token }).then(res => res.data),
+        enabled: !!user?.documentId && !!token,
     });
 
+
     const { data: events, isLoading: isEventsLoading } = useQuery({
-        queryKey: ['events'],
-        queryFn: () => apiGetEvent().then(res => res.data),
+        queryKey: ['events', token],
+        queryFn: () => apiGetEvent({ token }).then(res => res.data),
+        enabled: !!token,
     });
 
     const { data: eventRequests, isLoading: isEventRequestsLoading } = useQuery({
-        queryKey: ['eventRequests', events, profile?.documentId],
+        queryKey: ['eventRequests', events, user?.documentId, token],
         queryFn: async () => {
             const eventIds = events?.data?.map(event => event.documentId) || [];
             const response = await Promise.all(
                 eventIds.map(eventId =>
-                    apiGetEventRequestUser({ eventId, userId: profile?.documentId })
+                    apiGetEventRequestUser({ eventId, userId: user?.documentId, token })
                 )
             );
             return response.flatMap(res => res.data?.data || []);
         },
-        enabled: !!profile?.documentId && !!events?.data?.length,
+        enabled: !!user?.documentId && !!token,
     });
 
     const isLoading = isEventUserLoading || isEventsLoading || isEventRequestsLoading;
@@ -62,7 +63,7 @@ const Events = () => {
     const eventUserDocumentIds = eventUser?.data?.map(event => event.event_id.documentId) || [];
 
     // Kiểm tra sự trùng lặp và lọc ra các sự kiện không trùng
-    const uniqueEvents = events?.data?.filter(event => 
+    const uniqueEvents = events?.data?.filter(event =>
         !eventUserDocumentIds.includes(event.documentId)
     ) || [];
 
@@ -97,24 +98,20 @@ const Events = () => {
 
     const handleSendRequest = async (eventId) => {
         try {
-            const response = await apiCheckEventRequestUser({ eventId: eventId, userId: profile?.documentId });
+            const response = await apiGetEventRequestUser({ eventId: eventId, userId: user?.documentId, token: token });
             if (response.data?.data.length > 0) {
                 const requestId = response.data.data[0].documentId;
                 const payload = {
-                    data: {
-                        request_status: "w1t6ex59sh5auezhau5e2ovu",
-                    },
+                    statusActionId: "w1t6ex59sh5auezhau5e2ovu",
                 };
-                await apiUpdateEventRequest({ documentId: requestId, payload });
+                await apiUpdateEventRequest({ documentId: requestId, payload, token });
             } else {
                 const payload = {
-                    data: {
-                        event_id: eventId,
-                        user_request: profile?.documentId,
-                        request_status: "w1t6ex59sh5auezhau5e2ovu",
-                    },
+                    eventId: eventId,
+                    requestBy: user?.documentId,
+                    statusActionId: "w1t6ex59sh5auezhau5e2ovu",
                 };
-                await apiCreateEventRequest(payload);
+                await apiCreateEventRequest({ payload, token });
             }
             notification.success({
                 message: "Success",
@@ -131,21 +128,19 @@ const Events = () => {
     };
 
     const isEventRequested = (eventId) => {
-        return eventRequests.some(request => request?.event_id?.documentId === eventId);
+        return eventRequests.some(request => request?.event?.documentId === eventId && request?.status?.documentId === "w1t6ex59sh5auezhau5e2ovu");
     };
-    
+
 
     const handleCancelRequest = async (eventId) => {
         try {
-            const request = eventRequests.find(request => request?.event_id?.documentId === eventId);
+            const request = eventRequests.find(request => request?.event?.documentId === eventId);
             if (request) {
                 const requestId = request.documentId;
                 const payload = {
-                    data: {
-                        request_status: "aei7fjtmxrzz3hkmorgwy0gm", // Update status to cancelled
-                    },
+                    statusActionId: "aei7fjtmxrzz3hkmorgwy0gm", // Update status to cancelled
                 };
-                await apiUpdateEventRequest({ documentId: requestId, payload });
+                await apiUpdateEventRequest({ documentId: requestId, payload, token });
                 notification.success({
                     message: "Success",
                     description: "Request cancelled successfully",
@@ -193,12 +188,12 @@ const Events = () => {
                         <>
                             <div className="d-grid gap-3 d-grid-template-1fr-19">
                                 {getCurrentPageEvents().map((event) => (
-                                    <div key={event.id}>
+                                    <div key={event.documentId}>
                                         <Card className="rounded mb-0">
                                             <div className="image-container" style={{ height: '200px', overflow: 'hidden' }}>
                                                 <div className="event-image-wrapper">
                                                     <Image
-                                                        src={event?.banner_id?.file_path}
+                                                        src={event?.image?.file_path}
                                                         className="w-100 h-100"
                                                         style={{
                                                             height: '100%',
@@ -219,7 +214,7 @@ const Events = () => {
                                                     <div className="events-detail ms-3">
                                                         <h5><Link to={`/event-detail/${event?.documentId}`} state={{ eventDetail: event }}>{event?.name}</Link></h5>
                                                         <p>{event?.description}</p>
-                                                        <span className="text-dark">+{event?.event_members?.length || 0} members</span>
+                                                        <span className="text-dark">+{event?.members?.length || 0} members</span>
                                                         <div className="event-member">
                                                             <div className="d-flex align-items-center justify-content-between mt-2 gap-2">
                                                                 <div className="d-flex gap-2">
@@ -282,7 +277,7 @@ const Events = () => {
             {selectedEvent && (
                 <EventInvited
                     oldData={selectedEvent}
-                    profile={profile}
+                    profile={user}
                     show={showInviteModal}
                     handleClose={handleCloseInviteModal}
                 />

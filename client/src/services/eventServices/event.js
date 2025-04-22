@@ -1,12 +1,15 @@
 import axiosConfig from "../../axiosConfig";
 
-export const apiGetEvent = (payload) =>
+export const apiGetEvent = ({payload, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: "/events?populate=*&pagination[pageSize]=100&pagination[page]=1",
+                url: "/events?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC",
                 data: payload,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
@@ -14,21 +17,19 @@ export const apiGetEvent = (payload) =>
         }
     });
 
-export const apiGetEventUser = ({ userId }) =>
+export const apiGetEventUser = ({ userId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
-            // Kiểm tra documentId trước khi dùng trong URL
-            if (typeof userId !== "string") {
-                return reject(new Error("userId should be a string"));
-            }
-
             const response = await axiosConfig({
                 method: "get",
-                url: `/event-members?populate=*&pagination[pageSize]=100&pagination[page]=1&filters[$and][0][user_id][documentId][$eq]=${userId}`,
+                url: `/event-members?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
-            console.error("Error fetching document tags:", error.response || error);
+            console.error("Error fetching event user:", error.response || error);
             reject(error);
         }
     });
@@ -73,14 +74,16 @@ export const apiGetEventMember = ({ eventId }) =>
     });
 
 
-export const apiGetEventFriend = ({ eventId, friendId }) =>
+export const apiGetEventFriend = ({ eventId, friendId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/event-members?filters[$and][0][event_id][documentId][$eq]=${eventId}&filters[$and][1][user_id][documentId][$eq]=${friendId}&populate=*`,
+                url: `/event-members?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${friendId}&eventId=${eventId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
-            //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
         } catch (error) {
             console.error("Error fetching group members:", error.response || error);
@@ -88,7 +91,7 @@ export const apiGetEventFriend = ({ eventId, friendId }) =>
         }
     });
 
-export const apiCreateEventInvited = (payload) =>
+export const apiCreateEventInvited = ({ payload, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
@@ -96,7 +99,7 @@ export const apiCreateEventInvited = (payload) =>
                 url: "/event-invitations",
                 data: payload,
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`,
                 }
             });
             resolve(response);
@@ -124,17 +127,19 @@ export const apiEditEventInvited = ({ documentId, payload }) =>
     });
 
 
-export const apiGetEventInvationFriend = ({ eventId, userId, friendId }) =>
+export const apiGetEventInvationFriend = ({ eventId, userId, friendId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/event-invitations?filters[$and][0][event_id][documentId][$eq]=${eventId}&filters[$and][1][invited_by][documentId][$eq]=${userId}&filters[$and][2][invited_to][documentId][$eq]=${friendId}&populate=*`,
+                url: `/event-invitations?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&eventId=${eventId}&invitedBy=${userId}&invitedTo=${friendId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
-            //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
         } catch (error) {
-            console.error("Error fetching group members:", error.response || error);
+            console.error("Error fetching event invitations:", error.response || error);
             reject(error);
         }
     });
