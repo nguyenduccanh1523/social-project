@@ -1,11 +1,14 @@
 import axiosConfig from "../../axiosConfig";
 
-export const apiGetEventRequest = ({ eventId }) =>
+export const apiGetEventRequest = ({ eventId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/event-requests?filters[$and][0][event_id][documentId][$eq]=${eventId}&populate=*&filters[$and][1][request_status][documentId][$eq]=w1t6ex59sh5auezhau5e2ovu&sort=createdAt:DESC`,
+                url: `/event-requests?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&statusId=w1t6ex59sh5auezhau5e2ovu&eventId=${eventId}`,
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);

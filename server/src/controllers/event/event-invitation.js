@@ -93,8 +93,7 @@ export const createEventInvitation = async (req, res) => {
       event_id: eventId,
       invited_by: invitedBy,
       invited_to: invitedTo,
-      status_action_id: statusActionId,
-      created_at: new Date(),
+      invitation_status: statusActionId,
     });
 
     return res.status(201).json({

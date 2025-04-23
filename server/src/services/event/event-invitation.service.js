@@ -45,27 +45,22 @@ export const getAllEventInvitations = async ({
       includes.push(
         {
           model: db.User,
-          as: "sentEventInvitations",
+          as: "sender",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
         },
         {
           model: db.User,
-          as: "receivedEventInvitations",
+          as: "receiver",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
         },
         {
           model: db.Event,
           as: "event",
-          attributes: [
-            "documentId",
-            "name",
-            "description",
-            "host_id",
-          ],
+          attributes: ["documentId", "name", "description", "host_id"],
         },
         {
           model: db.StatusAction,
-          as: "statusAction",
+          as: "status",
           attributes: ["documentId", "name", "description"],
         }
       );
@@ -79,6 +74,9 @@ export const getAllEventInvitations = async ({
       offset,
       limit: pageSize,
       distinct: true,
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
     });
 
     return {
@@ -106,30 +104,28 @@ export const getEventInvitationById = async (documentId) => {
       include: [
         {
           model: db.User,
-          as: "inviter",
+          as: "sender",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
         },
         {
           model: db.User,
-          as: "invitee",
+          as: "receiver",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
         },
         {
           model: db.Event,
           as: "event",
-          attributes: [
-            "documentId",
-              "name",
-            "description",
-            "host_id",
-          ],
+          attributes: ["documentId", "name", "description", "host_id"],
         },
         {
           model: db.StatusAction,
-          as: "statusAction",
+          as: "status",
           attributes: ["documentId", "name", "description"],
         },
       ],
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
     });
 
     if (!invitation) {
@@ -146,7 +142,11 @@ export const getEventInvitationById = async (documentId) => {
 export const checkInvitePermission = async (userId, eventId) => {
   try {
     // Kiểm tra xem người dùng có phải là người tổ chức của sự kiện không
-    const event = await db.Event.findByPk(eventId);
+    const event = await db.Event.findByPk(eventId, {
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
+    });
     if (event && event.organizer_id === userId) {
       return true;
     }
@@ -165,7 +165,11 @@ export const checkInvitePermission = async (userId, eventId) => {
 // Kiểm tra xem người dùng có phải là người tổ chức của sự kiện không
 export const checkEventOrganizer = async (userId, eventId) => {
   try {
-    const event = await db.Event.findByPk(eventId);
+    const event = await db.Event.findByPk(eventId, {
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
+    });
     return event && event.organizer_id === userId;
   } catch (error) {
     throw new Error(`Lỗi khi kiểm tra quyền người tổ chức: ${error.message}`);
@@ -210,16 +214,20 @@ export const createEventInvitation = async (invitationData) => {
 // Phản hồi lời mời tham gia sự kiện
 export const respondToInvitation = async (invitationId, statusActionId) => {
   try {
-    const invitation = await db.EventInvitation.findByPk(invitationId);
+    const invitation = await db.EventInvitation.findByPk(invitationId, {
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
+    });
 
     if (!invitation) {
       throw new Error("Không tìm thấy lời mời");
     }
 
-    // Nếu lời mời đã được phản hồi
-    if (invitation.invitation_status) {
-      throw new Error("Lời mời này đã được phản hồi");
-    }
+    // // Nếu lời mời đã được phản hồi
+    // if (invitation.invitation_status) {
+    //   throw new Error("Lời mời này đã được phản hồi");
+    // }
 
     // Cập nhật trạng thái lời mời
     await invitation.update({
@@ -230,6 +238,9 @@ export const respondToInvitation = async (invitationId, statusActionId) => {
     // Nếu chấp nhận lời mời, thêm người dùng vào sự kiện
     const acceptStatus = await db.StatusAction.findOne({
       where: { name: "accepted" },
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
     });
 
     if (statusActionId === acceptStatus.documentId) {
@@ -249,7 +260,11 @@ export const respondToInvitation = async (invitationId, statusActionId) => {
 // Hủy lời mời tham gia sự kiện
 export const cancelInvitation = async (invitationId) => {
   try {
-    const invitation = await db.EventInvitation.findByPk(invitationId);
+    const invitation = await db.EventInvitation.findByPk(invitationId, {
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
+    });
 
     if (!invitation) {
       throw new Error("Không tìm thấy lời mời");
@@ -273,6 +288,7 @@ export const getInvitationsByEventId = async (eventId) => {
   try {
     const invitations = await db.EventInvitation.findAll({
       where: { event_id: eventId },
+
       include: [
         {
           model: db.User,
@@ -290,6 +306,9 @@ export const getInvitationsByEventId = async (eventId) => {
           attributes: ["documentId", "name", "description"],
         },
       ],
+      attributes: {
+        exclude: ["status_action_id"], // Loại bỏ cột gây lỗi
+      },
     });
 
     return invitations;
@@ -314,12 +333,7 @@ export const getInvitationsByUserId = async (userId) => {
         {
           model: db.Event,
           as: "event",
-          attributes: [
-            "documentId",
-            "name",
-            "description",
-            "host_id",
-          ],
+          attributes: ["documentId", "name", "description", "host_id"],
         },
         {
           model: db.StatusAction,
@@ -327,6 +341,9 @@ export const getInvitationsByUserId = async (userId) => {
           attributes: ["documentId", "name", "description"],
         },
       ],
+      attributes: {
+          exclude: ['status_action_id'] // Loại bỏ cột gây lỗi
+        }
     });
 
     return invitations;

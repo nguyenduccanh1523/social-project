@@ -10,7 +10,7 @@ export const getAllEvents = async ({
   sortOrder = "DESC",
   populate = false,
   userId = null,
-  organizerId = null,
+  host_id = null,
 }) => {
   try {
     const offset = (page - 1) * pageSize;
@@ -33,8 +33,8 @@ export const getAllEvents = async ({
     }
 
     // Nếu có organizerId, tìm sự kiện có organizer_id bằng organizerId
-    if (organizerId) {
-      whereConditions.host_id = organizerId;
+    if (host_id) {
+      whereConditions.host_id = host_id;
     }
 
     // Chuẩn bị các mối quan hệ cần include
@@ -129,7 +129,7 @@ export const getEventById = async (documentId) => {
       include: [
         {
           model: db.User,
-          as: "organizer",
+          as: "host",
           attributes: ["documentId", "fullname", "email", "avatar_id"],
           include: [
             {
@@ -145,7 +145,7 @@ export const getEventById = async (documentId) => {
           attributes: ["documentId", "file_path"],
         },
         {
-          model: db.event_members,
+          model: db.EventMember,
           as: "members",
           include: [
             {

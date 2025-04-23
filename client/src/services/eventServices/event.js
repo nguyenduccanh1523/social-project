@@ -39,7 +39,7 @@ export const apiGetEventUserCreate = ({ userId }) =>
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/events?populate=*&pagination[pageSize]=100&pagination[page]=1&filters[$and][0][host_id][documentId][$eq]=${userId}`,
+                url: `/events?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&hostId=${userId}`,
             });
             resolve(response);
         } catch (error) {
@@ -47,12 +47,15 @@ export const apiGetEventUserCreate = ({ userId }) =>
         }
     });
 
-export const apiGetEventDetail = ({ eventId }) =>
+export const apiGetEventDetail = ({ eventId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/events/${eventId}?populate=*`,
+                url: `/events/${eventId}`,
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
@@ -60,12 +63,15 @@ export const apiGetEventDetail = ({ eventId }) =>
         }
     });
 
-export const apiGetEventMember = ({ eventId }) =>
+export const apiGetEventMember = ({ eventId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/event-members?populate=*&pagination[pageSize]=100&pagination[page]=1&filters[$and][0][event_id][documentId][$eq]=${eventId}`,
+                url: `/event-members?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&eventId=${eventId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
@@ -109,15 +115,15 @@ export const apiCreateEventInvited = ({ payload, token }) =>
     });
 
 
-export const apiEditEventInvited = ({ documentId, payload }) =>
+export const apiEditEventInvited = ({ documentId, payload, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "put",
-                url: `/event-invitations/${documentId}`,
+                url: `/event-invitations/${documentId}/respond`,
                 data: payload,
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${token}`
                 }
             });
             resolve(response);

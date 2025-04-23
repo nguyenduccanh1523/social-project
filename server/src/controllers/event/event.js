@@ -32,7 +32,7 @@ export const getAllEvents = async (req, res) => {
 
     // Lấy userId từ query
     const userId = req.query.userId || null;
-    const organizerId = req.query.organizerId || null;
+    const host_id = req.query.hostId || null;
 
     // Gọi service để lấy danh sách sự kiện
     const eventsData = await eventService.getAllEvents({
@@ -43,7 +43,7 @@ export const getAllEvents = async (req, res) => {
       sortOrder,
       populate,
       userId,
-      organizerId,
+      host_id,
     });
 
     // Trả về kết quả

@@ -48,19 +48,19 @@ const EventDetail = () => {
     const [show, setShow] = useState(false);
     const handleClose = () => setShow(false);
     const handleShow = () => setShow(true);
+    console.log('eventDetail', eventDetail);
 
-    const [eventMember, setEventMember] = useState([]);
+    const [eventMember, setEventMember] = useState([])
     const [eventUser, setEventUser] = useState([]);
-    const { profile } = useSelector((state) => state.root.user || {});
+    const { token, user } = useSelector((state) => state.root.auth || {});
     const [drawerOpen, setDrawerOpen] = useState(false);
     const queryClient = useQueryClient();
 
-    const document = profile?.documentId;
 
     const { data: eventRequests, isLoading: isLoadingRequests } = useQuery({
-        queryKey: ['eventRequests', eventDetail?.documentId],
-        queryFn: () => apiGetEventRequest({ eventId: eventDetail?.documentId }),
-        enabled: !!eventDetail?.documentId,
+        queryKey: ['eventRequests', eventDetail?.documentId, token],
+        queryFn: () => apiGetEventRequest({ eventId: eventDetail?.documentId, token }),
+        enabled: !!eventDetail?.documentId && !!token,
     });
 
     const userRequest = eventRequests?.data?.data || [];
@@ -68,19 +68,20 @@ const EventDetail = () => {
     //console.log('userRequestuserRequest', userRequest);
 
     // Kiểm tra xem có event_id nào trong eventUser bằng với eventDetail?.documentId hay không
-    const isEventUserExists = eventUser?.data?.some(event => event.event_id.documentId === eventDetail?.documentId);
+    
+    const isEventUserExists = eventUser?.data?.some(event => event.event.documentId === eventDetail?.documentId);
 
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const response = await apiGetEventUser({ userId: document });
+                const response = await apiGetEventUser({ userId: user?.documentId, token });
                 setEventUser(response.data);
             } catch (error) {
                 console.error("Error fetching events:", error);
             }
         };
         fetchEvents();
-    }, [document]);
+    }, [user?.profile, token]);
 
     // Sử dụng biến isEventUserExists để thực hiện các hành động cần thiết
     useEffect(() => {
@@ -93,7 +94,7 @@ const EventDetail = () => {
     }, [isEventUserExists]);
 
     useEffect(() => {
-        apiGetEventMember({ eventId: eventDetail?.documentId }).then((res) => {
+        apiGetEventMember({ eventId: eventDetail?.documentId, token }).then((res) => {
             setEventMember(res?.data?.data);
         });
     }, [eventDetail]);
@@ -109,7 +110,7 @@ const EventDetail = () => {
     };
 
     const filteredRequests = userRequest.filter((request) =>
-        request?.user_request?.username?.toLowerCase().includes(searchTerm)
+        request?.user_request?.fullname?.toLowerCase().includes(searchTerm)
     );
 
     const handleAccept = async (documentId, userId) => {
@@ -162,18 +163,18 @@ const EventDetail = () => {
                             <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap">
                                 <div className="group-info d-flex align-items-center">
                                     <div className="me-3">
-                                        <img className="rounded-circle img-fluid avatar-100" src={eventDetail?.banner_id?.file_path} alt="" />
+                                        <img className="rounded-circle img-fluid avatar-100" src={eventDetail?.image?.file_path} alt="" />
                                     </div>
                                     <div className="info">
                                         <h4>{eventDetail?.name}</h4>
-                                        <p className="mb-0"><i className="ri-lock-fill pe-2"></i>{eventDetail?.event_members?.length} members</p>
+                                        <p className="mb-0"><i className="ri-lock-fill pe-2"></i>{eventDetail?.members?.length} members</p>
                                     </div>
                                 </div>
                                 <div className="group-member d-flex align-items-center  mt-md-0 mt-2">
                                     <div className="iq-media-group me-3">
                                         {eventMember?.map((member) => (
                                             <Link to="#" className="iq-media" key={member?.user_id?.documentId}>
-                                                <img className="img-fluid avatar-40 rounded-circle" src={member?.user_id?.profile_picture} alt="" />
+                                                <img className="img-fluid avatar-40 rounded-circle" src={member?.user?.avatarMedia?.file_path} alt="" />
                                             </Link>
                                         ))}
                                     </div>
@@ -185,7 +186,7 @@ const EventDetail = () => {
                                             <button type="submit" className="btn btn-primary mb-2 d-flex align-items-center gap-2"><i className="material-symbols-outlined ">
                                                 person_add_alt</i> Invite</button>
                                         )}
-                                        {eventDetail?.host_id?.documentId === profile?.documentId && (
+                                        {eventDetail?.host_id?.documentId === user?.documentId && (
                                             <div onClick={() => setDrawerOpen(true)}>
                                                 <IconEdit />
                                             </div>
@@ -238,7 +239,7 @@ const EventDetail = () => {
                                     </ul>
                                 </Card.Body>
                             </Card>
-                            {eventDetail?.host_id?.documentId === profile?.documentId && (
+                            {eventDetail?.host?.documentId === user?.documentId && (
                                 <Card>
                                     <Card.Header className="d-flex justify-content-between">
                                         <div className="header-title">
