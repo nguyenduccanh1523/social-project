@@ -1,8 +1,6 @@
 import db from '../../models';
 import { Op } from 'sequelize';
 
-
-
 // Lấy tất cả giờ mở cửa của trang
 export const getPageOpenHours = async (pageId) => {
     try {
@@ -78,13 +76,14 @@ export const addPageOpenHour = async (openHourData) => {
         const existingOpenHour = await db.PageOpenHour.findOne({
             where: {
                 page_id: openHourData.page_id,
-                day_of_week: openHourData.day_of_week
+                // day_of_week: openHourData.day_of_week
             }
         });
 
         if (existingOpenHour) {
             throw new Error(`Đã tồn tại giờ mở cửa cho ngày ${openHourData.day_of_week}`);
         }
+        
 
         const newOpenHour = await db.PageOpenHour.create(openHourData);
         return await getPageOpenHourById(newOpenHour.documentId);

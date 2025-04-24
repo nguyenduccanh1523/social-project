@@ -1,28 +1,24 @@
 import db from '../../models';
 import { Op } from 'sequelize';
+import { Sequelize } from 'sequelize';
 
-// Lấy tất cả pages có phân trang và lọc
+// Lấy tất cả trang có phân trang và lọc
 export const getAllPages = async ({
     page = 1,
     pageSize = 10,
     filters = {},
     sortField = 'createdAt',
     sortOrder = 'DESC',
-    populate = false,
-    userId = null,
-    authorId = null
+    populate = false
 }) => {
     try {
+        
         const offset = (page - 1) * pageSize;
         const whereConditions = {};
 
         // Áp dụng các bộ lọc nếu có
-        if (filters.page_name) {
-            whereConditions.page_name = { [Op.like]: `%${filters.page_name}%` };
-        }
-
-        if (filters.lives_in) {
-            whereConditions.lives_in = filters.lives_in;
+        if (filters.status) {
+            whereConditions.status = filters.status;
         }
 
         if (filters.keyword) {
@@ -33,9 +29,12 @@ export const getAllPages = async ({
             ];
         }
 
-        // Nếu có authorId, tìm trang có author bằng authorId
-        if (authorId) {
-            whereConditions.author = authorId;
+        if (filters.author) {
+            whereConditions.author = filters.author;
+        }
+
+        if (filters.lives_in) {
+            whereConditions.lives_in = filters.lives_in;
         }
 
         // Chuẩn bị các mối quan hệ cần include
@@ -44,67 +43,37 @@ export const getAllPages = async ({
         if (populate) {
             includes.push(
                 {
+                    model: db.Nation,
+                    as: 'nation',
+                    attributes: ['documentId', 'name', 'code']
+                },
+                {
                     model: db.User,
                     as: 'creator',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
-                    include: [
-                        {
-                            model: db.Media,
-                            as: 'avatarMedia',
-                            attributes: ['documentId', 'file_path', 'file_type']
-                        }
-                    ]
+                    attributes: ['documentId', 'username', 'email', 'avatar_id']
                 },
                 {
                     model: db.Media,
                     as: 'profileImage',
-                    attributes: ['documentId', 'file_path']
+                    attributes: ['documentId', 'url', 'type']
                 },
                 {
                     model: db.Media,
                     as: 'coverImage',
-                    attributes: ['documentId', 'file_path']
-                },
-                {
-                    model: db.Nation,
-                    as: 'nation',
-                    attributes: ['documentId', 'name']
+                    attributes: ['documentId', 'url', 'type']
                 }
             );
         }
 
-        // Nếu có userId, lọc theo các trang mà user đó là thành viên
-        let query = {};
-        if (userId) {
-            query = {
-                include: [
-                    ...includes,
-                    {
-                        model: db.PageMember,
-                        as: 'members',
-                        where: { user_id: userId },
-                        attributes: []
-                    }
-                ],
-                where: whereConditions,
-                order: [[sortField, sortOrder]],
-                offset,
-                limit: pageSize,
-                distinct: true
-            };
-        } else {
-            query = {
-                include: includes,
-                where: whereConditions,
-                order: [[sortField, sortOrder]],
-                offset,
-                limit: pageSize,
-                distinct: true
-            };
-        }
-
         // Thực hiện truy vấn
-        const { count, rows } = await db.Page.findAndCountAll(query);
+        const { count, rows } = await db.Page.findAndCountAll({
+            where: whereConditions,
+            include: includes,
+            order: [[sortField, sortOrder]],
+            offset,
+            limit: pageSize,
+            distinct: true
+        });
 
         return {
             data: rows,
@@ -122,20 +91,25 @@ export const getAllPages = async ({
     }
 };
 
-// Lấy page theo ID
+// Lấy trang theo ID
 export const getPageById = async (documentId) => {
     try {
         const page = await db.Page.findByPk(documentId, {
             include: [
                 {
+                    model: db.Nation,
+                    as: 'nation',
+                    attributes: ['documentId', 'name']
+                },
+                {
                     model: db.User,
                     as: 'creator',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                    attributes: ['documentId', 'username', 'email'],
                     include: [
                         {
                             model: db.Media,
                             as: 'avatarMedia',
-                            attributes: ['documentId', 'file_path', 'file_type']
+                            attributes: ['documentId', 'file_path']
                         }
                     ]
                 },
@@ -150,31 +124,23 @@ export const getPageById = async (documentId) => {
                     attributes: ['documentId', 'file_path']
                 },
                 {
-                    model: db.Nation,
-                    as: 'nation',
-                    attributes: ['documentId', 'name']
-                },
-                {
                     model: db.PageMember,
                     as: 'members',
+                    attributes: ['documentId'],
                     include: [
                         {
                             model: db.User,
                             as: 'user',
-                            attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
+                            attributes: ['documentId', 'username', 'email'],
                             include: [
                                 {
                                     model: db.Media,
                                     as: 'avatarMedia',
-                                    attributes: ['documentId', 'file_path', 'file_type']
+                                    attributes: ['documentId', 'file_path']
                                 }
                             ]
                         }
                     ]
-                },
-                {
-                    model: db.PageOpenHour,
-                    as: 'openHours'
                 }
             ]
         });
@@ -189,26 +155,17 @@ export const getPageById = async (documentId) => {
     }
 };
 
-// Tạo page mới
+// Tạo trang mới
 export const createPage = async (pageData) => {
     try {
         const newPage = await db.Page.create(pageData);
-        
-        // Tự động thêm người tạo trang vào danh sách thành viên với vai trò admin
-        await db.PageMember.create({
-            user_id: pageData.author,
-            page_id: newPage.documentId,
-            role: 'admin',
-            joined_at: new Date()
-        });
-        
         return await getPageById(newPage.documentId);
     } catch (error) {
         throw new Error(`Lỗi khi tạo trang mới: ${error.message}`);
     }
 };
 
-// Cập nhật page
+// Cập nhật trang
 export const updatePage = async (documentId, pageData) => {
     try {
         const page = await db.Page.findByPk(documentId);
@@ -224,7 +181,7 @@ export const updatePage = async (documentId, pageData) => {
     }
 };
 
-// Xóa page
+// Xóa trang
 export const deletePage = async (documentId) => {
     try {
         const page = await db.Page.findByPk(documentId);
@@ -233,110 +190,237 @@ export const deletePage = async (documentId) => {
             throw new Error('Không tìm thấy trang');
         }
 
-        // Xóa các thành viên và giờ mở cửa liên quan đến trang
-        await db.PageMember.destroy({ where: { page_id: documentId } });
-        await db.PageOpenHour.destroy({ where: { page_id: documentId } });
-        
-        // Xóa trang
         await page.destroy();
-        
         return { message: 'Xóa trang thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa trang: ${error.message}`);
     }
 };
 
-// Lấy các trang mà một người dùng là thành viên
-export const getPagesByUserId = async (userId) => {
+// Lấy tất cả thành viên trang
+export const getAllPageMembers = async ({
+    page = 1,
+    pageSize = 10,
+    sortField = 'createdAt',
+    sortOrder = 'DESC',
+    populate = false,
+    pageId = null,
+    userId = null
+}) => {
     try {
-        const pages = await db.Page.findAll({
-            include: [
+        const offset = (page - 1) * pageSize;
+        const whereConditions = {};
+
+        // Lọc theo pageId nếu được cung cấp
+        if (pageId) {
+            whereConditions.page_id = pageId;
+        }
+
+        // Lọc theo userId nếu được cung cấp
+        if (userId) {
+            whereConditions.user_id = userId;
+        }
+
+        // Chuẩn bị các mối quan hệ cần include
+        const includes = [];
+
+        if (populate) {
+            includes.push(
                 {
-                    model: db.PageMember,
-                    as: 'members',
-                    where: { user_id: userId },
-                    attributes: []
+                    model: db.Page,
+                    as: 'page',
+                    attributes: ['documentId', 'page_name', 'profile_picture']
                 },
                 {
                     model: db.User,
-                    as: 'creator',
-                    attributes: ['documentId', 'fullname', 'email'],
-                    include: [
-                        {
-                            model: db.Media,
-                            as: 'avatarMedia',
-                            attributes: ['documentId', 'file_path', 'file_type']
-                        }
-                    ]
-                },
-                {
-                    model: db.Media,
-                    as: 'profileImage',
-                    attributes: ['documentId', 'file_path']
-                },
-                {
-                    model: db.Media,
-                    as: 'coverImage',
-                    attributes: ['documentId', 'file_path']
-                },
-                {
-                    model: db.Nation,
-                    as: 'nation',
-                    attributes: ['documentId', 'name']
+                    as: 'user',
+                    attributes: ['documentId', 'username', 'email', 'avatar_id']
                 }
-            ]
+            );
+        }
+
+        // Thực hiện truy vấn
+        const { count, rows } = await db.PageMember.findAndCountAll({
+            where: whereConditions,
+            include: includes,
+            order: [[sortField, sortOrder]],
+            offset,
+            limit: pageSize,
+            distinct: true
         });
 
-        return pages;
+        return {
+            data: rows,
+            meta: {
+                pagination: {
+                    page: parseInt(page),
+                    pageSize: parseInt(pageSize),
+                    pageCount: Math.ceil(count / pageSize),
+                    total: count
+                }
+            }
+        };
     } catch (error) {
-        throw new Error(`Lỗi khi lấy danh sách trang của người dùng: ${error.message}`);
+        throw new Error(`Lỗi khi lấy danh sách thành viên trang: ${error.message}`);
     }
 };
 
-// Lấy các trang mà một người dùng là author
-export const getPagesAuthorByUserId = async (userId) => {
+// Lấy thành viên trang theo ID
+export const getPageMemberById = async (documentId) => {
     try {
-        const pages = await db.Page.findAll({
-            where: { author: userId },
+        const pageMember = await db.PageMember.findByPk(documentId, {
             include: [
                 {
-                    model: db.Media,
-                    as: 'profileImage',
-                    attributes: ['documentId', 'file_path']
+                    model: db.Page,
+                    as: 'page',
+                    attributes: ['documentId', 'page_name', 'profile_picture']
                 },
                 {
-                    model: db.Media,
-                    as: 'coverImage',
-                    attributes: ['documentId', 'file_path']
-                },
-                {
-                    model: db.Nation,
-                    as: 'nation',
-                    attributes: ['documentId', 'name']
-                },
-                {
-                    model: db.PageMember,
-                    as: 'members',
-                    include: [
-                        {
-                            model: db.User,
-                            as: 'user',
-                            attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
-                            include: [
-                                {
-                                    model: db.Media,
-                                    as: 'avatarMedia',
-                                    attributes: ['documentId', 'file_path', 'file_type']
-                                }
-                            ]
-                        }
-                    ]
+                    model: db.User,
+                    as: 'user',
+                    attributes: ['documentId', 'username', 'email', 'avatar_id']
                 }
             ]
         });
 
-        return pages;
+        if (!pageMember) {
+            throw new Error('Không tìm thấy thành viên trang');
+        }
+
+        return pageMember;
     } catch (error) {
-        throw new Error(`Lỗi khi lấy danh sách trang do người dùng tạo: ${error.message}`);
+        throw new Error(`Lỗi khi lấy thông tin thành viên trang: ${error.message}`);
+    }
+};
+
+// Tạo thành viên trang mới
+export const createPageMember = async (pageMemberData) => {
+    try {
+        const newPageMember = await db.PageMember.create(pageMemberData);
+        return await getPageMemberById(newPageMember.documentId);
+    } catch (error) {
+        throw new Error(`Lỗi khi tạo thành viên trang mới: ${error.message}`);
+    }
+};
+
+// Xóa thành viên trang
+export const deletePageMember = async (documentId) => {
+    try {
+        const pageMember = await db.PageMember.findByPk(documentId);
+        
+        if (!pageMember) {
+            throw new Error('Không tìm thấy thành viên trang');
+        }
+
+        await pageMember.destroy();
+        return { message: 'Xóa thành viên trang thành công' };
+    } catch (error) {
+        throw new Error(`Lỗi khi xóa thành viên trang: ${error.message}`);
+    }
+};
+
+// Lấy tất cả giờ mở cửa của trang
+export const getAllPageOpenHours = async ({
+    page = 1,
+    pageSize = 10,
+    sortField = 'day_of_week',
+    sortOrder = 'ASC',
+    populate = false,
+    pageId = null
+}) => {
+    try {
+        const offset = (page - 1) * pageSize;
+        const whereConditions = {};
+
+        // Lọc theo pageId nếu được cung cấp
+        if (pageId) {
+            whereConditions.page_id = pageId;
+        }
+
+        // Chuẩn bị các mối quan hệ cần include
+        const includes = [];
+
+        if (populate) {
+            includes.push(
+                {
+                    model: db.Page,
+                    as: 'page',
+                    attributes: ['documentId', 'page_name']
+                }
+            );
+        }
+
+        // Thực hiện truy vấn
+        const { count, rows } = await db.PageOpenHour.findAndCountAll({
+            where: whereConditions,
+            include: includes,
+            order: [[sortField, sortOrder]],
+            offset,
+            limit: pageSize,
+            distinct: true
+        });
+
+        return {
+            data: rows,
+            meta: {
+                pagination: {
+                    page: parseInt(page),
+                    pageSize: parseInt(pageSize),
+                    pageCount: Math.ceil(count / pageSize),
+                    total: count
+                }
+            }
+        };
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy danh sách giờ mở cửa trang: ${error.message}`);
+    }
+};
+
+// Lấy giờ mở cửa trang theo ID
+export const getPageOpenHourById = async (documentId) => {
+    try {
+        const pageOpenHour = await db.PageOpenHour.findByPk(documentId, {
+            include: [
+                {
+                    model: db.Page,
+                    as: 'page',
+                    attributes: ['documentId', 'page_name']
+                }
+            ]
+        });
+
+        if (!pageOpenHour) {
+            throw new Error('Không tìm thấy giờ mở cửa trang');
+        }
+
+        return pageOpenHour;
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy thông tin giờ mở cửa trang: ${error.message}`);
+    }
+};
+
+// Tạo giờ mở cửa trang mới
+export const createPageOpenHour = async (pageOpenHourData) => {
+    try {
+        const newPageOpenHour = await db.PageOpenHour.create(pageOpenHourData);
+        return await getPageOpenHourById(newPageOpenHour.documentId);
+    } catch (error) {
+        throw new Error(`Lỗi khi tạo giờ mở cửa trang mới: ${error.message}`);
+    }
+};
+
+// Cập nhật giờ mở cửa trang
+export const updatePageOpenHour = async (documentId, pageOpenHourData) => {
+    try {
+        const pageOpenHour = await db.PageOpenHour.findByPk(documentId);
+        
+        if (!pageOpenHour) {
+            throw new Error('Không tìm thấy giờ mở cửa trang');
+        }
+
+        await pageOpenHour.update(pageOpenHourData);
+        return await getPageOpenHourById(documentId);
+    } catch (error) {
+        throw new Error(`Lỗi khi cập nhật giờ mở cửa trang: ${error.message}`);
     }
 }; 

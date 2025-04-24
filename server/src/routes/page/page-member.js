@@ -1,28 +1,34 @@
 import express from 'express'
-import * as groupController from '../../controllers/group/group'
+import * as pageMemberController from '../../controllers/page/page-member'
 import { verifyToken } from '../../middlewares/auth'
 
 const router = express.Router()
 
-// Lấy tất cả nhóm (có phân trang, lọc)
-router.get('/', verifyToken, groupController.getAllGroups)
+// Lấy tất cả thành viên của trang (có phân trang, lọc)
+router.get('/', verifyToken, pageMemberController.getPageMembers)
 
-// Lấy nhóm theo ID
-router.get('/:id', verifyToken, groupController.getGroupById)
+// Lấy chi tiết thành viên
+router.get('/:id', verifyToken, pageMemberController.getPageMember)
 
-// Tạo nhóm mới (yêu cầu đăng nhập)
-router.post('/', verifyToken, groupController.createGroup)
+// Thêm thành viên mới vào trang
+router.post('/', verifyToken, pageMemberController.addPageMember)
 
-// Cập nhật nhóm (yêu cầu đăng nhập)
-router.put('/:id', verifyToken, groupController.updateGroup)
+// Cập nhật vai trò của thành viên
+router.put('/:userId/role', verifyToken, pageMemberController.updatePageMemberRole)
 
-// Xóa nhóm (yêu cầu đăng nhập)
-router.delete('/:id', verifyToken, groupController.deleteGroup)
+// Xóa thành viên khỏi trang
+router.delete('/:pageId/members/:userId', verifyToken, pageMemberController.removePageMember)
 
-// Lấy danh sách nhóm mà user là thành viên
-router.get('/user/:userId', verifyToken, groupController.getGroupsByUserId)
+// Kiểm tra người dùng có phải là thành viên của trang
+router.get('/:pageId/check-member', verifyToken, pageMemberController.checkPageMember)
 
-// Lấy danh sách nhóm mà user là admin
-router.get('/admin/:userId', verifyToken, groupController.getGroupsAdminByUserId)
+// Kiểm tra người dùng có phải là admin của trang
+router.get('/:pageId/check-admin', verifyToken, pageMemberController.checkPageAdmin)
+
+// Người dùng tự tham gia vào trang
+router.post('/:pageId/join', verifyToken, pageMemberController.joinPage)
+
+// Người dùng tự rời khỏi trang
+router.post('/:pageId/leave', verifyToken, pageMemberController.leavePage)
 
 export default router

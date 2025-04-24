@@ -41,9 +41,9 @@ module.exports = (sequelize, DataTypes) => {
     day_of_week: {
       type: DataTypes.STRING(20),
       allowNull: false,
-      validate: {
-        isIn: [['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Weekend', 'Weekday']]
-      }
+      // validate: {
+      //   isIn: [['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday', 'Weekend', 'Weekday']]
+      // }
     },
     status: {
       type: DataTypes.STRING(50),

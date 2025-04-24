@@ -1,16 +1,15 @@
 import * as pageOpenHourService from '../../services/page/page-open-hours.service';
 import * as pageService from '../../services/page/page.service';
 import * as pageMemberService from '../../services/page/page-member.service';
-import { StatusCodes } from 'http-status-codes';
 
 // Lấy tất cả giờ mở cửa của trang
 export const getPageOpenHours = async (req, res) => {
     try {
         const { pageId } = req.params;
         const openHours = await pageOpenHourService.getPageOpenHours(pageId);
-        return res.status(StatusCodes.OK).json(openHours);
+        return res.status(200).json(openHours);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -21,9 +20,9 @@ export const getPageOpenHour = async (req, res) => {
     try {
         const { id } = req.params;
         const openHour = await pageOpenHourService.getPageOpenHourById(id);
-        return res.status(StatusCodes.OK).json(openHour);
+        return res.status(200).json(openHour);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -36,14 +35,14 @@ export const getPageOpenHourByDay = async (req, res) => {
         const openHour = await pageOpenHourService.getPageOpenHourByDay(pageId, dayOfWeek);
         
         if (!openHour) {
-            return res.status(StatusCodes.NOT_FOUND).json({
+            return res.status(404).json({
                 message: `Không tìm thấy giờ mở cửa cho ngày ${dayOfWeek}`
             });
         }
         
-        return res.status(StatusCodes.OK).json(openHour);
+        return res.status(200).json(openHour);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -52,28 +51,26 @@ export const getPageOpenHourByDay = async (req, res) => {
 // Thêm giờ mở cửa mới
 export const addPageOpenHour = async (req, res) => {
     try {
-        const { pageId } = req.params;
-        const { user } = req;
+
         
-        // Kiểm tra quyền (chỉ người tạo trang hoặc admin mới được thêm giờ mở cửa)
-        const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
-        const page = await pageService.getPageById(pageId);
+        // // Kiểm tra quyền (chỉ người tạo trang hoặc admin mới được thêm giờ mở cửa)
+        // const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
+        // const page = await pageService.getPageById(pageId);
         
-        if (page.author !== user.documentId && !isAdmin) {
-            return res.status(StatusCodes.FORBIDDEN).json({
-                message: 'Bạn không có quyền thêm giờ mở cửa cho trang này'
-            });
-        }
+        // if (page.author !== user.documentId && !isAdmin) {
+        //     return res.status(StatusCodes.FORBIDDEN).json({
+        //         message: 'Bạn không có quyền thêm giờ mở cửa cho trang này'
+        //     });
+        // }
         
         const openHourData = {
             ...req.body,
-            page_id: pageId
         };
         
         const newOpenHour = await pageOpenHourService.addPageOpenHour(openHourData);
-        return res.status(StatusCodes.CREATED).json(newOpenHour);
+        return res.status(200).json(newOpenHour);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -93,15 +90,15 @@ export const updatePageOpenHour = async (req, res) => {
         const page = await pageService.getPageById(openHour.page_id);
         
         if (page.author !== user.documentId && !isAdmin) {
-            return res.status(StatusCodes.FORBIDDEN).json({
+            return res.status(403).json({
                 message: 'Bạn không có quyền cập nhật giờ mở cửa cho trang này'
             });
         }
         
         const updatedOpenHour = await pageOpenHourService.updatePageOpenHour(id, req.body);
-        return res.status(StatusCodes.OK).json(updatedOpenHour);
+        return res.status(200).json(updatedOpenHour);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -118,7 +115,7 @@ export const upsertPageOpenHour = async (req, res) => {
         const page = await pageService.getPageById(pageId);
         
         if (page.author !== user.documentId && !isAdmin) {
-            return res.status(StatusCodes.FORBIDDEN).json({
+            return res.status(403).json({
                 message: 'Bạn không có quyền cập nhật giờ mở cửa cho trang này'
             });
         }
@@ -126,9 +123,9 @@ export const upsertPageOpenHour = async (req, res) => {
         const openHourData = req.body;
         
         const updatedOpenHour = await pageOpenHourService.upsertPageOpenHour(pageId, dayOfWeek, openHourData);
-        return res.status(StatusCodes.OK).json(updatedOpenHour);
+        return res.status(200).json(updatedOpenHour);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -148,15 +145,15 @@ export const deletePageOpenHour = async (req, res) => {
         const page = await pageService.getPageById(openHour.page_id);
         
         if (page.author !== user.documentId && !isAdmin) {
-            return res.status(StatusCodes.FORBIDDEN).json({
+            return res.status(403).json({
                 message: 'Bạn không có quyền xóa giờ mở cửa của trang này'
             });
         }
         
         const result = await pageOpenHourService.deletePageOpenHour(id);
-        return res.status(StatusCodes.OK).json(result);
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }

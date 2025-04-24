@@ -2,7 +2,6 @@ import db from '../../models';
 import { Op } from 'sequelize';
 
 
-
 // Lấy danh sách thành viên của trang
 export const getPageMembers = async (pageId, options = {}) => {
     try {

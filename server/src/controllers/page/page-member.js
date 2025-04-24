@@ -1,6 +1,5 @@
 import * as pageMemberService from '../../services/page/page-member.service';
 import * as pageService from '../../services/page/page.service';
-import { StatusCodes } from 'http-status-codes';
 
 // Lấy danh sách thành viên của trang
 export const getPageMembers = async (req, res) => {
@@ -22,9 +21,9 @@ export const getPageMembers = async (req, res) => {
             sortOrder
         });
 
-        return res.status(StatusCodes.OK).json(result);
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -33,11 +32,19 @@ export const getPageMembers = async (req, res) => {
 // Lấy chi tiết thành viên
 export const getPageMember = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { pageId, id } = req.params;
         const member = await pageMemberService.getPageMemberById(id);
-        return res.status(StatusCodes.OK).json(member);
+        
+        // Kiểm tra xem thành viên có thuộc về trang này không
+        if (member.page_id !== pageId) {
+            return res.status(404).json({
+                message: 'Không tìm thấy thành viên trong trang này'
+            });
+        }
+        
+        return res.status(200).json(member);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -46,29 +53,28 @@ export const getPageMember = async (req, res) => {
 // Thêm thành viên mới vào trang
 export const addPageMember = async (req, res) => {
     try {
-        const { pageId } = req.params;
-        const { userId, role = 'member' } = req.body;
+        const { userId, role, pageId } = req.body;
         const { user } = req;
         
-        // Kiểm tra quyền (chỉ admin mới được thêm thành viên)
-        const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
+        // // Kiểm tra quyền (chỉ admin mới được thêm thành viên)
+        // const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
         
-        if (!isAdmin) {
-            return res.status(StatusCodes.FORBIDDEN).json({
-                message: 'Bạn không có quyền thêm thành viên vào trang này'
-            });
-        }
+        // if (!isAdmin) {
+        //     return res.status(403).json({
+        //         message: 'Bạn không có quyền thêm thành viên vào trang này'
+        //     });
+        // }
         
         const memberData = {
             page_id: pageId,
             user_id: userId,
-            role
+            role: role
         };
         
         const newMember = await pageMemberService.addPageMember(memberData);
-        return res.status(StatusCodes.CREATED).json(newMember);
+        return res.status(200).json(newMember);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -85,22 +91,22 @@ export const updatePageMemberRole = async (req, res) => {
         const page = await pageService.getPageById(pageId);
         
         if (page.author !== user.documentId) {
-            return res.status(StatusCodes.FORBIDDEN).json({
+            return res.status(403).json({
                 message: 'Chỉ người tạo trang mới được phép cập nhật vai trò thành viên'
             });
         }
         
         // Không cho phép thay đổi vai trò của người tạo trang
         if (userId === page.author) {
-            return res.status(StatusCodes.FORBIDDEN).json({
+            return res.status(403).json({
                 message: 'Không thể thay đổi vai trò của người tạo trang'
             });
         }
         
         const updatedMember = await pageMemberService.updatePageMemberRole(userId, pageId, role);
-        return res.status(StatusCodes.OK).json(updatedMember);
+        return res.status(200).json(updatedMember);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -116,24 +122,24 @@ export const removePageMember = async (req, res) => {
         const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
         const page = await pageService.getPageById(pageId);
         
-        // Không cho phép xóa người tạo trang
-        if (userId === page.author) {
-            return res.status(StatusCodes.FORBIDDEN).json({
-                message: 'Không thể xóa người tạo trang'
-            });
-        }
+        // // Không cho phép xóa người tạo trang
+        // if (userId === page.author) {
+        //     return res.status(StatusCodes.FORBIDDEN).json({
+        //         message: 'Không thể xóa người tạo trang'
+        //     });
+        // }
         
-        // Cho phép người dùng tự xóa mình khỏi trang hoặc admin xóa thành viên khác
-        if (userId !== user.documentId && !isAdmin) {
-            return res.status(StatusCodes.FORBIDDEN).json({
-                message: 'Bạn không có quyền xóa thành viên khỏi trang này'
-            });
-        }
+        // // Cho phép người dùng tự xóa mình khỏi trang hoặc admin xóa thành viên khác
+        // if (userId !== user.documentId && !isAdmin) {
+        //     return res.status(StatusCodes.FORBIDDEN).json({
+        //         message: 'Bạn không có quyền xóa thành viên khỏi trang này'
+        //     });
+        // }
         
         const result = await pageMemberService.removePageMember(userId, pageId);
-        return res.status(StatusCodes.OK).json(result);
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -147,11 +153,11 @@ export const checkPageMember = async (req, res) => {
         
         const isMember = await pageMemberService.isPageMember(user.documentId, pageId);
         
-        return res.status(StatusCodes.OK).json({
+        return res.status(200).json({
             isMember
         });
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -165,11 +171,11 @@ export const checkPageAdmin = async (req, res) => {
         
         const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
         
-        return res.status(StatusCodes.OK).json({
+        return res.status(200).json({
             isAdmin
         });
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -185,7 +191,7 @@ export const joinPage = async (req, res) => {
         const isMember = await pageMemberService.isPageMember(user.documentId, pageId);
         
         if (isMember) {
-            return res.status(StatusCodes.BAD_REQUEST).json({
+            return res.status(400).json({
                 message: 'Bạn đã là thành viên của trang này'
             });
         }
@@ -197,9 +203,9 @@ export const joinPage = async (req, res) => {
         };
         
         const newMember = await pageMemberService.addPageMember(memberData);
-        return res.status(StatusCodes.CREATED).json(newMember);
+        return res.status(200).json(newMember);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
@@ -215,15 +221,15 @@ export const leavePage = async (req, res) => {
         const page = await pageService.getPageById(pageId);
         
         if (page.author === user.documentId) {
-            return res.status(StatusCodes.FORBIDDEN).json({
+            return res.status(403).json({
                 message: 'Người tạo trang không thể rời khỏi trang'
             });
         }
         
         const result = await pageMemberService.removePageMember(user.documentId, pageId);
-        return res.status(StatusCodes.OK).json(result);
+        return res.status(200).json(result);
     } catch (error) {
-        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+        return res.status(500).json({
             message: error.message
         });
     }
