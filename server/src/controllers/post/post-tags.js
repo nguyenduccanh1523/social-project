@@ -1,6 +1,6 @@
-import * as cmtDocumentService from '../services/cmt-document.service';
+import * as postTagService from '../../services/post/post-tag.service';
 
-export const getAllCmtDocument = async (req, res) => {
+export const getAllPostTags = async (req, res) => {
     try {
         // Lấy tham số phân trang từ query
         const pagination = req.query.pagination || {};
@@ -29,24 +29,28 @@ export const getAllCmtDocument = async (req, res) => {
         if (req.query.keyword) filters.keyword = req.query.keyword;
 
         // Lấy các tham số lọc
-        const parentId = req.query.parentId || null;
+        const tagId = req.query.tagId || null;
+        const pageId = req.query.pageId || null;
+        const postId = req.query.postId || null;
         const document_share_id = req.query.document_share_id || null;
         
 
-        // Gọi service để lấy danh sách comment document
-        const cmtDocumentData = await cmtDocumentService.getAllCmtDocument({
+        // Gọi service để lấy danh sách post-tags
+        const postTagsData = await postTagService.getAllPostTags({
             page,
             pageSize,
             filters,
             sortField,
             sortOrder,
             populate,
-            parentId,
+            tagId,
+            pageId,
+            postId,
             document_share_id
         });
 
         // Trả về kết quả
-        return res.status(200).json(cmtDocumentData);
+        return res.status(200).json(postTagsData);
     } catch (error) {
         return res.status(500).json({
             err: -1,
@@ -55,15 +59,15 @@ export const getAllCmtDocument = async (req, res) => {
     }
 };
 
-export const getCmtDocumentById = async (req, res) => {
+export const getPostTagById = async (req, res) => {
     try {
         const { id } = req.params;
-        const cmtDocument = await cmtDocumentService.getCmtDocumentById(id);
+        const postTag = await postTagService.getPostTagById(id);
         
         return res.status(200).json({
             err: 0,
-            message: 'Lấy thông tin comment document thành công',
-            data: cmtDocument
+            message: 'Lấy thông tin post-tag thành công',
+            data: postTag
         });
     } catch (error) {
         return res.status(404).json({
@@ -73,15 +77,16 @@ export const getCmtDocumentById = async (req, res) => {
     }
 };
 
-export const createCmtDocument = async (req, res) => {
+export const createPostTag = async (req, res) => {
     try {
-        const cmtDocumentData = req.body;
-        const newCmtDocument = await cmtDocumentService.createCmtDocument(cmtDocumentData);
+        const postTagData = req.body;
+        
+        const newPostTag = await postTagService.createPostTag(postTagData);
         
         return res.status(201).json({
             err: 0,
-            message: 'Tạo comment document mới thành công',
-            data: newCmtDocument
+            message: 'Tạo post-tag mới thành công',
+            data: newPostTag
         });
     } catch (error) {
         return res.status(500).json({
@@ -91,16 +96,16 @@ export const createCmtDocument = async (req, res) => {
     }
 };
 
-export const updateCmtDocument = async (req, res) => {
+export const updatePostTag = async (req, res) => {
     try {
         const { id } = req.params;
-        const cmtDocumentData = req.body;
-        const updatedCmtDocument = await cmtDocumentService.updateCmtDocument(id, cmtDocumentData);
+        const postTagData = req.body;
+        const updatedPostTag = await postTagService.updatePostTag(id, postTagData);
         
         return res.status(200).json({
             err: 0,
-            message: 'Cập nhật comment document thành công',
-            data: updatedCmtDocument
+            message: 'Cập nhật post-tag thành công',
+            data: updatedPostTag
         });
     } catch (error) {
         return res.status(500).json({
@@ -110,10 +115,10 @@ export const updateCmtDocument = async (req, res) => {
     }
 };
 
-export const deleteCmtDocument = async (req, res) => {
+export const deletePostTag = async (req, res) => {
     try {
         const { id } = req.params;
-        const result = await cmtDocumentService.deleteCmtDocument(id);
+        const result = await postTagService.deletePostTag(id);
         
         return res.status(200).json({
             err: 0,

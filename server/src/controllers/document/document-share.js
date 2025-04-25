@@ -1,4 +1,4 @@
-import * as documentShareService from '../services/document-share.service'
+import * as documentShareService from '../../services/document/document-share.service'
 
 
 export const getAllDocumentShares = async (req, res) => {
@@ -52,7 +52,7 @@ export const createDocumentShare = async (req, res) => {
     try {
         const documentShareData = {
             ...req.body,
-            userId: req.user.id
+            // userId: req.user.id
         }
         const result = await documentShareService.createDocumentShare(documentShareData)
         

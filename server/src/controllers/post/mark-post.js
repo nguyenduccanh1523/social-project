@@ -1,4 +1,4 @@
-import * as markPostService from '../services/mark-post.service';
+import * as markPostService from '../../services/post/mark-post.service';
 
 export const getAllMarkPosts = async (req, res) => {
     try {
@@ -82,16 +82,15 @@ export const createMarkPost = async (req, res) => {
     try {
         const markPostData = {
             ...req.body,
-            user_id: req.user.id // Sử dụng ID của người dùng đã đăng nhập
         };
         
-        // Kiểm tra dữ liệu đầu vào
-        if (!markPostData.post_id && !markPostData.document_share_id) {
-            return res.status(400).json({
-                err: -1,
-                message: 'Cần cung cấp postId hoặc documentShareId'
-            });
-        }
+        // // Kiểm tra dữ liệu đầu vào
+        // if (!markPostData.post_id && !markPostData.document_share_id) {
+        //     return res.status(400).json({
+        //         err: -1,
+        //         message: 'Cần cung cấp postId hoặc documentShareId'
+        //     });
+        // }
         
         const newMarkPost = await markPostService.createMarkPost(markPostData);
         

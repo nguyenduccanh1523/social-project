@@ -1,6 +1,6 @@
 import express from 'express'
-import * as commentController from '../controllers/comment'
-import { verifyToken } from '../middlewares/auth'
+import * as commentController from '../../controllers/post/comment'
+import { verifyToken } from '../../middlewares/auth'
 
 const router = express.Router()
 

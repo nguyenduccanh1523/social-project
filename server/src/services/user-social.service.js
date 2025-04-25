@@ -42,18 +42,18 @@ export const getAllUserSocials = async ({
                 {
                     model: db.User,
                     as: 'user',
-                    attributes: ['documentId', 'username', 'email', 'full_name']
+                    attributes: ['documentId', 'username', 'email', 'fullname']
                 },
                 {
                     model: db.Social,
                     as: 'social',
-                    attributes: ['documentId', 'name', 'icon']
+                    attributes: ['documentId', 'platform']
                 }
             );
         }
 
         // Thực hiện truy vấn
-        const { count, rows } = await db.UserSocial.findAndCountAll({
+        const { count, rows } = await db.userSocial.findAndCountAll({
             where: whereConditions,
             include: includes,
             order: [[sortField, sortOrder]],
@@ -81,17 +81,17 @@ export const getAllUserSocials = async ({
 // Lấy user-social theo ID
 export const getUserSocialById = async (documentId) => {
     try {
-        const userSocial = await db.UserSocial.findByPk(documentId, {
+        const userSocial = await db.userSocial.findByPk(documentId, {
             include: [
                 {
                     model: db.User,
                     as: 'user',
-                    attributes: ['documentId', 'username', 'email', 'full_name']
+                    attributes: ['documentId', 'username', 'email', 'fullname']
                 },
                 {
                     model: db.Social,
                     as: 'social',
-                    attributes: ['documentId', 'name', 'icon']
+                    attributes: ['documentId', 'platform']
                 }
             ]
         });
@@ -109,7 +109,7 @@ export const getUserSocialById = async (documentId) => {
 // Tạo user-social mới
 export const createUserSocial = async (userSocialData) => {
     try {
-        const newUserSocial = await db.UserSocial.create(userSocialData);
+        const newUserSocial = await db.userSocial.create(userSocialData);
         return await getUserSocialById(newUserSocial.documentId);
     } catch (error) {
         throw new Error(`Lỗi khi tạo user-social mới: ${error.message}`);
@@ -119,7 +119,7 @@ export const createUserSocial = async (userSocialData) => {
 // Cập nhật user-social
 export const updateUserSocial = async (documentId, userSocialData) => {
     try {
-        const userSocial = await db.UserSocial.findByPk(documentId);
+        const userSocial = await db.userSocial.findByPk(documentId);
         
         if (!userSocial) {
             throw new Error('Không tìm thấy user-social');
@@ -135,7 +135,7 @@ export const updateUserSocial = async (documentId, userSocialData) => {
 // Xóa user-social
 export const deleteUserSocial = async (documentId) => {
     try {
-        const userSocial = await db.UserSocial.findByPk(documentId);
+        const userSocial = await db.userSocial.findByPk(documentId);
         
         if (!userSocial) {
             throw new Error('Không tìm thấy user-social');

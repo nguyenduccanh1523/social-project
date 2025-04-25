@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
     accountUrl: DataTypes.STRING,
     user_id: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: 'Users',
           key: 'documentId',

@@ -1,6 +1,6 @@
 import express from 'express'
-import * as reactionController from '../controllers/reaction'
-import { verifyToken } from '../middlewares/auth'
+import * as reactionController from '../../controllers/post/reaction'
+import { verifyToken } from '../../middlewares/auth'
 
 const router = express.Router()
 

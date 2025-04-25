@@ -1,4 +1,4 @@
-import db from '../models';
+import db from '../../models';
 import { Op } from 'sequelize';
 import { Sequelize } from 'sequelize';
 
@@ -270,7 +270,7 @@ export const getPostById = async (documentId, userId = null) => {
                 as: 'shares',
                 separate: true,
                 limit: 5,
-                attributes: ['documentId', 'createdAt', 'updatedt']
+                attributes: ['documentId', 'createdAt', 'updatedAt']
             },
             {
                 model: db.MarkPost,
@@ -355,50 +355,52 @@ export const getPostById = async (documentId, userId = null) => {
 
 // Tạo bài viết mới
 export const createPost = async (postData, userId) => {
-    const transaction = await db.sequelize.transaction();
     try {
-        // Thêm user_id vào dữ liệu bài viết
-        const postWithUserId = {
-            ...postData,
-            user_id: userId
-        };
+        // // Thêm user_id vào dữ liệu bài viết
+        // const postWithUserId = {
+        //     ...postData,
+        //     user_id: userId
+        // };
 
-        // Nếu bài viết thuộc về một nhóm, kiểm tra xem người dùng có phải là thành viên không
-        if (postWithUserId.group_id) {
-            const isMember = await db.group_members.findOne({
-                where: {
-                    group_id: postWithUserId.group_id,
-                    user_id: userId
-                }
-            });
+        // // Nếu bài viết thuộc về một nhóm, kiểm tra xem người dùng có phải là thành viên không
+        // if (postWithUserId.group_id) {
+        //     const isMember = await db.group_members.findOne({
+        //         where: {
+        //             group_id: postWithUserId.group_id,
+        //             user_id: userId
+        //         }
+        //     });
 
-            if (!isMember) {
-                throw new Error('Bạn không phải là thành viên của nhóm này');
-            }
-        }
+        //     if (!isMember) {
+        //         throw new Error('Bạn không phải là thành viên của nhóm này');
+        //     }
+        // }
 
-        const newPost = await db.Post.create(postWithUserId, { transaction });
+        console.log(postData)
+        const newPost = await db.Post.create(postData);
 
-        // Nếu có thông tin phương tiện (hình ảnh, video), thêm vào bảng Media
-        if (postData.media && postData.media.length > 0) {
-            const mediaItems = postData.media.map(item => ({
-                ...item,
-                post_id: newPost.documentId
-            }));
 
-            await db.Media.bulkCreate(mediaItems, { transaction });
-        }
+        // // Nếu có thông tin phương tiện (hình ảnh, video), thêm vào bảng Media
+        // if (postData.media && postData.media.length > 0) {
+        //     const mediaItems = postData.media.map(item => ({
+        //         ...item,
+        //         post_id: newPost.documentId
+        //     }));
 
-        // Commit transaction
-        await transaction.commit();
+        //     await db.Media.bulkCreate(mediaItems, { transaction });
+        // }
+
+        // // Commit transaction
+        // await transaction.commit();
 
         // Lấy bài viết đã tạo kèm theo thông tin liên quan
-        const createdPost = await getPostById(newPost.documentId, userId);
+        const createdPost = await getPostById(newPost.documentId);
 
+        
         return createdPost;
     } catch (error) {
         // Rollback nếu có lỗi
-        await transaction.rollback();
+        // await transaction.rollback();
         throw new Error(`Lỗi khi tạo bài viết mới: ${error.message}`);
     }
 };

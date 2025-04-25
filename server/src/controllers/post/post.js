@@ -1,4 +1,4 @@
-import * as postService from '../services/post.service';
+import * as postService from '../../services/post/post.service';
 
 export const getAllPosts = async (req, res) => {
     try {
@@ -94,9 +94,9 @@ export const getPostById = async (req, res) => {
 export const createPost = async (req, res) => {
     try {
         const postData = req.body;
-        const userId = req.userId; // Lấy từ middleware auth
+        // const userId = req.userId; // Lấy từ middleware auth
 
-        const newPost = await postService.createPost(postData, userId);
+        const newPost = await postService.createPost(postData);
 
         return res.status(201).json({
             err: 0,
