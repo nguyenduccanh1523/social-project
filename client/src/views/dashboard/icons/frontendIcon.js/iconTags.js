@@ -48,6 +48,24 @@ export const tagColorMap = {
     border: '#FECACA',
     gradient: 'linear-gradient(135deg, #EF4444 0%, #DC2626 100%)'
   },
+  Environment: {
+    primary: '#44ef44',
+    light: '#FEF2F2',
+    border: '#FECACA',
+    gradient: 'linear-gradient(135deg,rgb(68, 239, 68) 0%,rgb(38, 220, 47) 100%)'
+  },
+  Finance: {
+    primary: '#d4d412',
+    light: '#FEF2F2',
+    border: '#FECACA',
+    gradient: 'linear-gradient(135deg,rgb(68, 239, 68) 0%,rgb(38, 220, 47) 100%)'
+  },
+  Lifestyle: {
+    primary: '#d412d4',
+    light: '#FEF2F2',
+    border: '#FECACA',
+    gradient: 'linear-gradient(135deg,rgb(68, 239, 68) 0%,rgb(38, 220, 47) 100%)'
+  },
   // Màu mặc định cho các tag khác
   default: {
     primary: '#6B7280',
@@ -57,29 +75,29 @@ export const tagColorMap = {
   }
 };
 
-// Icon cho từng loại tag
+// Icon cho từng loại tag - Sử dụng Ant Design icons
 export const tagIcons = {
-    Life: "sentiment_satisfied",
-    Technology: "computer",
-    Health: "favorite",
-    Business: "business_center",
-    Travel: "flight",
-    Food: "restaurant",
-    Sports: "sports_soccer",
-    Education: "school",
-    Entertainment: "movie",
-    News: "newspaper",
-    Science: "science",
-    Art: "palette",
-    Music: "music_note",
-    Fashion: "checkroom",
-    Lifestyle: "spa",
-    Gaming: "sports_esports",
-    Finance: "account_balance",
-    Photography: "photo_camera",
-    Environment: "eco",
-    Sercurity: "security",
+    Life: "SmileOutlined",
+    Technology: "LaptopOutlined",
+    Health: "HeartOutlined",
+    Business: "BankOutlined",
+    Travel: "GlobalOutlined",
+    Food: "CoffeeOutlined",
+    Sports: "TrophyOutlined",
+    Education: "BookOutlined",
+    Entertainment: "PlayCircleOutlined",
+    News: "FileTextOutlined",
+    Science: "ExperimentOutlined",
+    Art: "BgColorsOutlined",
+    Music: "SoundOutlined",
+    Fashion: "SkinOutlined",
+    Lifestyle: "SunOutlined",
+    Gaming: "RocketOutlined",
+    Finance: "DollarOutlined",
+    Photography: "CameraOutlined",
+    Environment: "LeafOutlined",
+    sercurity: "SettingOutlined",
     // Thêm các tag khác tại đây
-    default: "local_offer" // Icon mặc định
+    default: "TagOutlined" // Icon mặc định
   };
   

@@ -1,22 +1,16 @@
 import axiosConfig from "../axiosConfig";
 
-export const apiGetPagesTags = ({ tagId }) =>
+export const apiGetPagesTags = ({ tagId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
-            // Kiểm tra groupId trước khi dùng trong URL
-            if (typeof tagId !== "string") {
-                //console.error("Invalid groupId:", groupId);
-                return reject(new Error("tagId should be a string"));
-            }
-
-            //console.log("Fetching group members for groupId:", groupId);
-
-            // Gọi API với URL đã được truyền đúng groupId
+    
             const response = await axiosConfig({
                 method: "get",
-                url: `/post-tags?filters[$and][0][tag_id][documentId][$eq]=${tagId}&filters[$and][1][page_id][documentId][$notNull]=true&populate=*`,
+                url: `/post-tags/by-tag/${tagId}?fields=page_id,createdAt&pageIdNotNull=true&includePage=true`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
-            //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
         } catch (error) {
             console.error("Error fetching post tags:", error.response || error);
@@ -116,21 +110,15 @@ export const apiGetPage = (payload) =>
         }
     });
 
-export const apiGetCheckFollowPage = ({ pageId, userId }) =>
+export const apiGetCheckFollowPage = ({ pageId, userId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
-            // Kiểm tra groupId trước khi dùng trong URL
-            if (typeof pageId !== "string") {
-                //console.error("Invalid groupId:", groupId);
-                return reject(new Error("pageId should be a string"));
-            }
-
-            //console.log("Fetching group members for groupId:", groupId);
-
-            // Gọi API với URL đã được truyền đúng groupId
             const response = await axiosConfig({
                 method: "get",
-                url: `/page-members?filters[$and][0][page][documentId][$eq]=${pageId}&filters[$and][1][user_id][documentId][$eq]=${userId}&populate=*`,
+                url: `/page-members?pagination[pageSize]=10&pagination[page]=1&populate=*&sort=createdAt:DESC&pageId=${pageId}&userId=${userId}`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);
@@ -181,12 +169,15 @@ export const apiCreatePageMember = (payload) =>
         }
     });
 
-export const apiDeletePageMember = ({ documentId }) =>
+export const apiDeletePageMember = ({ documentId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "delete",
                 url: `/page-members/${documentId}`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {

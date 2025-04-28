@@ -60,6 +60,8 @@ export const login = (payload) => async (dispatch) => {
       // Lưu token vào localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("refreshToken", refreshToken);
+      // Ghi lại thời gian đăng nhập để có thể kiểm tra token
+      localStorage.setItem("tokenTimestamp", Date.now().toString());
       // Đánh dấu đây là phiên đăng nhập mới
       sessionStorage.setItem("isNewLogin", "true");
       
@@ -91,12 +93,21 @@ export const login = (payload) => async (dispatch) => {
 
 export const refreshToken = (refreshTokenValue) => async (dispatch) => {
   try {
+    console.log("Bắt đầu refresh token");
+    if (!refreshTokenValue) {
+      console.error("Không có refresh token");
+      return false;
+    }
+    
     const response = await apiRefreshToken(refreshTokenValue);
+    
     if (response?.data?.success && response?.data?.jwt) {
       const newToken = response.data.jwt;
       const newRefreshToken = response.data.refresh_token;
 
+      console.log("Refresh token thành công, cập nhật token mới");
       localStorage.setItem("token", newToken);
+      localStorage.setItem("tokenTimestamp", Date.now().toString());
       
       if (newRefreshToken) {
         localStorage.setItem("refreshToken", newRefreshToken);
@@ -104,9 +115,15 @@ export const refreshToken = (refreshTokenValue) => async (dispatch) => {
       
       return true;
     }
+    console.error("Refresh token thất bại: không có token mới");
     return false;
   } catch (error) {
     console.error("Lỗi refresh token:", error);
+    // Ghi log đầy đủ thông tin lỗi
+    if (error.response) {
+      console.error("Response data:", error.response.data);
+      console.error("Response status:", error.response.status);
+    }
     return false;
   }
 };
@@ -120,6 +137,7 @@ export const logout = () => async (dispatch) => {
     // Xóa token và refreshToken khỏi localStorage
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
+    localStorage.removeItem("tokenTimestamp");
     localStorage.removeItem("toastShown");
 
     // Gửi action để cập nhật state (đăng xuất)

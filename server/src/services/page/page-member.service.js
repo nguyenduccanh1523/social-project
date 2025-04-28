@@ -2,53 +2,55 @@ import db from '../../models';
 import { Op } from 'sequelize';
 
 
-// Lấy danh sách thành viên của trang
-export const getPageMembers = async (pageId, options = {}) => {
+export const getPageMembers = async ({
+    page = 1,
+    pageSize = 10,
+    sortField = 'createdAt',
+    sortOrder = 'DESC',
+    populate = false,
+    pageId = null,
+    userId = null
+}) => {
     try {
-        const {
-            page = 1,
-            pageSize = 10,
-            filters = {},
-            sortField = 'joined_at',
-            sortOrder = 'DESC'
-        } = options;
-
         const offset = (page - 1) * pageSize;
-        const whereConditions = { page_id: pageId };
+        const whereConditions = {};
 
-        // Áp dụng bộ lọc
-        if (filters.role) {
-            whereConditions.role = filters.role;
+        // Lọc theo pageId nếu được cung cấp
+        if (pageId) {
+            whereConditions.page_id = pageId;
         }
 
-        if (filters.keyword) {
-            whereConditions[Op.and] = [
-                whereConditions[Op.and] || {},
+        // Lọc theo userId nếu được cung cấp
+        if (userId) {
+            whereConditions.user_id = userId;
+        }
+
+        // Chuẩn bị các mối quan hệ cần include
+        const includes = [];
+
+        if (populate) {
+            includes.push(
                 {
-                    '$user.fullname$': { [Op.like]: `%${filters.keyword}%` }
-                }
-            ];
-        }
-
-        const { count, rows } = await db.PageMember.findAndCountAll({
-            where: whereConditions,
-            include: [
+                    model: db.Page,
+                    as: 'page',
+                    attributes: ['documentId', 'page_name', 'profile_picture']
+                },
                 {
                     model: db.User,
                     as: 'user',
-                    attributes: ['documentId', 'fullname', 'email', 'avatar_id'],
-                    include: [
-                        {
-                            model: db.Media,
-                            as: 'avatarMedia',
-                            attributes: ['documentId', 'file_path', 'file_type']
-                        }
-                    ]
+                    attributes: ['documentId', 'username', 'email', 'avatar_id']
                 }
-            ],
+            );
+        }
+
+        // Thực hiện truy vấn
+        const { count, rows } = await db.PageMember.findAndCountAll({
+            where: whereConditions,
+            include: includes,
             order: [[sortField, sortOrder]],
             offset,
-            limit: pageSize
+            limit: pageSize,
+            distinct: true
         });
 
         return {
@@ -63,7 +65,7 @@ export const getPageMembers = async (pageId, options = {}) => {
             }
         };
     } catch (error) {
-        throw new Error(`Lỗi khi lấy danh sách thành viên: ${error.message}`);
+        throw new Error(`Lỗi khi lấy danh sách thành viên trang: ${error.message}`);
     }
 };
 
@@ -197,14 +199,9 @@ export const updatePageMemberRole = async (userId, pageId, role) => {
 };
 
 // Xóa thành viên khỏi trang
-export const removePageMember = async (userId, pageId) => {
+export const removePageMember = async (documentId) => {
     try {
-        const member = await db.PageMember.findOne({
-            where: {
-                user_id: userId,
-                page_id: pageId
-            }
-        });
+        const member = await db.PageMember.findByPk(documentId)
 
         if (!member) {
             throw new Error('Không tìm thấy thành viên');
@@ -220,7 +217,7 @@ export const removePageMember = async (userId, pageId) => {
 // Kiểm tra xem người dùng có phải là thành viên của trang không
 export const isPageMember = async (userId, pageId) => {
     try {
-        const member = await db.PageMember.findOne({
+        const member = await db.PageMember.find({
             where: {
                 user_id: userId,
                 page_id: pageId

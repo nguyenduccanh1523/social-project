@@ -59,6 +59,46 @@ export const getAllPostTags = async (req, res) => {
     }
 };
 
+// Controller để lấy post-tags với các trường tùy chỉnh theo tagId
+export const getCustomPostTagsByTagId = async (req, res) => {
+    try {
+        const { tagId } = req.params;
+        
+        // Lấy danh sách các trường tùy chỉnh từ query
+        let customAttributes = ['page_id']; // Mặc định lấy pageId
+        if (req.query.fields) {
+            customAttributes = req.query.fields.split(',');
+        }
+        
+        // Kiểm tra xem có cần lọc page_id not null hay không
+        const pageIdNotNull = req.query.pageIdNotNull === 'true';
+        
+        // Kiểm tra xem có cần include thông tin page hay không
+        const includePage = req.query.includePage === 'true';
+
+        const includePagemember = req.query.includePagemem === 'true'
+        
+        // Gọi service với tham số customAttributes
+        const postTagsData = await postTagService.getAllPostTags({
+            tagId,
+            customAttributes,
+            pageIdNotNull,
+            includePage
+        });
+        
+        return res.status(200).json({
+            err: 0,
+            message: 'Lấy danh sách post-tags thành công',
+            data: postTagsData.data
+        });
+    } catch (error) {
+        return res.status(500).json({
+            err: -1,
+            message: 'Lỗi từ server: ' + error.message
+        });
+    }
+};
+
 export const getPostTagById = async (req, res) => {
     try {
         const { id } = req.params;

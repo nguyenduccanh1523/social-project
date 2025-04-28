@@ -17,7 +17,7 @@ router.post('/', verifyToken, pageMemberController.addPageMember)
 router.put('/:userId/role', verifyToken, pageMemberController.updatePageMemberRole)
 
 // Xóa thành viên khỏi trang
-router.delete('/:pageId/members/:userId', verifyToken, pageMemberController.removePageMember)
+router.delete('/:id', verifyToken, pageMemberController.removePageMember)
 
 // Kiểm tra người dùng có phải là thành viên của trang
 router.get('/:pageId/check-member', verifyToken, pageMemberController.checkPageMember)

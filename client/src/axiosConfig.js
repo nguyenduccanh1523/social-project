@@ -1,13 +1,21 @@
 import axios from "axios";
-import { refreshToken } from "./actions/actions/auth";
 import reduxStore from "./redux";
 
-// Để tránh lỗi circular dependency
-let store;
-setTimeout(() => {
-  const reduxStoreObj = reduxStore();
-  store = reduxStoreObj.store;
-}, 0);
+// Biến để kiểm soát quá trình refresh token
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
 
 // Tạo một instance axios với cấu hình cơ bản
 const instance = axios.create({
@@ -19,6 +27,11 @@ const instance = axios.create({
   }
 });
 
+// Lấy store một cách an toàn
+const getStore = () => {
+  return reduxStore().store;
+};
+
 // Interceptor cho requests
 instance.interceptors.request.use(
   (config) => {
@@ -27,14 +40,6 @@ instance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    
-    // Log thông tin request để debug
-    // console.log('Request:', {
-    //   url: config.url,
-    //   method: config.method,
-    //   data: config.data
-    // });
-    
     return config;
   },
   (error) => {
@@ -46,13 +51,11 @@ instance.interceptors.request.use(
 // Interceptor cho responses
 instance.interceptors.response.use(
   (response) => {
-    // console.log('Response OK:', response.data);
     return response;
   },
   async (error) => {
     console.error('Response Error:', error);
     
-    // Log chi tiết lỗi
     if (error.response) {
       console.log('Error Data:', error.response.data);
       console.log('Error Status:', error.response.status);
@@ -66,43 +69,95 @@ instance.interceptors.response.use(
     
     // Xử lý refresh token khi gặp lỗi 401
     if (error.response?.status === 401 && !originalRequest._retry) {
+      // Kiểm tra xem đường dẫn hiện tại có phải là refresh token không
+      if (originalRequest.url.includes('auth/refresh')) {
+        // Nếu request refresh token thất bại, đăng xuất người dùng
+        localStorage.removeItem("token");
+        localStorage.removeItem("refreshToken");
+        sessionStorage.removeItem("isNewLogin");
+        
+        if (!window.location.pathname.includes('/sign-in') && 
+            !window.location.pathname.includes('/sign-up')) {
+          window.location.href = "/sign-in";
+        }
+        return Promise.reject(error);
+      }
+      
+      // Đánh dấu request này đã được retry
       originalRequest._retry = true;
-
-      try {
+      
+      if (!isRefreshing) {
+        isRefreshing = true;
+        
         const refreshTokenValue = localStorage.getItem("refreshToken");
         
-        if (refreshTokenValue && store) {
-          const success = await store.dispatch(refreshToken(refreshTokenValue));
+        if (!refreshTokenValue) {
+          isRefreshing = false;
+          localStorage.removeItem("token");
+          
+          if (!window.location.pathname.includes('/sign-in') && 
+              !window.location.pathname.includes('/sign-up')) {
+            window.location.href = "/sign-in";
+          }
+          
+          return Promise.reject(error);
+        }
+        
+        try {
+          const store = getStore();
+          const refreshAction = (await import('./actions/actions/auth')).refreshToken;
+          
+          const success = await store.dispatch(refreshAction(refreshTokenValue));
           
           if (success) {
             const newToken = localStorage.getItem("token");
+            isRefreshing = false;
+            processQueue(null, newToken);
+            
+            // Cập nhật token cho request ban đầu
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return instance(originalRequest);
+          } else {
+            isRefreshing = false;
+            processQueue(new Error('Failed to refresh token'));
+            
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshToken");
+            sessionStorage.removeItem("isNewLogin");
+            
+            if (!window.location.pathname.includes('/sign-in') && 
+                !window.location.pathname.includes('/sign-up')) {
+              window.location.href = "/sign-in";
+            }
+            
+            return Promise.reject(error);
           }
+        } catch (err) {
+          isRefreshing = false;
+          processQueue(err);
+          
+          console.error('Error refreshing token:', err);
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+          sessionStorage.removeItem("isNewLogin");
+          
+          if (!window.location.pathname.includes('/sign-in') && 
+              !window.location.pathname.includes('/sign-up')) {
+            window.location.href = "/sign-in";
+          }
+          
+          return Promise.reject(err);
         }
-        
-        // Nếu không có refreshToken hoặc refresh thất bại
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        sessionStorage.removeItem("isNewLogin"); // Xóa cờ đăng nhập mới
-        
-        // Chỉ chuyển hướng nếu người dùng đang ở trang cần xác thực
-        if (!window.location.pathname.includes('/sign-in') && 
-            !window.location.pathname.includes('/sign-up')) {
-          window.location.href = "/sign-in";
-        }
-        
-      } catch (err) {
-        console.error('Error refreshing token:', err);
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        sessionStorage.removeItem("isNewLogin"); // Xóa cờ đăng nhập mới
-        
-        // Chỉ chuyển hướng nếu người dùng đang ở trang cần xác thực
-        if (!window.location.pathname.includes('/sign-in') && 
-            !window.location.pathname.includes('/sign-up')) {
-          window.location.href = "/sign-in";
-        }
+      } else {
+        // Nếu đang refresh token, đưa request vào hàng đợi
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then(token => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return instance(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
       }
     }
 

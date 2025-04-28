@@ -30,6 +30,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { profile } = useSelector((state) => state.root.user || {});
+    const { token, user } = useSelector((state) => state.root.auth || {});
     const { medias } = useSelector((state) => state.root.media || {});
     const { tags } = useSelector((state) => state.root.tag || {});
     const createdAt = new Date(post?.createdAt);
@@ -38,7 +39,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
     const [showPicker, setShowPicker] = useState(false);
     const pickerRef = useRef(null);
 
-    //console.log("Reply component props:", post, parent, nested);
+    //console.log("Reply component props:", post, parent, nested)
 
     const onEmojiClick = (emoji) => {
         setComment(prevComment => prevComment + emoji.emoji);
@@ -181,14 +182,14 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                     <div>
                                         <h5 className="d-flex align-items-center">
                                             <Link to={
-                                                post?.user_id?.documentId === profile?.documentId
+                                                post?.user_id?.documentId === user?.documentId
                                                     ? `/user-profile`
                                                     : post?.user_id
                                                         ? `/friend-profile/${post?.user_id?.documentId}`
                                                         : `/page/${page?.page_name}`
                                             }
                                                 state={
-                                                    post?.user_id?.documentId === profile?.documentId
+                                                    post?.user_id?.documentId === user?.documentId
                                                         ? {}
                                                         : post?.user_id
                                                             ? { friendId: post?.user_id }
@@ -491,7 +492,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                 <div className="d-flex justify-content-center align-items-center">
                     <div className="user-img">
                         <img
-                            src={profile.profile_picture}
+                            src={user.avatarMedia.file_path}
                             alt="user1"
                             className="avatar-45 rounded-circle img-fluid"
                         />
@@ -516,7 +517,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                             </span>
                             <Send formData={{
                                 inputText: comment,
-                            }} post={post} profile={profile} onSend={handleSendSuccess} />
+                            }} post={post} profile={user} onSend={handleSendSuccess} />
                         </div>
                     </form>
 

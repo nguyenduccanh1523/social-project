@@ -13,10 +13,13 @@ export const getAllPostTags = async ({
     tagId = null,
     pageId = null,
     postId = null,
-    document_share_id = null
+    document_share_id = null,
+    customAttributes = null,
+    pageIdNotNull = false,
+    includePage = false,
 }) => {
     try {
-        
+
         const offset = (page - 1) * pageSize;
         const whereConditions = {};
 
@@ -52,6 +55,13 @@ export const getAllPostTags = async ({
             whereConditions.document_share_id = document_share_id;
         }
 
+        // Lọc các bản ghi có page_id không null
+        if (pageIdNotNull) {
+            whereConditions.page_id = {
+                [Op.ne]: null
+            };
+        }
+
         // Chuẩn bị các mối quan hệ cần include
         const includes = [];
 
@@ -80,27 +90,75 @@ export const getAllPostTags = async ({
             );
         }
 
-        // Thực hiện truy vấn
-        const { count, rows } = await db.PostTag.findAndCountAll({
+        // Thêm include page nếu yêu cầu (cho customAttributes)
+        if (includePage && !populate) {
+            includes.push({
+                model: db.Page,
+                as: 'page',
+                attributes: ['documentId', 'page_name', 'intro', 'profile_picture', 'rate', 'is_verified'],
+                include: [
+                    {
+                        model: db.Media,
+                        as: 'profileImage',
+                        attributes: ['documentId', 'file_path'],
+                    },
+                    {
+                        model: db.User,
+                        as: 'creator',
+                        attributes: ['documentId', 'username', 'email'],
+                        include: [
+                            {
+                                model: db.Media,
+                                as: 'avatarMedia',
+                                attributes: ['documentId', 'file_path']
+                            }
+                        ]
+                    }
+                ]
+            });
+        }
+
+
+        // Tạo options cho truy vấn
+        const queryOptions = {
             where: whereConditions,
             include: includes,
             order: [[sortField, sortOrder]],
-            offset,
-            limit: pageSize,
             distinct: true
-        });
-
-        return {
-            data: rows,
-            meta: {
-                pagination: {
-                    page: parseInt(page),
-                    pageSize: parseInt(pageSize),
-                    pageCount: Math.ceil(count / pageSize),
-                    total: count
-                }
-            }
         };
+
+        // Thêm attributes nếu có customAttributes
+        if (customAttributes && Array.isArray(customAttributes) && customAttributes.length > 0) {
+            queryOptions.attributes = customAttributes;
+        }
+
+        // Thêm phân trang nếu cần
+        if (!customAttributes) { // Chỉ phân trang khi không sử dụng customAttributes
+            queryOptions.offset = offset;
+            queryOptions.limit = pageSize;
+        }
+
+        // Thực hiện truy vấn
+        if (!customAttributes) {
+            // Trường hợp thông thường với phân trang
+            const { count, rows } = await db.PostTag.findAndCountAll(queryOptions);
+
+            return {
+                data: rows,
+                meta: {
+                    pagination: {
+                        page: parseInt(page),
+                        pageSize: parseInt(pageSize),
+                        pageCount: Math.ceil(count / pageSize),
+                        total: count
+                    }
+                }
+            };
+        } else {
+            // Trường hợp chỉ lấy các trường tùy chỉnh không cần phân trang
+            const data = await db.PostTag.findAll(queryOptions);
+            return { data };
+        }
     } catch (error) {
         throw new Error(`Lỗi khi lấy danh sách post-tags: ${error.message}`);
     }
@@ -158,7 +216,7 @@ export const createPostTag = async (postTagData) => {
 export const updatePostTag = async (documentId, postTagData) => {
     try {
         const postTag = await db.PostTag.findByPk(documentId);
-        
+
         if (!postTag) {
             throw new Error('Không tìm thấy post-tag');
         }
@@ -174,7 +232,7 @@ export const updatePostTag = async (documentId, postTagData) => {
 export const deletePostTag = async (documentId) => {
     try {
         const postTag = await db.PostTag.findByPk(documentId);
-        
+
         if (!postTag) {
             throw new Error('Không tìm thấy post-tag');
         }
@@ -183,5 +241,30 @@ export const deletePostTag = async (documentId) => {
         return { message: 'Xóa post-tag thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa post-tag: ${error.message}`);
+    }
+};
+
+// Lấy post-tag theo tagId với các trường tùy chỉnh
+export const getPostTagsByTagId = async (tagId, attributes = ['page_id']) => {
+    try {
+        // Kiểm tra nếu tagId không được cung cấp
+        if (!tagId) {
+            throw new Error('TagId là bắt buộc');
+        }
+
+        // Tạo đối tượng options cho truy vấn
+        const options = {
+            where: {
+                tag_id: tagId
+            },
+            attributes: attributes
+        };
+
+        // Thực hiện truy vấn
+        const postTags = await db.PostTag.findAll(options);
+
+        return postTags;
+    } catch (error) {
+        throw new Error(`Lỗi khi lấy post-tags theo tagId: ${error.message}`);
     }
 }; 

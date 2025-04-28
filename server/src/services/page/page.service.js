@@ -55,12 +55,12 @@ export const getAllPages = async ({
                 {
                     model: db.Media,
                     as: 'profileImage',
-                    attributes: ['documentId', 'url', 'type']
+                    attributes: ['documentId', 'file_path']
                 },
                 {
                     model: db.Media,
                     as: 'coverImage',
-                    attributes: ['documentId', 'url', 'type']
+                    attributes: ['documentId', 'file_path']
                 }
             );
         }

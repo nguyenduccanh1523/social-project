@@ -4,27 +4,48 @@ import * as pageService from '../../services/page/page.service';
 // Lấy danh sách thành viên của trang
 export const getPageMembers = async (req, res) => {
     try {
-        const { pageId } = req.params;
-        const { 
-            page = 1, 
-            pageSize = 10, 
-            sortField = 'joined_at', 
-            sortOrder = 'DESC',
-            ...filters 
-        } = req.query;
+        // Lấy tham số phân trang từ query
+        const pagination = req.query.pagination || {};
+        const page = parseInt(pagination.page) || parseInt(req.query.page) || 1;
+        const pageSize = parseInt(pagination.pageSize) || parseInt(req.query.pageSize) || 10;
 
-        const result = await pageMemberService.getPageMembers(pageId, {
+        // Xử lý tham số sort
+        const sort = req.query.sort;
+        let sortField = 'createdAt';
+        let sortOrder = 'DESC';
+
+        if (sort) {
+            const sortParts = sort.split(':');
+            if (sortParts.length === 2) {
+                sortField = sortParts[0];
+                sortOrder = sortParts[1].toUpperCase();
+            }
+        }
+
+        // Xử lý populate
+        const populate = req.query.populate === '*' ? true : false;
+
+        // Lấy các tham số lọc
+        const pageId = req.query.pageId || null;
+        const userId = req.query.userId || null;
+
+        // Gọi service để lấy danh sách thành viên trang
+        const pageMembersData = await pageMemberService.getPageMembers({
             page,
             pageSize,
-            filters,
             sortField,
-            sortOrder
+            sortOrder,
+            populate,
+            pageId,
+            userId
         });
 
-        return res.status(200).json(result);
+        // Trả về kết quả
+        return res.status(200).json(pageMembersData);
     } catch (error) {
         return res.status(500).json({
-            message: error.message
+            err: -1,
+            message: 'Lỗi từ server: ' + error.message
         });
     }
 };
@@ -54,7 +75,6 @@ export const getPageMember = async (req, res) => {
 export const addPageMember = async (req, res) => {
     try {
         const { userId, role, pageId } = req.body;
-        const { user } = req;
         
         // // Kiểm tra quyền (chỉ admin mới được thêm thành viên)
         // const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
@@ -68,7 +88,7 @@ export const addPageMember = async (req, res) => {
         const memberData = {
             page_id: pageId,
             user_id: userId,
-            role: role
+            role: member
         };
         
         const newMember = await pageMemberService.addPageMember(memberData);
@@ -115,12 +135,11 @@ export const updatePageMemberRole = async (req, res) => {
 // Xóa thành viên khỏi trang
 export const removePageMember = async (req, res) => {
     try {
-        const { pageId, userId } = req.params;
-        const { user } = req;
+        const { id } = req.params;
         
-        // Kiểm tra quyền (chỉ admin mới được xóa thành viên hoặc tự xóa mình)
-        const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
-        const page = await pageService.getPageById(pageId);
+        // // Kiểm tra quyền (chỉ admin mới được xóa thành viên hoặc tự xóa mình)
+        // const isAdmin = await pageMemberService.isPageAdmin(user.documentId, pageId);
+        // const page = await pageService.getPageById(pageId);
         
         // // Không cho phép xóa người tạo trang
         // if (userId === page.author) {
@@ -136,7 +155,7 @@ export const removePageMember = async (req, res) => {
         //     });
         // }
         
-        const result = await pageMemberService.removePageMember(userId, pageId);
+        const result = await pageMemberService.removePageMember(id);
         return res.status(200).json(result);
     } catch (error) {
         return res.status(500).json({

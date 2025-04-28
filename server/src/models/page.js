@@ -125,6 +125,11 @@ module.exports = (sequelize, DataTypes) => {
         model: 'Users',
         key: 'documentId'
       }
+    },
+    is_verified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
     }
   }, {
     sequelize,

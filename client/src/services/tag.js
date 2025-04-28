@@ -52,13 +52,15 @@ export const apiGetTagPage = ({ documentId }) =>
     }
   });
 
-export const apiGetTag = (payload) =>
+export const apiGetTag = ({ token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: "/tags?populate=*",
-        data: payload,
+        url: "/tags??pagination[pageSize]=10&pagination[page]=1&populate=*&sort=createdAt:DESC",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -86,19 +88,19 @@ export const apiCreatePostTag = (payload) => {
 
 export const apiEditPostTag = ({ documentId, payload }) => {
   return new Promise(async (resolve, reject) => {
-      try {
-          const response = await axiosConfig({
-              method: "put",
-              url: `/post-tags/${documentId}`,
-              data: payload,
-              headers: {
-                  'Content-Type': 'application/json'
-              }
-          });
-          resolve(response);
-      } catch (error) {
-          reject(error);
-      }
+    try {
+      const response = await axiosConfig({
+        method: "put",
+        url: `/post-tags/${documentId}`,
+        data: payload,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 
@@ -116,15 +118,18 @@ export const apiDeletePostTag = ({ documentId }) =>
     }
   });
 
-export const apiGetPageTag = ({ tagId }) =>
+export const apiGetPageTag = ({ tagId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/post-tags?filters[$and][0][page_id][documentId][$notNull]=true&filters[$and][1][tag_id][documentId][$eq]=${tagId}&populate=*`,
+        url: `/post-tags/by-tag/${tagId}?fields=page_id,createdAt&pageIdNotNull=true&includePage=true`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
       reject(error);
     }
-  });
+});

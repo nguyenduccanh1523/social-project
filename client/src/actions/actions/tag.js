@@ -20,9 +20,9 @@ export const fetchPostTag = (postId) => async (dispatch) => {
     }
 };
 
-export const fetchTag= () => async (dispatch) => {
+export const fetchTag= (token) => async (dispatch) => {
   try {
-    const response = await apiGetTag();
+    const response = await apiGetTag(token);
     dispatch({ type: actionTypes.TAG_SUCCESS , payload: response.data });
   } catch (error) {
     dispatch({

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Row, Col, Container } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import { Link, useLocation } from "react-router-dom";
@@ -31,57 +31,59 @@ const PageLists = () => {
   const location = useLocation();
   const { selectedTag, tagName, tagId } = location.state || {};
   const { profile } = useSelector((state) => state.root.user || {});
-  const [pages, setPages] = useState([]);
-  const [pageDetails, setPageDetails] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  const { token, user } = useSelector((state) => state.root.auth || {});
   const [searchTerm, setSearchTerm] = useState("");
-  const [pageIds, setPageIds] = useState([]);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchPages = async () => {
-      if (!tagId) return;
+  // Sử dụng useQuery để lấy danh sách pages của tag
+  const { 
+    data: pagesData,
+    isLoading: isPagesLoading
+  } = useQuery({
+    queryKey: ['pages', tagId],
+    queryFn: async () => {
+      if (!tagId) return { data: [] };
+      const response = await apiGetPagesTags({ tagId, token });
+      return response.data || [];
+    },
+    enabled: !!tagId && !!token
+  });
 
-      setIsLoading(true);
-      try {
-        // Lấy danh sách pages của tag
-        const response = await apiGetPagesTags({ tagId });
-        setPages(response.data || []);
+  // Lấy danh sách pageIds từ pagesData
+  const pageIds = pagesData?.data?.map(page => page.page_id) || [];
 
-        // Lấy chi tiết của từng page
-        const pageIds =
-          response.data?.data?.map((page) => page.page_id?.documentId) || [];
-        setPageIds(pageIds);
-        const pageDetailsPromises = pageIds.map((pageId) =>
-          apiGetPageDetailTag({ pageId })
-            .then((res) => ({ [pageId]: res.data?.data?.[0] }))
-            .catch((err) => {
-              console.error(`Error fetching page detail for ${pageId}:`, err);
-              return { [pageId]: null };
-            })
-        );
+  // // Sử dụng useQuery để lấy chi tiết của từng page
+  // const {
+  //   data: pageDetails = {},
+  //   isLoading: isPageDetailsLoading
+  // } = useQuery({
+  //   queryKey: ['pageDetails', pageIds],
+  //   queryFn: async () => {
+  //     if (!pageIds.length) return {};
+      
+  //     const pageDetailsPromises = pageIds.map((pageId) =>
+  //       apiGetPageDetailTag({ pageId })
+  //         .then((res) => ({ [pageId]: res.data?.data?.[0] }))
+  //         .catch((err) => {
+  //           console.error(`Error fetching page detail for ${pageId}:`, err);
+  //           return { [pageId]: null };
+  //         })
+  //     );
 
-        const pageDetailsResults = await Promise.all(pageDetailsPromises);
-        const pageDetailsMap = pageDetailsResults.reduce(
-          (acc, curr) => ({ ...acc, ...curr }),
-          {}
-        );
-        setPageDetails(pageDetailsMap);
-      } catch (error) {
-        console.error("Error fetching pages:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchPages();
-  }, [tagId, profile?.documentId]);
+  //     const pageDetailsResults = await Promise.all(pageDetailsPromises);
+  //     return pageDetailsResults.reduce(
+  //       (acc, curr) => ({ ...acc, ...curr }),
+  //       {}
+  //     );
+  //   },
+  //   enabled: pageIds.length > 0
+  // });
 
   const { data: followStatusMap, isLoading: isFollowStatusLoading } = useQuery({
     queryKey: ["followStatus", pageIds, profile?.documentId],
     queryFn: async () => {
       const followStatusPromises = pageIds.map((pageId) =>
-        apiGetCheckFollowPage({ pageId, userId: profile?.documentId })
+        apiGetCheckFollowPage({ pageId, userId: user?.documentId, token })
           .then((res) => ({
             [pageId]: res.data?.data?.length > 0,
           }))
@@ -97,12 +99,12 @@ const PageLists = () => {
         {}
       );
     },
-    enabled: !!pageIds.length && !!profile?.documentId,
+    enabled: !!pageIds.length && !!user?.documentId && !!token,
   });
 
   const handleUnfollow = async (pageId) => {
     try {
-      const response = await apiGetCheckFollowPage({ pageId, userId: profile?.documentId });
+      const response = await apiGetCheckFollowPage({ pageId, userId: user?.documentId, token });
       const memberId = response.data?.data?.[0]?.documentId;
 
       if (memberId) {
@@ -136,10 +138,9 @@ const PageLists = () => {
   };
 
   // Lọc pages theo tên từ pageDetails
-  const filteredPages = pages?.data?.filter((page) => {
+  const filteredPages = pagesData?.data?.filter((page) => {
     if (!searchTerm) return true;
-    const pageDetail = pageDetails[page?.page_id?.documentId];
-    const pageName = pageDetail?.page_name?.toLowerCase() || "";
+    const pageName = page?.page?.page_name?.toLowerCase() || "";
     return pageName.includes(searchTerm.toLowerCase());
   });
 
@@ -147,6 +148,8 @@ const PageLists = () => {
     setSearchTerm(value);
   };
 
+  // Kiểm tra trạng thái loading tổng hợp
+  const isLoading = isPagesLoading || isFollowStatusLoading;
 
   return (
     <>
@@ -171,7 +174,7 @@ const PageLists = () => {
               />
             </Col>
 
-            {isLoading || isFollowStatusLoading ? (
+            {isLoading ? (
               <div className="col-sm-12 text-center">
                 <Loader />
               </div>
@@ -200,10 +203,9 @@ const PageLists = () => {
               </Col>
             ) : (
               filteredPages?.map((page) => {
-                const pageDetail = pageDetails[page?.page_id?.documentId];
-                const isFollowed = followStatusMap?.[page?.page_id?.documentId];
+                const isFollowed = followStatusMap?.[page?.page?.documentId];
                 return (
-                  <Col md={6} key={page.id}>
+                  <Col md={6} key={page.documentId}>
                     <Card
                       className="card-block card-stretch card-height card-hover"
                       style={cardHoverStyle}
@@ -213,7 +215,7 @@ const PageLists = () => {
                           <div className="cover-container">
                             <img
                               loading="lazy"
-                              src={pageDetail?.media?.url || img8}
+                              src={page?.media?.url || img8}
                               alt="profile-bg"
                               className="rounded img-fluid w-100"
                             />
@@ -226,7 +228,7 @@ const PageLists = () => {
                                     <img
                                       loading="lazy"
                                       src={
-                                        pageDetail?.profile_picture
+                                        page?.page?.profileImage
                                           ?.file_path || user05
                                       }
                                       alt="page-avatar"
@@ -236,32 +238,32 @@ const PageLists = () => {
                                   <div className="user-data-block">
                                     <h4 className="d-flex align-items-center">
                                       <Link
-                                        to={`/page/${page.page_id?.documentId}`}
+                                        to={`/page/${page.page?.documentId}`}
                                         state={{
-                                          pageId: page.page_id?.documentId,
-                                          // pageDetail:
+                                          pageId: page.page?.documentId,
+                                          // page:
                                           //   pageDetails[
                                           //   page?.page_id?.documentId
                                           //   ],
-                                          pageInfo: page,
+                                          pageInfo: page?.page,
                                         }}
                                       >
-                                        {pageDetail?.page_name}
+                                        {page?.page?.page_name}
                                       </Link>
-                                      {pageDetail?.is_verified && (
+                                      {page?.page?.is_verified && (
                                         <i className="material-symbols-outlined verified-badge ms-2">
                                           verified
                                         </i>
                                       )}
                                     </h4>
                                     <p className="mb-2">
-                                      {pageDetail?.intro ||
+                                      {page?.page?.intro ||
                                         "No intro available"}
                                     </p>
                                     <div className="d-flex align-items-center mb-2">
                                       <img
                                         src={
-                                          pageDetail?.author?.profile_picture ||
+                                          page?.page?.creator?.avatarMedia?.file_path ||
                                           user05
                                         }
                                         alt="author"
@@ -269,7 +271,7 @@ const PageLists = () => {
                                       />
                                       <span>
                                         @
-                                        {pageDetail?.author?.username ||
+                                        {page?.page?.creator?.username ||
                                           "anonymous"}
                                       </span>
                                     </div>
@@ -278,13 +280,13 @@ const PageLists = () => {
                                         group
                                       </i>
                                       <span>
-                                        {pageDetail?.page_members?.length || 0}{" "}
+                                        {page?.page_members?.length || 0}{" "}
                                         followers
                                       </span>
                                       <span className="material-symbols-outlined" style={{ marginLeft: "10px", color: "gold" }}>
                                         star
                                       </span>
-                                      {pageDetail?.rate || 0}
+                                      {page?.page?.rate || 0}
                                     </div>
                                   </div>
                                 </div>
@@ -297,9 +299,9 @@ const PageLists = () => {
                               onClick={(e) => {
                                 e.preventDefault();
                                 if (isFollowed) {
-                                  handleUnfollow(page.page_id?.documentId);
+                                  handleUnfollow(page.page?.documentId);
                                 } else {
-                                  handleFollow(page.page_id?.documentId);
+                                  handleFollow(page.page?.documentId);
                                 }
                               }}
                             >

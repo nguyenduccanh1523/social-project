@@ -4,6 +4,9 @@ import { verifyToken } from '../../middlewares/auth'
 
 const router = express.Router()
 
+// Lấy post-tags với các trường tùy chỉnh theo tagId
+router.get('/by-tag/:tagId', verifyToken, postTagController.getCustomPostTagsByTagId)
+
 // Lấy tất cả tags (có phân trang, lọc)
 router.get('/', verifyToken, postTagController.getAllPostTags)
 

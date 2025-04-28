@@ -39,6 +39,7 @@ export const apiRefreshToken = (refreshToken) => new Promise(async (resolve, rej
             method: 'post',
             url: 'auth/refresh',
             data: { refreshToken },
+            _retry: true
         })
         console.log('Kết quả refresh token:', response.data);
         resolve(response)

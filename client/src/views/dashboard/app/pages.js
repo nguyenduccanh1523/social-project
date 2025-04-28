@@ -7,9 +7,10 @@ import ProfileHeader from "../../../components/profile-header";
 import img7 from "../../../assets/images/page-img/profile-bg1.jpg";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTag } from "../../../actions/actions/tag";
-import { tagIcons, tagColorMap } from "../icons/frontendIcon.js/iconTags";
-import { apiGetPageTag } from "../../../services/tag";
+import { tagIcons, tagColorMap } from "../icons/frontendIcon.js/iconTags.js";
+import { apiGetPageTag, apiGetTag } from "../../../services/tag";
 import { useQuery } from '@tanstack/react-query';
+import * as AntdIcons from '@ant-design/icons';
 
 const { Search } = Input;
 
@@ -17,13 +18,31 @@ const Pages = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { tags } = useSelector((state) => state.root.tag || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
 
   useEffect(() => {
-    dispatch(fetchTag());
+    dispatch(fetchTag(token));
   }, [dispatch]);
+
+  // const { data: TagsDatas, isLoading: TagsData } = useQuery({
+  //   queryKey: ['tagsData', token],
+  //   queryFn: () => apiGetTag({ token }),
+  //   enabled: !!token,
+  //   onSuccess: (data) => {
+  //     console.log("User data fetched successfully:", data);
+  //   },
+  //   onError: (error) => {
+  //     console.error("Error fetching user data:", error);
+  //   }
+  // });
+  
+  // console.log('sssssstags ', TagsDatas)
+  // const tags = TagsDatas || {};
+  // console.log('tags ', tags)
+
 
   // Lọc tags theo searchText
   const filteredTags = tags?.data?.filter(tag => {
@@ -38,7 +57,8 @@ const Pages = () => {
       if (filteredTags) {
         for (const tag of filteredTags) {
           try {
-            const response = await apiGetPageTag({ tagId: tag.documentId });
+            const response = await apiGetPageTag({ tagId: tag.documentId, token });
+            console.log(response)
             counts[tag.documentId] = response.data?.data.length;
           } catch (error) {
             console.error("Error fetching page count for tag:", tag.name, error);
@@ -55,12 +75,13 @@ const Pages = () => {
     refetchPageCounts();
   }, [filteredTags, refetchPageCounts]);
 
-  // Tính toán tags cho trang hiện tại từ danh sách đã lọc
+  //Tính toán tags cho trang hiện tại từ danh sách đã lọc
   const getCurrentPageTags = () => {
     if (!filteredTags) return [];
     const startIndex = (currentPage - 1) * pageSize;
     return filteredTags.slice(startIndex, startIndex + pageSize);
   };
+  
 
   // Xử lý khi search thay đổi
   const handleSearch = (value) => {
@@ -68,20 +89,24 @@ const Pages = () => {
     setCurrentPage(1); // Reset về trang 1 khi search
   };
 
-  // Lấy icon dựa trên tên tag
-  const getTagIcon = (tagName) => {
-    if (!tagName) return tagIcons.default;
-    // Chuyển đổi tên tag thành dạng Title Case và loại bỏ khoảng trắng thừa
-    const formattedTagName = tagName.trim().split(' ').map(word =>
-      word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-    ).join('');
-    return tagIcons[formattedTagName] || tagIcons.default;
+  // Render icon dựa trên tên tag
+  const renderTagIcon = (tagName) => {
+    if (!tagName) return <AntdIcons.TagOutlined />;
+    
+    // Lấy tên icon từ mapping
+    const iconName = tagIcons[tagName] || tagIcons.default;
+    
+    // Lấy component icon từ Ant Design
+    const IconComponent = AntdIcons[iconName];
+    
+    // Trả về icon nếu tồn tại, hoặc icon mặc định nếu không tìm thấy
+    return IconComponent ? <IconComponent /> : <AntdIcons.TagOutlined />;
   };
 
   // Xử lý click vào tag
   const handleTagClick = (tag) => {
     //console.log("Tag clicked:", tag);
-    if (!tag?.id) {
+    if (!tag?.documentId) {
       console.error('Tag ID is missing');
       return;
     }
@@ -128,7 +153,6 @@ const Pages = () => {
             {getCurrentPageTags().map((tag) => {
               // Lấy theme màu dựa trên tên tag
               const theme = tagColorMap[tag?.name] || tagColorMap.default;
-
               return (
                 <Col sm="6" md="4" key={tag.id}>
                   <div 
@@ -139,16 +163,14 @@ const Pages = () => {
                     <Card>
                       <Card.Body>
                         <div className="icon-wrapper mb-2">
-                          <i 
-                            className="material-symbols-outlined"
+                          <span 
                             style={{ 
-                              background: theme.gradient,
-                              WebkitBackgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent'
+                              color: theme.primary,
+                              fontSize: '28px',
                             }}
                           >
-                            {getTagIcon(tag?.name)}
-                          </i>
+                            {renderTagIcon(tag?.name)}
+                          </span>
                         </div>
                         <h5 style={{ color: theme.primary }}>{tag.name}</h5>
                         <small>Built by HubSpot</small>
@@ -208,9 +230,9 @@ style.textContent = `
     justify-content: center;
     background-color: white;
   }
-  .icon-wrapper i {
-    font-size: 28px;
-    font-variation-settings: 'FILL' 1;
+  .icon-wrapper span {
+    display: flex;
+    align-items: center;
   }
   .cardhover:hover .icon-wrapper {
     animation: bounce 0.5s;
