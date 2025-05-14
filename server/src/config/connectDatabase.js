@@ -1,8 +1,11 @@
 const { Sequelize } = require('sequelize');
+// Đường dẫn đến file .env
+require('dotenv').config();
 
-// Option 3: Passing parameters separately (other dialects)
-const sequelize = new Sequelize('socialv', 'root', null, {
-    host: 'localhost',
+// Thử kết nối với mật khẩu trống
+const sequelize = new Sequelize(process.env.DB_NAME_LOCAL, process.env.DB_USER, process.env.DB_PASSWORD_LOCAL, {
+    host: process.env.DB_HOST_LOCAL,
+    port: 3306,
     dialect: 'mysql',
     logging: false
 });
@@ -16,4 +19,4 @@ const connectDatabase = async () => {
     }
 }
 
-export default connectDatabase
+module.exports = connectDatabase;
