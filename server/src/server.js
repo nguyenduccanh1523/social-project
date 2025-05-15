@@ -1,22 +1,22 @@
-import express from 'express'; 
-import connectDatabase from './config/connectDatabase.js';
-import dotenv from 'dotenv';
-dotenv.config();
+// import express from 'express'; 
+// import connectDatabase from './config/connectDatabase.js';
+// import dotenv from 'dotenv';
+// dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 8989;
+// const app = express();
+// const PORT = process.env.PORT || 8989;
 
-connectDatabase();
+// connectDatabase();
 
-const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+// const server = app.listen(PORT, () => {
+//     console.log(`Server is running on port ${PORT}`);
+// });
 
-server.on('error', (error) => {
-    if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Please use a different port.`);
-        process.exit(1);
-    } else {
-        console.error('Server error:', error);
-    }
-});
+// server.on('error', (error) => {
+//     if (error.code === 'EADDRINUSE') {
+//         console.error(`Port ${PORT} is already in use. Please use a different port.`);
+//         process.exit(1);
+//     } else {
+//         console.error('Server error:', error);
+//     }
+// });
