@@ -1,4 +1,4 @@
-import db from '../models';
+import db from '../models/index.js';
 import { Op } from 'sequelize';
 
 // Lấy tất cả vai trò có phân trang

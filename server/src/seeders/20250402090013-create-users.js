@@ -1,6 +1,6 @@
 "use strict";
-const { v4: uuidv4 } = require("uuid");
-const bcrypt = require("bcryptjs");
+import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcryptjs';
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {

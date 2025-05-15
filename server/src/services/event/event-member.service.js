@@ -1,6 +1,6 @@
-import db from "../../models";
+import db from "../../models/index.js";
 import { Op } from "sequelize";
-import * as eventService from "./event.service";
+import * as eventService from "./event.service.js";
 
 // Lấy tất cả event-members có phân trang và lọc
 export const getAllEventMembers = async ({

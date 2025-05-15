@@ -1,4 +1,4 @@
-import * as groupInvitationService from '../../services/group/group-invitation.service';
+import * as groupInvitationService from '../../services/group/group-invitation.service.js';
 
 export const getAllGroupInvitations = async (req, res) => {
     try {

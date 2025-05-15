@@ -1,6 +1,6 @@
 import express from 'express'
-import * as pageMemberController from '../../controllers/page/page-member'
-import { verifyToken } from '../../middlewares/auth'
+import * as pageMemberController from '../../controllers/page/page-member.js'
+import { verifyToken } from '../../middlewares/auth.js'
 
 const router = express.Router()
 

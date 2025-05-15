@@ -1,4 +1,4 @@
-import * as mediaService from '../services/media.service';
+import * as mediaService from '../services/media.service.js';
 
 export const getAllMedias = async (req, res) => {
     try {

@@ -1,6 +1,6 @@
 import express from 'express'
-import * as postController from '../../controllers/post/post'
-import { verifyToken } from '../../middlewares/auth'
+import * as postController from '../../controllers/post/post.js'
+import { verifyToken } from '../../middlewares/auth.js'
 
 const router = express.Router()
 

@@ -1,5 +1,5 @@
 'use strict';
-import * as notificationCreatedService from '../../services/notification/notification-created.service';
+import * as notificationCreatedService from '../../services/notification/notification-created.service.js';
 
 export const createNotificationCreator = async (req, res) => {
   try {

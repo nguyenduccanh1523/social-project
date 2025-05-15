@@ -1,4 +1,4 @@
-import db from "../../models";
+import db from "../../models/index.js";
 import { Op } from "sequelize";
 
 // Lấy tất cả events có phân trang và lọc

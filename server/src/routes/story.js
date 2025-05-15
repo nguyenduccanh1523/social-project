@@ -1,6 +1,6 @@
 import express from 'express'
-import * as storyController from '../controllers/story'
-import { verifyToken } from '../middlewares/auth'
+import * as storyController from '../controllers/story.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 

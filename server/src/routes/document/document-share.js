@@ -1,6 +1,6 @@
 import express from 'express'
-import * as documentShareController from '../../controllers/document/document-share'
-import { verifyToken } from '../../middlewares/auth'
+import * as documentShareController from '../../controllers/document/document-share.js'
+import { verifyToken } from '../../middlewares/auth.js'
 
 const router = express.Router()
 

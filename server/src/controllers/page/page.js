@@ -1,4 +1,4 @@
-import * as pageService from '../../services/page/page.service';
+import * as pageService from '../../services/page/page.service.js';
 
 export const getAllPages = async (req, res) => {
     try {

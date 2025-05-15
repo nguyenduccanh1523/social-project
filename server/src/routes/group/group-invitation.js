@@ -1,6 +1,6 @@
 import express from 'express';
-import * as groupInvitationController from '../../controllers/group/group-invitation';
-import { verifyToken } from '../../middlewares/auth';
+import * as groupInvitationController from '../../controllers/group/group-invitation.js';
+import { verifyToken } from '../../middlewares/auth.js';
 
 const router = express.Router();
 

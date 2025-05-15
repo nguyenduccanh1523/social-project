@@ -1,4 +1,4 @@
-import * as conversationService from '../services/conversation.service'
+import * as conversationService from '../services/conversation.service.js'
 
 export const getAllConversations = async (req, res) => {
     try {

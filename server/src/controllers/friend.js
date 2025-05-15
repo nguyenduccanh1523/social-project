@@ -1,4 +1,4 @@
-import * as friendService from '../services/friend.service';    
+import * as friendService from '../services/friend.service.js';    
 
 export const getAllFriend = async (req, res) => {
     try {

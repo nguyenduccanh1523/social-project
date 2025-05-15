@@ -1,6 +1,6 @@
 import express from 'express'
-import * as postTagController from '../../controllers/post/post-tags'
-import { verifyToken } from '../../middlewares/auth'
+import * as postTagController from '../../controllers/post/post-tags.js'
+import { verifyToken } from '../../middlewares/auth.js'
 
 const router = express.Router()
 

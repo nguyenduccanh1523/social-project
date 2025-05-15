@@ -1,4 +1,4 @@
-import * as reactionService from '../../services/post/reaction.service';
+import * as reactionService from '../../services/post/reaction.service.js';
 
 export const getAllReactions = async (req, res) => {
     try {

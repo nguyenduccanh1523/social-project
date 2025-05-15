@@ -1,5 +1,5 @@
 'use strict';
-import db from '../../models';
+import db from '../../models/index.js';
 import { Op } from 'sequelize';
 
 // Tạo thông tin người tạo thông báo

@@ -1,4 +1,4 @@
-import * as noticeTypeService from '../services/notice-type.service';
+import * as noticeTypeService from '../services/notice-type.service.js';
 
 export const getAllNoticeTypes = async (req, res) => {
     try {

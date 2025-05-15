@@ -1,4 +1,4 @@
-import * as eventInvitationService from "../../services/event/event-invitation.service";
+import * as eventInvitationService from "../../services/event/event-invitation.service.js";
 
 export const getAllEventInvitations = async (req, res) => {
   try {

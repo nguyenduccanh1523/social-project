@@ -1,6 +1,6 @@
 import express from 'express';
-import * as groupMemberController from '../../controllers/group/group-member';
-import { verifyToken } from '../../middlewares/auth';
+import * as groupMemberController from '../../controllers/group/group-member.js';
+import { verifyToken } from '../../middlewares/auth.js';
 
 const router = express.Router();
 

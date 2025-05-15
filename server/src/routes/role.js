@@ -1,6 +1,6 @@
 import express from 'express'
-import * as roleController from '../controllers/role'
-import { verifyToken, isAdmin } from '../middlewares/auth'
+import * as roleController from '../controllers/role.js'
+import { verifyToken, isAdmin } from '../middlewares/auth.js'
 
 const router = express.Router()
 

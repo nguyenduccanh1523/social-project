@@ -1,6 +1,6 @@
 import express from "express";
-import * as eventMemberController from "../../controllers/event/event-member";
-import { verifyToken } from "../../middlewares/auth";
+import * as eventMemberController from "../../controllers/event/event-member.js";
+import { verifyToken } from "../../middlewares/auth.js";
 
 const router = express.Router();
 

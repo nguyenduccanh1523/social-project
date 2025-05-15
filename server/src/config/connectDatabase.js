@@ -1,6 +1,7 @@
-const { Sequelize } = require('sequelize');
+import { Sequelize} from 'sequelize';
 // Đường dẫn đến file .env
-require('dotenv').config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Thử kết nối với mật khẩu trống
 const sequelize = new Sequelize(process.env.DB_NAME_LOCAL, process.env.DB_USER, process.env.DB_PASSWORD_LOCAL, {
@@ -19,4 +20,4 @@ const connectDatabase = async () => {
     }
 }
 
-module.exports = connectDatabase;
+export default connectDatabase;

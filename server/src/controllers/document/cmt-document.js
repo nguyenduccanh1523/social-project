@@ -1,4 +1,4 @@
-import * as cmtDocumentService from '../../services/document/cmt-document.service';
+import * as cmtDocumentService from '../../services/document/cmt-document.service.js';
 
 export const getAllCmtDocument = async (req, res) => {
     try {

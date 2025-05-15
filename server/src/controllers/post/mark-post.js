@@ -1,4 +1,4 @@
-import * as markPostService from '../../services/post/mark-post.service';
+import * as markPostService from '../../services/post/mark-post.service.js';
 
 export const getAllMarkPosts = async (req, res) => {
     try {

@@ -1,6 +1,7 @@
-const express = require('express');
-const connectDatabase = require('./config/connectDatabase');
-require('dotenv').config();
+import express from 'express'; 
+import connectDatabase from './config/connectDatabase.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 8989;

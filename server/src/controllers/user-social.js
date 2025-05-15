@@ -1,4 +1,4 @@
-import * as userSocialService from '../services/user-social.service';
+import * as userSocialService from '../services/user-social.service.js';
 
 export const getAllUserSocials = async (req, res) => {
     try {

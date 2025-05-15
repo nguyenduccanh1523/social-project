@@ -19,7 +19,7 @@ const processQueue = (error, token = null) => {
 
 // Tạo một instance axios với cấu hình cơ bản
 const instance = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8989/api/v1/',
+  baseURL: process.env.REACT_APP_API_URL || 'https://api.socialv-net.id.vn/api/v1',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

@@ -1,4 +1,4 @@
-import * as messageService from '../services/message.service';
+import * as messageService from '../services/message.service.js';
 
 export const getAllMessages = async (req, res) => {
     try {

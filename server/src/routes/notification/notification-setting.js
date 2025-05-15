@@ -1,15 +1,15 @@
 'use strict';
-const express = require('express');
+import express from 'express'; 
 const router = express.Router();
-const { createNotificationSetting, findAllNotificationSettings, updateNotificationSetting, deleteNotificationSetting } = require('../../controllers/notification/notification-setting');
-const { verifyToken } = require('../../middlewares/auth');
+import * as notificationSettingController from '../../controllers/notification/notification-setting.js';
+import { verifyToken } from '../../middlewares/auth.js'
 
-router.post('/', verifyToken, createNotificationSetting);
+router.post('/', verifyToken, notificationSettingController.createNotificationSetting);
 
-router.get('/', verifyToken, findAllNotificationSettings);
+router.get('/', verifyToken, notificationSettingController.findAllNotificationSettings);
 
-router.put('/:id', verifyToken, updateNotificationSetting);
+router.put('/:id', verifyToken, notificationSettingController.updateNotificationSetting);
 
-router.delete('/:id', verifyToken, deleteNotificationSetting);
+router.delete('/:id', verifyToken, notificationSettingController.deleteNotificationSetting);
 
-module.exports = router;
+export default router

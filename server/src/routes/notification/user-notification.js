@@ -1,21 +1,21 @@
 'use strict';
-const express = require('express');
+import express from 'express'; 
 const router = express.Router();
-const { createUserNotification, getAllUserNotifications, getUserNotificationById, markAsRead, markAllAsRead, deleteUserNotification, deleteAllByUser } = require('../../controllers/notification/user-notification');
-const { verifyToken } = require('../../middlewares/auth');
+import * as userNotificationController from '../../controllers/notification/user-notification.js';
+import { verifyToken } from '../../middlewares/auth.js'
 
-router.post('/', verifyToken, createUserNotification);
+router.post('/', verifyToken, userNotificationController.createUserNotification);
 
-router.get('/', verifyToken, getAllUserNotifications);
+router.get('/', verifyToken, userNotificationController.getAllUserNotifications);
 
-router.get('/:id', verifyToken, getUserNotificationById);
+router.get('/:id', verifyToken, userNotificationController.getUserNotificationById);
 
-router.put('/:id/mark-as-read', verifyToken, markAsRead);
+router.put('/:id/mark-as-read', verifyToken, userNotificationController.markAsRead);
 
-router.put('/mark-all-as-read', verifyToken, markAllAsRead);
+router.put('/mark-all-as-read', verifyToken, userNotificationController.markAllAsRead);
 
-router.delete('/:id', verifyToken, deleteUserNotification);
+router.delete('/:id', verifyToken, userNotificationController.deleteUserNotification);
 
-router.delete('/user/:user_id', verifyToken, deleteAllByUser);
+router.delete('/user/:user_id', verifyToken, userNotificationController.deleteAllByUser);
 
-module.exports = router; 
+export default router

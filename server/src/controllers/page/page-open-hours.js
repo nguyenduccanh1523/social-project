@@ -1,6 +1,6 @@
-import * as pageOpenHourService from '../../services/page/page-open-hours.service';
-import * as pageService from '../../services/page/page.service';
-import * as pageMemberService from '../../services/page/page-member.service';
+import * as pageOpenHourService from '../../services/page/page-open-hours.service.js';
+import * as pageService from '../../services/page/page.service.js';
+import * as pageMemberService from '../../services/page/page-member.service.js';
 
 // Lấy tất cả giờ mở cửa của trang
 export const getPageOpenHours = async (req, res) => {

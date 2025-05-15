@@ -1,6 +1,6 @@
 import express from 'express'
-import * as userNotificationController from '../controllers/user-noti'
-import { verifyToken } from '../middlewares/auth'
+import * as userNotificationController from '../controllers/user-noti.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 

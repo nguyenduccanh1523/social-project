@@ -1,4 +1,4 @@
-import * as statusActionService from '../services/status-action.service';
+import * as statusActionService from '../services/status-action.service.js';
 
 export const getAllStatusActions = async (req, res) => {
     try {

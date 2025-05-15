@@ -1,6 +1,6 @@
 import express from 'express'
-import * as cmtDocumentController from '../../controllers/document/cmt-document'
-import { verifyToken } from '../../middlewares/auth'
+import * as cmtDocumentController from '../../controllers/document/cmt-document.js'
+import { verifyToken } from '../../middlewares/auth.js'
 
 const router = express.Router()
 

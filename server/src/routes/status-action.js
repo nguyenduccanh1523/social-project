@@ -1,6 +1,6 @@
 import express from 'express'
-import * as statusActionController from '../controllers/status-action'
-import { verifyToken } from '../middlewares/auth'
+import * as statusActionController from '../controllers/status-action.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 

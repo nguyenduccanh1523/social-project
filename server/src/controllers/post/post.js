@@ -1,4 +1,4 @@
-import * as postService from '../../services/post/post.service';
+import * as postService from '../../services/post/post.service.js';
 
 export const getAllPosts = async (req, res) => {
     try {

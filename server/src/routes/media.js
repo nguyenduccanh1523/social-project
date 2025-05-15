@@ -1,6 +1,6 @@
 import express from 'express'
-import * as mediaController from '../controllers/media'
-import { verifyToken } from '../middlewares/auth'
+import * as mediaController from '../controllers/media.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 

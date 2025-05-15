@@ -1,4 +1,4 @@
-import * as nationService from '../services/nation.service';
+import * as nationService from '../services/nation.service.js';
 
 export const getAllNations = async (req, res) => {
     try {

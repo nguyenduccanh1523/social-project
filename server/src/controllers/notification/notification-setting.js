@@ -1,5 +1,5 @@
 'use strict';
-import * as notificationSettingService from '../../services/notification/notification-setting.service';
+import * as notificationSettingService from '../../services/notification/notification-setting.service.js';
 
 export const createNotificationSetting = async (req, res) => {
   try {

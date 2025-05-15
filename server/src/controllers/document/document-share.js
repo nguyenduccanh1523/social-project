@@ -1,4 +1,4 @@
-import * as documentShareService from '../../services/document/document-share.service'
+import * as documentShareService from '../../services/document/document-share.service.js'
 
 
 export const getAllDocumentShares = async (req, res) => {

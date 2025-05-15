@@ -1,17 +1,17 @@
 'use strict';
-const express = require('express');
+import express from 'express'; 
 const router = express.Router();
-const { createNotification, getAllNotifications, getNotificationById, updateNotification, deleteNotification } = require('../../controllers/notification/notification');
-const { verifyToken } = require('../../middlewares/auth');
+import * as notificationController from '../../controllers/notification/notification.js';
+import { verifyToken } from '../../middlewares/auth.js'
 
-router.post('/', verifyToken, createNotification);
+router.post('/', verifyToken, notificationController.createNotification);
 
-router.get('/', verifyToken, getAllNotifications);
+router.get('/', verifyToken, notificationController.getAllNotifications);
 
-router.get('/:id', verifyToken, getNotificationById);
+router.get('/:id', verifyToken, notificationController.getNotificationById);
 
-router.put('/:id', verifyToken, updateNotification);
+router.put('/:id', verifyToken, notificationController.updateNotification);
 
-router.delete('/:id', verifyToken, deleteNotification);
+router.delete('/:id', verifyToken, notificationController.deleteNotification);
 
-module.exports = router; 
+export default router

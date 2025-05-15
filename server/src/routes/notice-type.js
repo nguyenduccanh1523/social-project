@@ -1,6 +1,6 @@
 import express from 'express'
-import * as noticeTypeController from '../controllers/notice-type'
-import { verifyToken } from '../middlewares/auth'
+import * as noticeTypeController from '../controllers/notice-type.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 

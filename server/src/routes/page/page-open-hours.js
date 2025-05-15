@@ -1,6 +1,6 @@
 import express from 'express'
-import * as pageOpenHoursController from '../../controllers/page/page-open-hours'
-import { verifyToken } from '../../middlewares/auth'
+import * as pageOpenHoursController from '../../controllers/page/page-open-hours.js'
+import { verifyToken } from '../../middlewares/auth.js'
 
 const router = express.Router()
 

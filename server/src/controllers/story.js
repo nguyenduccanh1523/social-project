@@ -1,4 +1,4 @@
-import * as storyService from '../services/story.service';
+import * as storyService from '../services/story.service.js';
 
 export const getAllStories = async (req, res) => {
     try {

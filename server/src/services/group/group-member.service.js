@@ -1,6 +1,6 @@
-import db from '../../models';
+import db from '../../models/index.js';
 import { Op } from 'sequelize';
-import * as groupService from './group.service';
+import * as groupService from './group.service.js';
 
 // Lấy tất cả group-members có phân trang và lọc
 export const getAllGroupMembers = async ({

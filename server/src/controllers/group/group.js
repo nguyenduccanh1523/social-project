@@ -1,4 +1,4 @@
-import * as groupService from '../../services/group/group.service';
+import * as groupService from '../../services/group/group.service.js';
 
 export const getAllGroups = async (req, res) => {
     try {

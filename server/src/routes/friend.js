@@ -1,6 +1,6 @@
 import express from 'express'
-import * as friendController from '../controllers/friend'
-import { verifyToken } from '../middlewares/auth'
+import * as friendController from '../controllers/friend.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 

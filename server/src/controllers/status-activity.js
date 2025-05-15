@@ -1,4 +1,4 @@
-import * as statusActivityService from '../services/status-activity.service';
+import * as statusActivityService from '../services/status-activity.service.js';
 
 export const getAllStatusActivities = async (req, res) => {
     try {

@@ -1,4 +1,4 @@
-import * as eventMemberService from "../../services/event/event-member.service";
+import * as eventMemberService from "../../services/event/event-member.service.js";
 
 export const getAllEventMembers = async (req, res) => {
   try {

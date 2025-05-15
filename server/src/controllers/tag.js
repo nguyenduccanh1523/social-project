@@ -1,4 +1,4 @@
-import * as tagService from '../services/tag.service';
+import * as tagService from '../services/tag.service.js';
 
 export const getAllTags = async (req, res) => {
     try {

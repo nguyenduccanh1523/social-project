@@ -1,4 +1,4 @@
-import * as postTagService from '../../services/post/post-tag.service';
+import * as postTagService from '../../services/post/post-tag.service.js';
 
 export const getAllPostTags = async (req, res) => {
     try {

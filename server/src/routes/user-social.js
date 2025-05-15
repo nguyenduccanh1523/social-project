@@ -1,6 +1,6 @@
 import express from 'express'
-import * as userSocialController from '../controllers/user-social'
-import { verifyToken } from '../middlewares/auth'
+import * as userSocialController from '../controllers/user-social.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 

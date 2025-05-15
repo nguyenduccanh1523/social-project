@@ -1,5 +1,5 @@
-import * as pageMemberService from '../../services/page/page-member.service';
-import * as pageService from '../../services/page/page.service';
+import * as pageMemberService from '../../services/page/page-member.service.js';
+import * as pageService from '../../services/page/page.service.js';
 
 // Lấy danh sách thành viên của trang
 export const getPageMembers = async (req, res) => {

@@ -1,6 +1,6 @@
 import express from 'express'
-import * as statusActivityController from '../controllers/status-activity'
-import { verifyToken } from '../middlewares/auth'
+import * as statusActivityController from '../controllers/status-activity.js'
+import { verifyToken } from '../middlewares/auth.js'
 
 const router = express.Router()
 
