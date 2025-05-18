@@ -91,7 +91,7 @@ const UserProfile = () => {
   const queryClient = useQueryClient();
 
   
-  const { profile } = useSelector((state) => state.root.user || {});
+  // const { profile } = useSelector((state) => state.root.user || {});
   const { user } = useSelector((state) => state.root.auth || {});
   const { token } = useSelector((state) => state.root.auth || {});
 
@@ -142,7 +142,7 @@ const UserProfile = () => {
   const { acceptedFriends } = useSelector((state) => state.root.friend || {});
   const { sentFriends } = useSelector((state) => state.root.friend || {});
 
-  const document = profile?.documentId;
+  const document = user?.documentId;
 
   useEffect(() => {
     if (document) {
@@ -910,9 +910,9 @@ const UserProfile = () => {
                                 <h4 className="mt-2">Hobbies and Interests</h4>
                                 <hr />
                                 <h6 className="mb-1">Hobbies:</h6>
-                                <p>{profile?.hobbies}</p>
+                                <p>{user?.hobbies}</p>
                                 <h6 className="mt-2 mb-1">Favourite:</h6>
-                                <p>{profile?.favourites}</p>
+                                <p>{user?.favourites}</p>
                               </Tab.Pane>
                             </Tab.Content>
                           </Card.Body>

@@ -53,8 +53,6 @@ const Index = () => {
   });
 
   const users = userData?.data?.data || {};
-  console.log("userData", users);
-
 
   const [show, setShow] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -188,7 +186,7 @@ const Index = () => {
       if (token && !toast.isActive("login-toast")) {
         toast.success(
           <div>
-            <h5>Welcome, Nguyen Duc Canh</h5>
+            <h5>Welcome {user?.username},</h5>
             <p>
               You have successfully logged in as a client user to SocialV. Now
               you can start to explore. Enjoy!

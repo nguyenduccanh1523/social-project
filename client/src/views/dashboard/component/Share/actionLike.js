@@ -20,13 +20,15 @@ import icon2 from "../../../../assets/images/icon/02.png"; // Love
 
 const ActionLike = ({ post, onSelect }) => {
   const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [selectedReaction, setSelectedReaction] = useState(null);
   const [reactionId, setReactionId] = useState(null);
 
   const { data: userReactionData, isLoading } = useQuery({
-    queryKey: ["userReaction", profile.documentId, post.documentId],
+    queryKey: ["userReaction", user.documentId, post.documentId],
     queryFn: () =>
-      apiGetPostUser({ postId: post.documentId, userId: profile.documentId }),
+      apiGetPostUser({ postId: post.documentId, userId: user.documentId }),
     cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
