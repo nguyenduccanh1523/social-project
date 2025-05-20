@@ -14,11 +14,14 @@ export const apiGetUser = (payload) => new Promise(async (resolve, reject) => {
     }
 })
 
-export const apiGetUserSocial = ({ documentId }) => new Promise(async (resolve, reject) => {
+export const apiGetUserSocial = ({ documentId, token }) => new Promise(async (resolve, reject) => {
     try {
         const response = await axiosConfig({
             method: 'get',
-            url: `/user-socials?filters[$and][0][account_user][documentId][$eq]=${documentId}&populate=*`,
+            url: `/user-socials?userId=${documentId}&populate=*`,
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
         });
         resolve(response);
     } catch (error) {
@@ -45,7 +48,7 @@ export const apiGetPostByUserId = ({ userId, token }) => new Promise(async (reso
     try {
         const response = await axiosConfig({
             method: 'get',
-            url: `/posts?filters[$and][0][user_id][documentId][$eq]=${userId}&filters[$and][1][group][id][$null]=true&filters[$and][2][page][page_name][$null]=true&sort=createdAt:DESC&populate=*`,
+            url: `/posts?pagination[pageSize]=10&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}`,
             headers: {
                 Authorization: `Bearer ${token}`
             }

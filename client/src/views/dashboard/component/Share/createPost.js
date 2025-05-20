@@ -19,10 +19,12 @@ import small6 from "../../../../assets/images/small/12.png";
 import { apiGetTag } from "../../../../services/tag";
 import { apiGetFriendAccepted } from "../../../../services/friend";
 import ButtonPost from "./buttonPost";
+import { useSelector } from "react-redux";
 
 const { Option } = Select;
 
 const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) => {
+    const { token } = useSelector((state) => state.root.auth || {});
     const [showPicker, setShowPicker] = useState(false);
     const [inputText, setInputText] = useState("");
     const [selectedFriends, setSelectedFriends] = useState([]);
@@ -37,12 +39,12 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
     const [uploading, setUploading] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
 
-    const { coords } = useGeolocated({
-        positionOptions: {
-            enableHighAccuracy: true,
-        },
-        userDecisionTimeout: 5000,
-    });
+    // const { coords } = useGeolocated({
+    //     positionOptions: {
+    //         enableHighAccuracy: true,
+    //     },
+    //     userDecisionTimeout: 5000,
+    // });
 
     const onEmojiClick = (emoji) => {
         setInputText(prevInput => prevInput + emoji.emoji);
@@ -64,16 +66,17 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
 
     const { data: friends } = useQuery({
         queryKey: ['friends', profile?.documentId],
-        queryFn: () => apiGetFriendAccepted({ documentId: profile?.documentId }),
+        queryFn: () => apiGetFriendAccepted({ documentId: profile?.documentId, token }),
         enabled: !!profile?.documentId,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
 
+
     const friendData = friends?.data?.data.map(friend =>
-        friend?.user_id?.documentId === profile.documentId
-            ? friend?.friend_id
-            : friend?.user_id
+        friend?.user?.documentId === profile.documentId
+            ? friend?.friend
+            : friend?.user
     ) || [];
 
     const tagData = tags?.data?.data || [];
@@ -206,7 +209,7 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
                             <div className="user-img">
                                 <img
                                     loading="lazy"
-                                    src={profile?.profile_picture || page?.profile_picture?.file_path}
+                                    src={profile?.avatarMedia?.file_path || page?.profile_picture?.file_path}
                                     alt="userimg"
                                     className="avatar-60 rounded-circle img-fluid"
                                 />
@@ -283,7 +286,7 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
                                         >
                                             {friendData.map((friend) => (
                                                 <Option key={friend.documentId} value={friend.documentId}>
-                                                    {friend.username}
+                                                    {friend.fullname}
                                                 </Option>
                                             ))}
                                         </Select>
@@ -415,7 +418,7 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
                                     <div className="user-img me-3">
                                         <img
                                             loading="lazy"
-                                            src={profile?.profile_picture || page?.profile_picture?.file_path}
+                                            src={profile?.avatarMedia?.file_path || page?.profile_picture?.file_path}
                                             alt="userimg"
                                             className="avatar-60 rounded-circle img-fluid"
                                         />

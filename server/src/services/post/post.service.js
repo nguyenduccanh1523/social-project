@@ -58,7 +58,14 @@ export const getAllPosts = async ({
                 {
                     model: db.User,
                     as: 'user',
-                    attributes: { exclude: ['password', 'reset_password_token', 'reset_password_expires', 'refresh_token', 'refresh_token_expires'] }
+                    attributes: { exclude: ['password', 'reset_password_token', 'reset_password_expires', 'refresh_token', 'refresh_token_expires'] },
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
                 },
                 {
                     model: db.Type,

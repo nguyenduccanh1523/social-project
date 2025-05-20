@@ -29,10 +29,7 @@ import { ListComment, ListLike } from "./listLikeComment";
 const ModalCardPost = ({ show, handleClose, post, page }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { profile } = useSelector((state) => state.root.user || {});
     const { token, user } = useSelector((state) => state.root.auth || {});
-    const { medias } = useSelector((state) => state.root.media || {});
-    const { tags } = useSelector((state) => state.root.tag || {});
     const createdAt = new Date(post?.createdAt);
 
     const [comment, setComment] = useState((''));
@@ -40,6 +37,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
     const pickerRef = useRef(null);
 
     //console.log("Reply component props:", post, parent, nested)
+    console.log('posst', post)
 
     const onEmojiClick = (emoji) => {
         setComment(prevComment => prevComment + emoji.emoji);
@@ -106,25 +104,16 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
         });
     };
 
-    useEffect(() => {
-        dispatch(fetchPostMedia(post?.documentId)); // Truyền đúng giá trị groupId
-        dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
-    }, [post, dispatch]);
-
-    const postMedia = medias[post?.documentId] || [];
-    const postTag = tags[post?.documentId] || [];
 
     const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
-    const validSources = Array.isArray(postMedia?.data)
-        ? postMedia.data
-            .map((item) => item?.media?.file_path)
+    const validSources = Array.isArray(post?.medias)
+        ? post?.medias
+            .map((item) => item?.file_path)
             .filter((path) => typeof path === "string" && path.trim() !== "")
         : [];
 
-    const validTags = Array.isArray(postTag?.data)
-        ? postTag.data.map((item) => item?.tag_id?.name)
-        : [];
+
 
     const colors = colorsTag;
 
@@ -154,7 +143,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
         <>
             <Modal size='lg' className="custom-modal-width" scrollable={true} show={show} onHide={handleClose}>
                 <Modal.Header>
-                    <Modal.Title > {post?.user_id?.username || page?.page_name}'s Post </Modal.Title>
+                    <Modal.Title > {post?.user?.fullname || page?.page_name}'s Post </Modal.Title>
                     <button
                         type="button"
                         className="btn btn-secondary lh-1"
@@ -171,7 +160,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                             <div className="me-3">
                                 <div className="user-img">
                                     <img
-                                        src={post?.user_id?.profile_picture || page?.profile_picture?.file_path}
+                                        src={post?.user?.avatarMedia?.file_path || page?.profile_picture?.file_path}
                                         alt="userimg"
                                         className="avatar-60 rounded-circle"
                                     />
@@ -182,14 +171,14 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                     <div>
                                         <h5 className="d-flex align-items-center">
                                             <Link to={
-                                                post?.user_id?.documentId === user?.documentId
+                                                post?.user?.documentId === user?.documentId
                                                     ? `/user-profile`
                                                     : post?.user_id
-                                                        ? `/friend-profile/${post?.user_id?.documentId}`
+                                                        ? `/friend-profile/${post?.user?.documentId}`
                                                         : `/page/${page?.page_name}`
                                             }
                                                 state={
-                                                    post?.user_id?.documentId === user?.documentId
+                                                    post?.user?.documentId === user?.documentId
                                                         ? {}
                                                         : post?.user_id
                                                             ? { friendId: post?.user_id }
@@ -200,7 +189,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                 }
                                                 style={{ textDecoration: "none" }}>
                                                 <h6>{post?.user_id
-                                                    ? post?.user_id?.username
+                                                    ? post?.user?.fullname
                                                     : page?.page_name || 'Unknown Page'
                                                 }</h6>
                                             </Link>
@@ -211,10 +200,10 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                     <p className="mb-0 text-primary">{timeAgo}</p>
                                                 </span>
                                             </OverlayTrigger>
-                                            <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.type_id?.name === 'public' ? 'Public' : 'Private'}</Tooltip>}>
+                                            <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.type === 'public' ? 'Public' : 'Private'}</Tooltip>}>
                                                 <span className="d-inline-block">
                                                     <p disabled style={{ pointerEvents: 'none' }}>
-                                                        {post?.type_id?.name === 'public' ? <span className="material-symbols-outlined">
+                                                        {post?.type === 'public' ? <span className="material-symbols-outlined">
                                                             public
                                                         </span> : <span className="material-symbols-outlined">
                                                             lock
@@ -259,12 +248,12 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                         </p>
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-                        {validTags.map((tag, index) => (
+                        {post?.tags?.map((tag, index) => (
                             <Tag
                                 key={index}
                                 color={colors[index % colors.length]} // Áp dụng màu theo danh sách
                             >
-                                {tag}
+                                {tag?.name}
                             </Tag>
                         ))}
                     </div>
@@ -409,7 +398,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                         </div>
                                     ))}
 
-                                    <Image.PreviewGroup
+                                    {/* <Image.PreviewGroup
                                         preview={{
                                             visible: imageController.toggler,
                                             current: imageController.slide, // Đặt ảnh hiện tại
@@ -433,7 +422,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                 style={{ display: "none" }} // Ẩn khỏi giao diện chính
                                             />
                                         ))}
-                                    </Image.PreviewGroup>
+                                    </Image.PreviewGroup> */}
                                 </div>
                             )}
                         </Image.PreviewGroup>

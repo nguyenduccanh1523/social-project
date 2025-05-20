@@ -19,7 +19,6 @@ import icon1 from "../../../../assets/images/icon/01.png"; // Like
 import icon2 from "../../../../assets/images/icon/02.png"; // Love
 
 const ActionLike = ({ post, onSelect }) => {
-  const { profile } = useSelector((state) => state.root.user || {});
   const { user } = useSelector((state) => state.root.auth || {});
   const { token } = useSelector((state) => state.root.auth || {});
   const [selectedReaction, setSelectedReaction] = useState(null);
@@ -28,14 +27,15 @@ const ActionLike = ({ post, onSelect }) => {
   const { data: userReactionData, isLoading } = useQuery({
     queryKey: ["userReaction", user.documentId, post.documentId],
     queryFn: () =>
-      apiGetPostUser({ postId: post.documentId, userId: user.documentId }),
+      apiGetPostUser({ postId: post.documentId, userId: user.documentId, token }),
     cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
+
 
   useEffect(() => {
     if (userReactionData?.data?.data?.length > 0) {
       const userReaction = userReactionData?.data?.data[0];
-      if (userReaction.post_id.documentId === post.documentId) {
+      if (userReaction.post.documentId === post.documentId) {
         setReactionId(userReaction.documentId);
         switch (userReaction.reaction_type) {
           case "Like":
@@ -59,32 +59,28 @@ const ActionLike = ({ post, onSelect }) => {
 
   const handleReactionClick = async (icon, name) => {
     const payload = {
-      data: {
-        user_id: profile.documentId,
+        user_id: user.documentId,
         post_id: post.documentId,
         reaction_type: name,
-      },
     };
 
     if (selectedReaction === icon) {
       console.log("Unchecked action:", name);
-      console.log("post", post);
       setSelectedReaction(null);
       onSelect(null, -1); // Giảm số lượng reaction đi 1
       try {
-        await apiDeletePostReaction({ documentId: reactionId });
+        await apiDeletePostReaction({ documentId: reactionId, token });
       } catch (error) {
         console.error("Error deleting reaction:", error);
       }
     } else {
       console.log("Checked action:", name);
-      console.log("post", post);
       setSelectedReaction(icon);
       if (selectedReaction) {
         onSelect(icon, 0); // Giữ nguyên số lượng nếu đã có reaction trước đó
         try {
           console.log("Updating reaction:", payload, reactionId);
-          await apiUpdatePostReaction({ documentId: reactionId, payload });
+          await apiUpdatePostReaction({ documentId: reactionId, payload, token });
         } catch (error) {
           console.error("Error updating reaction:", error);
         }

@@ -2,13 +2,13 @@ import axiosConfig from '../axiosConfig'
 
 export const apiRegister = (payload) => new Promise(async (resolve, reject) => {
     try {
-        console.log('Đang gửi request đăng ký:', payload);
+        // console.log('Đang gửi request đăng ký:', payload);
         const response = await axiosConfig({
             method: 'post',
             url: 'auth/register',
             data: payload
         })
-        console.log('Kết quả đăng ký:', response.data);
+        // console.log('Kết quả đăng ký:', response.data);
         resolve(response)
     } catch (error) {
         console.error('Lỗi đăng ký:', error);
@@ -18,13 +18,13 @@ export const apiRegister = (payload) => new Promise(async (resolve, reject) => {
 
 export const apiLogin = (payload) => new Promise(async (resolve, reject) => {
     try {
-        console.log('Đang gửi request đăng nhập:', payload);
+        // console.log('Đang gửi request đăng nhập:', payload);
         const response = await axiosConfig({
             method: 'post',
             url: 'auth/login',
             data: payload
         })
-        console.log('Kết quả đăng nhập:', response.data);
+        // console.log('Kết quả đăng nhập:', response.data);
         resolve(response)
     } catch (error) {
         console.error('Lỗi đăng nhập:', error);
@@ -51,12 +51,12 @@ export const apiRefreshToken = (refreshToken) => new Promise(async (resolve, rej
 
 export const apiLogout = () => new Promise(async (resolve, reject) => {
     try {
-        console.log('Đang đăng xuất');
+        // console.log('Đang đăng xuất');
         const response = await axiosConfig({
             method: 'post',
             url: 'auth/logout'
         })
-        console.log('Kết quả đăng xuất:', response.data);
+        // console.log('Kết quả đăng xuất:', response.data);
         resolve(response)
     } catch (error) {
         console.error('Lỗi đăng xuất:', error);

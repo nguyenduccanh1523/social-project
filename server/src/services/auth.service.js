@@ -43,7 +43,7 @@ export const registerUser = async (userData) => {
     return {
       success: false,
       statusCode: 400,
-      message: 'Vui lòng điền đầy đủ thông tin bắt buộc',
+      message: 'Please fill in all required information',
       error: 'Email, username, password và confirmPassword là bắt buộc'
     };
   }
@@ -53,7 +53,7 @@ export const registerUser = async (userData) => {
     return {
       success: false,
       statusCode: 400,
-      message: 'Mật khẩu xác nhận không khớp',
+      message: 'Confirmation password does not match',
       error: 'Mật khẩu xác nhận không khớp với mật khẩu'
     };
   }
@@ -63,7 +63,7 @@ export const registerUser = async (userData) => {
     return {
       success: false,
       statusCode: 400,
-      message: 'Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt',
+      message: 'Password must be at least 8 characters, including uppercase, lowercase, numbers and special characters',
       error: 'Mật khẩu không đủ mạnh'
     };
   }
@@ -75,7 +75,7 @@ export const registerUser = async (userData) => {
       return {
         success: false,
         statusCode: 400,
-        message: 'Email đã được sử dụng',
+        message: 'Email already in use',
         error: 'Email đã tồn tại'
       };
     }
@@ -106,6 +106,7 @@ export const registerUser = async (userData) => {
       gender: 'not_specified', // Giá trị mặc định
       role_id: process.env.ROLE_USER_ID || 'xha2u4697gkn1p9k97ycif3b', // ID của role user thường - đảm bảo ID tồn tại
       avatar_id: 'k7sy9eta2ox54uf5mzb4zjd8', // ID của avatar mặc định - đảm bảo ID tồn tại
+      status_id: 'l4mzq4qzwwejazzyrmiai580',
       is_online: true,
       email_verified: false
     });
@@ -134,7 +135,7 @@ export const registerUser = async (userData) => {
     return {
       success: true,
       statusCode: 201,
-      message: 'Đăng ký thành công',
+      message: 'Registration successful',
       data: {
         jwt: accessToken,
         user: {
@@ -174,8 +175,8 @@ export const loginUser = async (credentials) => {
     return {
       success: false,
       statusCode: 400,
-      message: 'Vui lòng điền đầy đủ thông tin đăng nhập',
-      error: 'Email/username và password là bắt buộc'
+      message: 'Please fill in your login information completely.',
+      error: 'Email và password là bắt buộc'
     };
   }
   
@@ -197,7 +198,7 @@ export const loginUser = async (credentials) => {
       return {
         success: false,
         statusCode: 404,
-        message: 'Email/username hoặc mật khẩu không đúng',
+        message: 'Incorrect email or password',
         error: 'Thông tin đăng nhập không hợp lệ'
       };
     }
@@ -208,7 +209,7 @@ export const loginUser = async (credentials) => {
       return {
         success: false,
         statusCode: 401,
-        message: 'Email/username hoặc mật khẩu không đúng',
+        message: 'Incorrect email or password',
         error: 'Thông tin đăng nhập không hợp lệ'
       };
     }

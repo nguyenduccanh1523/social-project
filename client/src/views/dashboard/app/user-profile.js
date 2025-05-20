@@ -139,18 +139,13 @@ const UserProfile = () => {
   const friendRequest = friendRequestData?.data?.data || {};
 
   const { socials } = useSelector((state) => state.root.userSocials || {});
-  const { acceptedFriends } = useSelector((state) => state.root.friend || {});
-  const { sentFriends } = useSelector((state) => state.root.friend || {});
+  // const { acceptedFriends } = useSelector((state) => state.root.friend || {});
 
   const document = user?.documentId;
 
   useEffect(() => {
     if (document) {
-      dispatch(fetchFriendAccepted(document));
-      dispatch(fetchFriendsByDate(document, 7));
-      dispatch(fetchFriendRequest(document));
-      dispatch(fetchUserSocials(document));
-      dispatch(fetchFriendSent(document));
+      dispatch(fetchUserSocials(document, token));
     }
   }, [document, dispatch]);
 
@@ -339,15 +334,15 @@ const UserProfile = () => {
                               <img
                                 loading="lazy"
                                 src={
-                                  social.social_id.platform === "facebook"
+                                  social.social.platform === "facebook"
                                     ? img3 // Đường dẫn ảnh Facebook
-                                    : social.social_id.platform === "instagram"
+                                    : social.social.platform === "instagram"
                                     ? img5 // Đường dẫn ảnh Instagram
-                                    : social.social_id.platform === "youtube"
+                                    : social.social.platform === "youtube"
                                     ? img7 // Đường dẫn ảnh YouTube
-                                    : social.social_id.platform === "twitter"
+                                    : social.social.platform === "twitter"
                                     ? img4 // Đường dẫn ảnh Twitter
-                                    : social.social_id.platform === "linkedin"
+                                    : social.social.platform === "linkedin"
                                     ? img8 // Đường dẫn ảnh LinkedIn
                                     : img6 // Đường dẫn ảnh mặc định
                                 }
@@ -367,7 +362,7 @@ const UserProfile = () => {
                         </li>
                         <li className="text-center ps-3">
                           <h6>Friends</h6>
-                          <p className="mb-0">{acceptedFriends.length}</p>
+                          <p className="mb-0">{userAccepts.length}</p>
                         </li>
                       </ul>
                     </div>
@@ -435,64 +430,6 @@ const UserProfile = () => {
                   <Card.Body className=" p-0">
                     <Row>
                       <Col lg={4}>
-                        <Card>
-                          <div className="card-header d-flex justify-content-between">
-                            <div className="header-title">
-                              <h4 className="card-title">Life Event</h4>
-                            </div>
-                            <div className="card-header-toolbar d-flex align-items-center">
-                              <p className="m-0">
-                                <Link to="#"> Create </Link>
-                              </p>
-                            </div>
-                          </div>
-                          <Card.Body>
-                            <Row>
-                              <Col sm={12}>
-                                <div className="event-post position-relative">
-                                  <Link to="#">
-                                    <img
-                                      loading="lazy"
-                                      src={img9}
-                                      alt="gallary1"
-                                      className="img-fluid rounded"
-                                    />
-                                  </Link>
-                                  <div className="job-icon-position">
-                                    <div className="job-icon bg-primary p-2 d-inline-block rounded-circle material-symbols-outlined text-white">
-                                      local_mall
-                                    </div>
-                                  </div>
-                                  <div className="card-body text-center p-2">
-                                    <h5>Started New Job at Apple</h5>
-                                    <p>January 24, 2019</p>
-                                  </div>
-                                </div>
-                              </Col>
-                              <Col sm={12}>
-                                <div className="event-post position-relative">
-                                  <Link to="#">
-                                    <img
-                                      loading="lazy"
-                                      src={img10}
-                                      alt="gallary1"
-                                      className="img-fluid rounded"
-                                    />
-                                  </Link>
-                                  <div className="job-icon-position">
-                                    <div className="job-icon bg-primary p-2 d-inline-block rounded-circle material-symbols-outlined text-white">
-                                      local_mall
-                                    </div>
-                                  </div>
-                                  <div className="card-body text-center p-2">
-                                    <h5>Freelance Photographer</h5>
-                                    <p className="mb-0">January 24, 2019</p>
-                                  </div>
-                                </div>
-                              </Col>
-                            </Row>
-                          </Card.Body>
-                        </Card>
                         <Card>
                           <div className="card-header d-flex justify-content-between">
                             <div className="header-title">
@@ -756,7 +693,7 @@ const UserProfile = () => {
                               </Nav.Item>
                               <Nav.Item>
                                 <Nav.Link href="#" eventKey="about2">
-                                  Hobbies and Interests
+                                  About
                                 </Nav.Link>
                               </Nav.Item>
                             </Nav>
@@ -772,14 +709,6 @@ const UserProfile = () => {
                                 <hr />
                                 <Row className="mb-2">
                                   <div className="col-3">
-                                    <h6>About Me:</h6>
-                                  </div>
-                                  <div className="col-9">
-                                    <p className="mb-0">{users?.bio}</p>
-                                  </div>
-                                </Row>
-                                <Row className="mb-2">
-                                  <div className="col-3">
                                     <h6>Email:</h6>
                                   </div>
                                   <div className="col-9">
@@ -792,15 +721,6 @@ const UserProfile = () => {
                                   </div>
                                   <div className="col-9">
                                     <p className="mb-0">{users?.phone}</p>
-                                  </div>
-                                </Row>
-                                
-                                <Row className="row mb-2">
-                                  <div className="col-3">
-                                    <h6>Social Link:</h6>
-                                  </div>
-                                  <div className="col-9">
-                                    <p className="mb-0">www.bootstrap.com</p>
                                   </div>
                                 </Row>
                                 <Row className="mb-2">
@@ -869,50 +789,47 @@ const UserProfile = () => {
                                   <Row className="mb-2" key={index}>
                                     <div className="col-3">
                                       <Link
-                                        to={social.account_url}
+                                        to={social.accountUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                       >
                                         <img
                                           loading="lazy"
                                           src={
-                                            social.social_id.platform ===
+                                            social.social.platform ===
                                             "facebook"
                                               ? img3 // Thay bằng đường dẫn ảnh Facebook
-                                              : social.social_id.platform ===
+                                              : social.social.platform ===
                                                 "instagram"
                                               ? img5 // Thay bằng đường dẫn ảnh Twitter
-                                              : social.social_id.platform ===
+                                              : social.social.platform ===
                                                 "youtube"
                                               ? img7
-                                              : social.social_id.platform ===
+                                              : social.social.platform ===
                                                 "twitter"
                                               ? img4
-                                              : social.social_id.platform ===
+                                              : social.social.platform ===
                                                 "linkedin"
                                               ? img8
                                               : img6
                                           }
                                           className="img-fluid rounded"
-                                          alt={social.social_id.platform}
+                                          alt={social.social.platform}
                                         />
                                       </Link>
                                     </div>
                                     <div className="col-9">
                                       <p className="mb-0">
-                                        {social.account_url}
+                                        {social.accountUrl}
                                       </p>
                                     </div>
                                   </Row>
                                 ))}
                               </Tab.Pane>
                               <Tab.Pane eventKey="about2">
-                                <h4 className="mt-2">Hobbies and Interests</h4>
-                                <hr />
-                                <h6 className="mb-1">Hobbies:</h6>
-                                <p>{user?.hobbies}</p>
-                                <h6 className="mt-2 mb-1">Favourite:</h6>
-                                <p>{user?.favourites}</p>
+                                <h4 className="mt-2">Abouts</h4>
+                                <hr />                             
+                                <p>{user?.about || 'No About'} </p>
                               </Tab.Pane>
                             </Tab.Content>
                           </Card.Body>
@@ -1337,12 +1254,7 @@ const UserProfile = () => {
                           >
                             <li>
                               <Nav.Link eventKey="p1" href="#pill-photosofyou">
-                                Photos of You
-                              </Nav.Link>
-                            </li>
-                            <li>
-                              <Nav.Link eventKey="p2" href="#pill-your-photos">
-                                Your Photos
+                              
                               </Nav.Link>
                             </li>
                           </Nav>
@@ -2962,712 +2874,6 @@ const UserProfile = () => {
                                   </div>
                                 </div>
                               </Card.Body>
-                            </Tab.Pane>
-                            <Tab.Pane eventKey="p2">
-                              <div className="card-body p-0">
-                                <div className="d-grid gap-2 d-grid-template-1fr-13 ">
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(33)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img51}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(34)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img52}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(35)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img53}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(36)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img54}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(37)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img55}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(38)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img56}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(39)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img57}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(40)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img58}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(41)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img59}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <div className="user-images position-relative overflow-hidden">
-                                      <Link
-                                        onClick={() => imageOnSlide(42)}
-                                        to="#"
-                                      >
-                                        <img
-                                          loading="lazy"
-                                          src={img60}
-                                          className="img-fluid rounded"
-                                          alt="Responsive"
-                                        />
-                                      </Link>
-                                      <div className="image-hover-data">
-                                        <div className="product-elements-icon">
-                                          <ul className="d-flex align-items-center m-0 p-0 list-inline">
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                60{" "}
-                                                <i className="material-symbols-outlined md-14 ms-1">
-                                                  thumb_up
-                                                </i>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                30{" "}
-                                                <span className="material-symbols-outlined  md-14 ms-1">
-                                                  chat_bubble_outline
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                            <li>
-                                              <Link
-                                                to="#"
-                                                className="pe-3 text-white d-flex align-items-center"
-                                              >
-                                                {" "}
-                                                10{" "}
-                                                <span className="material-symbols-outlined md-14 ms-1">
-                                                  forward
-                                                </span>{" "}
-                                              </Link>
-                                            </li>
-                                          </ul>
-                                        </div>
-                                      </div>
-                                      <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                          <Tooltip>Edit or Remove</Tooltip>
-                                        }
-                                      >
-                                        <Link
-                                          to="#"
-                                          className="image-edit-btn material-symbols-outlined md-16"
-                                        >
-                                          drive_file_rename_outline
-                                        </Link>
-                                      </OverlayTrigger>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
                             </Tab.Pane>
                           </Tab.Content>
                         </div>

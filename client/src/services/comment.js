@@ -32,7 +32,7 @@ export const apiCreatePostReaction = (payload) => {
   });
 };
 
-export const apiUpdatePostReaction = ({ documentId, payload }) => {
+export const apiUpdatePostReaction = ({ documentId, payload, token }) => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -40,8 +40,8 @@ export const apiUpdatePostReaction = ({ documentId, payload }) => {
         url: `/reactions/${documentId}`,
         data: payload,
         headers: {
-          "Content-Type": "application/json",
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       console.log("Update Reaction response:", response);
       resolve(response);
@@ -51,12 +51,15 @@ export const apiUpdatePostReaction = ({ documentId, payload }) => {
   });
 };
 
-export const apiDeletePostReaction = ({ documentId }) =>
+export const apiDeletePostReaction = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "delete",
         url: `/reactions/${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       console.log("Delete Reaction response:", response);
       resolve(response);
@@ -66,12 +69,15 @@ export const apiDeletePostReaction = ({ documentId }) =>
     }
   });
 
-export const apiGetPostUser = ({ postId, userId }) =>
+export const apiGetPostUser = ({ postId, userId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/reactions?populate=*&filters[$and][0][user_id][documentId][$eq]=${userId}&filters[$and][1][post_id][documentId][$eq]=${postId}`,
+        url: `/reactions?pagination[pageSize]=10&pagination[page]=1&populate=*&sort=createdAt:DESC&postId=${postId}&userId=${userId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -79,12 +85,15 @@ export const apiGetPostUser = ({ postId, userId }) =>
     }
   });
 
-export const apiGetPostComment = ({ postId }) =>
+export const apiGetPostComment = ({ postId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/comments?populate=*&sort=createdAt:DESC&filters[$and][0][post_id][documentId][$eq]=${postId}&filters[$and][1][parent_id][documentId][$null]=true`,
+        url: `/comments?pagination[pageSize]=20&pagination[page]=1&populate=*&post_id=${postId}&sort=createdAt:DESC`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -92,12 +101,12 @@ export const apiGetPostComment = ({ postId }) =>
     }
   });
 
-export const apiGetPostCommentParent = ({ postId, parentId }) =>
+export const apiGetPostCommentParent = ({ parentId }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/comments?populate=*&sort=createdAt:ASC&filters[$and][0][post_id][documentId][$eq]=${postId}&filters[$and][1][parent_id][documentId][$eq]=${parentId}`,
+        url: `/comments?pagination[pageSize]=20&pagination[page]=1&populate=*&parent_id=${parentId}&sort=createdAt:ASC`,
       });
       resolve(response);
     } catch (error) {

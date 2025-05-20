@@ -18,7 +18,8 @@ import { notification, Modal } from 'antd'; // Import notification and Modal fro
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient from react-query
 
 const ActionComment = ({ post }) => {
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [showNestedComments, setShowNestedComments] = useState({});
   const [showReplyForm, setShowReplyForm] = useState({});
   const [showReplyEdit, setShowReplyEdit] = useState({});
@@ -28,23 +29,14 @@ const ActionComment = ({ post }) => {
 
 
   // Fetch parent comments (Cấp 1)
-  const { data: parentComments = { data: { data: [] } } } = useQuery({
-    queryKey: ["parentComments", post.documentId],
-    queryFn: () => apiGetPostComment({ postId: post.documentId }),
-    enabled: !!post.documentId,
+  const { data: parentComments = { data: { data: [] } }, isLoading } = useQuery({
+    queryKey: ["parentComments", post.documentId, token],
+    queryFn: () => apiGetPostComment({ postId: post.documentId, token }),
+    enabled: !!post.documentId && !!token,
   });
 
-  // Fetch nested comments (Cấp 2) chỉ khi có `currentParentId`
-  const {
-    data: nestedComments = { data: { data: [] } },
-    isLoading,
-  } = useQuery({
-    queryKey: ["nestedComments", post.documentId, currentParentId],
-    queryFn: () =>
-      apiGetPostCommentParent({ postId: post.documentId, parentId: currentParentId }),
-    enabled: !!currentParentId,
-    staleTime: 5 * 60 * 1000, // Cache trong 5 phút
-  });
+  console.log(parentComments)
+
 
   const toggleNestedComments = (parentId) => {
     setShowNestedComments((prev) => {
@@ -100,7 +92,6 @@ const ActionComment = ({ post }) => {
     }));
   };
 
-  //console.log('ShowReplyFormShowReplyForm:', profile);
 
   const handleDeleteComment = async (commentId) => {
     Modal.confirm({
@@ -136,13 +127,13 @@ const ActionComment = ({ post }) => {
             <div className="d-flex">
               <div className="user-img">
                 <img
-                  src={comment.user_id.profile_picture}
+                  src={comment.user?.avatarMedia?.file_path}
                   alt="user1"
                   className="avatar-35 rounded-circle img-fluid"
                 />
               </div>
               <div className="comment-data-block ms-3">
-                <h6>{comment.user_id.username}</h6>
+                <h6>{comment.user.username}</h6>
                 <div className="d-flex flex-wrap align-items-center">
                   <p className="mb-0">
                     {comment.content.split("\n").map((line, index) => (
@@ -163,7 +154,7 @@ const ActionComment = ({ post }) => {
                         <Dropdown.Item
                           className="dropdown-item p-3"
                           to="#"
-                          style={{ display: comment?.user_id?.documentId === profile?.documentId ? 'block' : 'none' }}
+                          style={{ display: comment?.user?.documentId === user?.documentId ? 'block' : 'none' }}
                           onClick={() => {
                             setInputText(comment.content); // Set the input text to the comment content
                             toggleReplyEdit(comment.documentId);
@@ -179,7 +170,7 @@ const ActionComment = ({ post }) => {
                             </div>
                           </div>
                         </Dropdown.Item>
-                        <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (comment?.user_id?.documentId === profile?.documentId || post?.user_id?.documentId === profile?.documentId) ? 'block' : 'none' }}
+                        <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (comment?.user?.documentId === user?.documentId || post?.user?.documentId === user?.documentId) ? 'block' : 'none' }}
                           onClick={() => handleDeleteComment(comment.documentId)}
                         >
                           <div className="d-flex align-items-top">
@@ -235,7 +226,7 @@ const ActionComment = ({ post }) => {
                     post={post}
                     parent={comment} // Pass empty object if inputText is set
                     nested={comment} // Pass empty object if inputText is set
-                    profile={profile}
+                    profile={user}
                     handleReplyFormClose={() => handleReplyFormClose(comment.documentId)}
                   />
                 )}
@@ -254,18 +245,18 @@ const ActionComment = ({ post }) => {
                     {isLoading ? (
                       <p>Loading replies...</p>
                     ) : (
-                      nestedComments.data.data.map((nestedComment) => (
+                      comment?.replies?.map((nestedComment) => (
                         <li className="mb-2" key={nestedComment.documentId}>
                           <div className="d-flex">
                             <div className="user-img">
                               <img
-                                src={nestedComment.user_id.profile_picture}
+                                src={nestedComment.user?.avatarMedia?.file_path}
                                 alt="user1"
                                 className="avatar-25 rounded-circle img-fluid"
                               />
                             </div>
                             <div className="comment-data-block ms-3">
-                              <h6>{nestedComment.user_id.username}</h6>
+                              <h6>{nestedComment.user.username}</h6>
                               <div className="d-flex flex-wrap align-items-center">
                                 <p className="mb-0">
                                   {nestedComment.content.split("\n").map((line, index) => (
@@ -283,7 +274,7 @@ const ActionComment = ({ post }) => {
                                       </span>
                                     </Dropdown.Toggle>
                                     <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                      <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: nestedComment?.user_id?.documentId === profile?.documentId ? 'block' : 'none' }} onClick={() => {
+                                      <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: nestedComment?.user?.documentId === user?.documentId ? 'block' : 'none' }} onClick={() => {
                                         setInputText(nestedComment.content); // Set the input text to the comment content
                                         toggleReplyEdit(nestedComment.documentId);
                                       }}>
@@ -297,7 +288,7 @@ const ActionComment = ({ post }) => {
                                           </div>
                                         </div>
                                       </Dropdown.Item>
-                                      <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (nestedComment?.user_id?.documentId === profile?.documentId || post?.user_id?.documentId === profile?.documentId) ? 'block' : 'none' }}
+                                      <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (nestedComment?.user?.documentId === user?.documentId || post?.user?.documentId === user?.documentId) ? 'block' : 'none' }}
                                         onClick={() => handleDeleteComment(nestedComment.documentId)}
                                       >
                                         <div className="d-flex align-items-top">
@@ -338,7 +329,7 @@ const ActionComment = ({ post }) => {
                                   post={post}
                                   parent={comment}
                                   nested={nestedComment}
-                                  profile={profile}
+                                  profile={user}
                                   handleReplyFormClose={() => handleReplyFormClose(nestedComment.documentId)}
                                 />
                               )}

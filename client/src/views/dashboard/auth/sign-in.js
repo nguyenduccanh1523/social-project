@@ -58,12 +58,12 @@ const SignIn = () => {
       const isNewLogin = sessionStorage.getItem("isNewLogin");
       if (token && isNewLogin === "true") {
         navigate("/");
-        Swal.fire({
-          title: "Success!",
-          text: "You have successfully logged in!",
-          icon: "success",
-          confirmButtonText: "OK",
-        });
+        // Swal.fire({
+        //   title: "Success!",
+        //   text: "You have successfully logged in!",
+        //   icon: "success",
+        //   confirmButtonText: "OK",
+        // });
         sessionStorage.removeItem("isNewLogin");
         dispatch(actions.clearMessage());
       }

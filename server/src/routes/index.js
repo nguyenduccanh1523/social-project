@@ -36,6 +36,8 @@ import notificationRouter from "./notification/notification.js";
 import notificationCreatedRouter from "./notification/notification-created.js";
 import notificationSettingRouter from "./notification/notification-setting.js";
 import userNotificationsNewRouter from "./notification/user-notification.js";
+import postFriend from "./post/post-friend.js";
+import postMedia from "./post/post-media.js";
 
 const initRoutes = (app) => {
   app.use("/api/v1/auth", authRouter);
@@ -76,6 +78,9 @@ const initRoutes = (app) => {
   app.use("/api/v1/notification-creators", notificationCreatedRouter);
   app.use("/api/v1/notification-settings", notificationSettingRouter);
   app.use("/api/v1/user-notifications-new", userNotificationsNewRouter);
+  app.use("/api/v1/post-medias", postMedia);
+  app.use("/api/v1/post-friends", postFriend);
+
 
   return app.use("/", (req, res) => {
     res.send("server on...");

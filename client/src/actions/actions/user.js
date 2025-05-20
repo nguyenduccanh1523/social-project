@@ -15,11 +15,11 @@ export const fetchUserProfile = () => async (dispatch) => {
   }
 };
 
-export const fetchUserSocials = (documentId) => async (dispatch) => {
+export const fetchUserSocials = (documentId, token) => async (dispatch) => {
   dispatch({ type: actionTypes.USER_SOCIAL_REQUEST });
 
   try {
-    const response = await apiGetUserSocial({ documentId });
+    const response = await apiGetUserSocial({ documentId, token });
     dispatch({
       type: actionTypes.USER_SOCIAL_SUCCESS,
       payload: response.data, // Lưu dữ liệu trả về

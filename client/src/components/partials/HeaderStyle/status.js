@@ -9,9 +9,9 @@ const Status = ({ userId }) => {
     const dispatch = useDispatch();
     const { status } = useSelector((state) => state.root.status || {});
     const { token } = useSelector((state) => state.root.auth || {});
-    console.log('status', status);
+    // console.log('status', status);
     const [selectedStatus, setSelectedStatus] = useState(null);
-    console.log('userId', userId);  
+    // console.log('userId', userId);  
 
     useEffect(() => {
         dispatch(fetchStatus());

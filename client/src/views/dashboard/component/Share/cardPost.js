@@ -35,9 +35,10 @@ const CardPost = ({ post, pageInfo }) => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { profile } = useSelector((state) => state.root.user || {});
-    const { tags } = useSelector((state) => state.root.tag || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
     const createdAt = new Date(post?.createdAt);
+
 
     const [imageController, setImageController] = useState({
         toggler: false, // Kiểm soát hiển thị gallery
@@ -63,38 +64,23 @@ const CardPost = ({ post, pageInfo }) => {
     };
 
 
-    useEffect(() => {
-        dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
-    }, [post, dispatch]);
-
-    const { data: postMediaData } = useQuery({
-        queryKey: ['postMedia', post?.documentId],
-        queryFn: () => apiGetPostMedia({ postId: post?.documentId }),
-        enabled: !!post?.documentId,
-        cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
-    });
-
     const { data: parentComments = { data: { data: [] } } } = useQuery({
         queryKey: ["parentComments", post.documentId],
-        queryFn: () => apiGetPostComment({ postId: post.documentId }),
+        queryFn: () => apiGetPostComment({ postId: post.documentId, token }),
         enabled: !!post.documentId,
     });
 
-    const postMedia = postMediaData?.data || [];
-
-
-    const postTag = tags[post?.documentId] || [];
 
     const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
-    const validSources = Array.isArray(postMedia?.data)
-        ? postMedia.data
-            .map((item) => item?.media?.file_path)
+    const validSources = Array.isArray(post?.medias)
+        ? post.medias
+            .map((item) => item?.file_path)
             .filter((path) => typeof path === "string" && path.trim() !== "")
         : [];
 
-    const validTags = Array.isArray(postTag?.data)
-        ? postTag.data.map((item) => item?.tag_id?.name)
+    const validTags = Array.isArray(post?.tags)
+        ? post?.tags.map((item) => item?.name)
         : [];
 
     const colors = colorsTag;
@@ -150,7 +136,7 @@ const CardPost = ({ post, pageInfo }) => {
                                 <img
                                     src={
                                         post?.user_id
-                                            ? post?.user_id?.profile_picture
+                                            ? post?.user?.avatarMedia?.file_path
                                             : pageInfo?.profile_picture?.file_path
                                     }
                                     alt="userimg"
@@ -163,14 +149,14 @@ const CardPost = ({ post, pageInfo }) => {
                                 <div>
                                     <h5 className="d-flex align-items-center">
                                         <Link to={
-                                            post?.user_id?.documentId === profile?.documentId
+                                            post?.user?.documentId === user?.documentId
                                                 ? `/user-profile`
                                                 : post?.user_id
-                                                    ? `/friend-profile/${post?.user_id?.documentId}`
+                                                    ? `/friend-profile/${post?.user?.documentId}`
                                                     : `/page/${pageInfo?.page_name}`
                                         }
                                             state={
-                                                post?.user_id?.documentId === profile?.documentId
+                                                post?.user?.documentId === user?.documentId
                                                     ? {}
                                                     : post?.user_id
                                                         ? { friendId: post?.user_id }
@@ -181,7 +167,7 @@ const CardPost = ({ post, pageInfo }) => {
                                             }
                                             style={{ textDecoration: "none" }}>
                                             <h6>{post?.user_id
-                                                ? post?.user_id?.username
+                                                ? post?.user?.fullname
                                                 : pageInfo?.page_name || 'Unknown Page'
                                             }</h6>
                                         </Link>
@@ -204,10 +190,10 @@ const CardPost = ({ post, pageInfo }) => {
                                                 <p className="mb-0 text-primary">{timeAgo}</p>
                                             </span>
                                         </OverlayTrigger>
-                                        <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.type_id?.name === 'public' ? 'Public' : 'Private'}</Tooltip>}>
+                                        <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.type === 'public' ? 'Public' : 'Private'}</Tooltip>}>
                                             <span className="d-inline-block">
                                                 <p disabled style={{ pointerEvents: 'none' }}>
-                                                    {post?.type_id?.name === 'public' ? <span className="material-symbols-outlined">
+                                                    {post?.type === 'public' ? <span className="material-symbols-outlined">
                                                         public
                                                     </span> : <span className="material-symbols-outlined">
                                                         lock
@@ -226,7 +212,7 @@ const CardPost = ({ post, pageInfo }) => {
                                             </span>
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                            <Mark post={post} profile={profile} />
+                                            <Mark post={post} profile={user} />
                                             <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
                                                 <div className="d-flex align-items-top">
                                                     <i className="material-symbols-outlined">edit</i>
@@ -302,15 +288,16 @@ const CardPost = ({ post, pageInfo }) => {
                 </div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-                    {validTags.map((tag, index) => (
+                    {post?.tags?.map((tag, index) => (
                         <Tag
                             key={index}
                             color={colors[index % colors.length]} // Áp dụng màu theo danh sách
                         >
-                            {tag}
+                            {tag?.name}
                         </Tag>
                     ))}
                 </div>
+
                 <div className="user-post mt-3">
                     <Image.PreviewGroup>
                         {Array.isArray(validSources) && validSources.length === 1 && (
@@ -539,13 +526,13 @@ const CardPost = ({ post, pageInfo }) => {
                                     <div className="d-flex">
                                         <div className="user-img">
                                             <img
-                                                src={comment.user_id.profile_picture}
+                                                src={comment.user?.avatarMedia?.file_path}
                                                 alt="user1"
                                                 className="avatar-35 rounded-circle img-fluid"
                                             />
                                         </div>
                                         <div className="comment-data-block ms-3">
-                                            <h6>{comment.user_id.username}</h6>
+                                            <h6>{comment.user.username}</h6>
                                             <div className="d-flex flex-wrap align-items-center">
                                                 <p className="mb-0">
                                                     {comment.content.split("\n").map((line, index) => (

@@ -79,7 +79,7 @@ export const createReaction = async (req, res) => {
         const reactionData = req.body;
         
         // Đảm bảo có đủ dữ liệu cần thiết
-        if (!reactionData.post_id || !reactionData.user_id || !reactionData.type) {
+        if (!reactionData.post_id || !reactionData.user_id || !reactionData.reaction_type) {
             return res.status(400).json({
                 err: -1,
                 message: 'Thiếu thông tin cần thiết (post_id, user_id, type)'

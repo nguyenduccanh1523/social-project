@@ -134,18 +134,18 @@ export const getReactionById = async (documentId) => {
 export const createReaction = async (reactionData) => {
     try {
         // Kiểm tra xem đã có reaction chưa
-        const existingReaction = await db.Reaction.findOne({
-            where: {
-                post_id: reactionData.post_id,
-                user_id: reactionData.user_id
-            }
-        });
+        // const existingReaction = await db.Reaction.findOne({
+        //     where: {
+        //         post_id: reactionData.post_id,
+        //         user_id: reactionData.user_id
+        //     }
+        // });
 
-        // Nếu đã có reaction, cập nhật loại reaction
-        if (existingReaction) {
-            await existingReaction.update({ type: reactionData.type });
-            return await getReactionById(existingReaction.documentId);
-        }
+        // // Nếu đã có reaction, cập nhật loại reaction
+        // if (existingReaction) {
+        //     await existingReaction.update({ type: reactionData.type });
+        //     return await getReactionById(existingReaction.documentId);
+        // }
 
         // Nếu chưa có, tạo mới
         const newReaction = await db.Reaction.create(reactionData);
@@ -180,7 +180,7 @@ export const deleteReaction = async (documentId) => {
             throw new Error('Không tìm thấy reaction');
         }
 
-        await reaction.destroy();
+        await reaction.destroy({ force: true });
         return { message: 'Xóa reaction thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa reaction: ${error.message}`);
