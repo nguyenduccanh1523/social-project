@@ -82,7 +82,9 @@ export const getAllComments = async ({
                                 }
                             ]
                         }
-                    ]
+                    ],
+                    separate: true, // Thêm dòng này
+                    order: [['createdAt', 'ASC']]
                 }
             );
 
@@ -178,7 +180,7 @@ export const createComment = async (commentData) => {
 export const updateComment = async (documentId, commentData) => {
     try {
         const comment = await db.Comment.findByPk(documentId);
-        
+
         if (!comment) {
             throw new Error('Không tìm thấy comment');
         }
@@ -194,7 +196,7 @@ export const updateComment = async (documentId, commentData) => {
 export const deleteComment = async (documentId) => {
     try {
         const comment = await db.Comment.findByPk(documentId);
-        
+
         if (!comment) {
             throw new Error('Không tìm thấy comment');
         }

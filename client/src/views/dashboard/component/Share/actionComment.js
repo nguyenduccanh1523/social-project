@@ -35,8 +35,6 @@ const ActionComment = ({ post }) => {
     enabled: !!post.documentId && !!token,
   });
 
-  console.log(parentComments)
-
 
   const toggleNestedComments = (parentId) => {
     setShowNestedComments((prev) => {
@@ -133,7 +131,7 @@ const ActionComment = ({ post }) => {
                 />
               </div>
               <div className="comment-data-block ms-3">
-                <h6>{comment.user.username}</h6>
+                <h6 style={{fontWeight: 'bold'}}>{comment.user.username}</h6>
                 <div className="d-flex flex-wrap align-items-center">
                   <p className="mb-0">
                     {comment.content.split("\n").map((line, index) => (
@@ -256,7 +254,7 @@ const ActionComment = ({ post }) => {
                               />
                             </div>
                             <div className="comment-data-block ms-3">
-                              <h6>{nestedComment.user.username}</h6>
+                              <h6 style={{fontWeight: 'bold'}}>{nestedComment.user.username}</h6>
                               <div className="d-flex flex-wrap align-items-center">
                                 <p className="mb-0">
                                   {nestedComment.content.split("\n").map((line, index) => (

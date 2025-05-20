@@ -36,8 +36,6 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
     const [showPicker, setShowPicker] = useState(false);
     const pickerRef = useRef(null);
 
-    //console.log("Reply component props:", post, parent, nested)
-    console.log('posst', post)
 
     const onEmojiClick = (emoji) => {
         setComment(prevComment => prevComment + emoji.emoji);
@@ -143,7 +141,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
         <>
             <Modal size='lg' className="custom-modal-width" scrollable={true} show={show} onHide={handleClose}>
                 <Modal.Header>
-                    <Modal.Title > {post?.user?.fullname || page?.page_name}'s Post </Modal.Title>
+                    <Modal.Title > <b>{post?.user?.fullname || page?.page_name}'s Post</b> </Modal.Title>
                     <button
                         type="button"
                         className="btn btn-secondary lh-1"
@@ -188,10 +186,10 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                             }
                                                 }
                                                 style={{ textDecoration: "none" }}>
-                                                <h6>{post?.user_id
+                                                <h5 style={{fontWeight: 'bold'}}>{post?.user_id
                                                     ? post?.user?.fullname
                                                     : page?.page_name || 'Unknown Page'
-                                                }</h6>
+                                                }</h5>
                                             </Link>
                                         </h5>
                                         <div className="d-flex gap-2">

@@ -114,7 +114,7 @@ export const apiGetPostCommentParent = ({ parentId }) =>
     }
   });
 
-export const apiCreatePostComment = (payload) => {
+export const apiCreatePostComment = (payload, token) => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -122,8 +122,8 @@ export const apiCreatePostComment = (payload) => {
         url: "/comments",
         data: payload,
         headers: {
-          "Content-Type": "application/json",
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Post Comment response:", response);
       resolve(response);
@@ -133,7 +133,7 @@ export const apiCreatePostComment = (payload) => {
   });
 };
 
-export const apiUpdatePostComment = ({ documentId, payload }) => {
+export const apiUpdatePostComment = ({ documentId, payload, token }) => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -141,8 +141,8 @@ export const apiUpdatePostComment = ({ documentId, payload }) => {
         url: `/comments/${documentId}`,
         data: payload,
         headers: {
-          "Content-Type": "application/json",
-        },
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Update Comment response:", response);
       resolve(response);

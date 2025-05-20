@@ -3,8 +3,10 @@ import styled from 'styled-components';
 import { apiUpdatePostComment } from '../../../../services/comment'; // Import the API function
 import { notification } from 'antd'; // Import notification from antd
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient from react-query
+import { useSelector } from 'react-redux';
 
 const Edit = ({ formData, handleClose, commentId  }) => {
+  const { token } = useSelector((state) => state.root.auth || {});
   const queryClient = useQueryClient(); // Initialize queryClient
 
 //   console.log('Form data:', formData);
@@ -14,16 +16,14 @@ const Edit = ({ formData, handleClose, commentId  }) => {
 
     if (commentId) {
       // Logic for when only post and commentId are present
-      console.log('Case 2: Only post and commentId present');
+      // console.log('Case 2: Only post and commentId present');
     //   console.log('Form data:', formData);
     //   console.log('Comemnt:', commentId);
       const payload = {
-        data: {
           content: formData.inputText,
-        }
       };
       try {
-        const response = await apiUpdatePostComment({documentId: commentId, payload});
+        const response = await apiUpdatePostComment({documentId: commentId, payload, token});
         //console.log('Comment created:', response);
 
         // Show success notification

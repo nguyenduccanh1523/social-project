@@ -318,7 +318,7 @@ const UserProfile = () => {
                       />
                     </div>
                     <div className="profile-detail">
-                      <h3>{users?.fullname}</h3>
+                      <h2 style={{fontWeight: 'bold'}}>{users?.fullname}</h2>
                     </div>
                   </div>
                   <div className="profile-info p-3 d-flex align-items-center justify-content-between position-relative">
@@ -357,12 +357,12 @@ const UserProfile = () => {
                     <div className="social-info">
                       <ul className="social-data-block d-flex align-items-center justify-content-between list-inline p-0 m-0">
                         <li className="text-center ps-3">
-                          <h6>Posts</h6>
-                          <p className="mb-0">690</p>
+                          <h4 style={{fontWeight: 'bold'}}>Posts</h4>
+                          <b className="mb-0">690</b>
                         </li>
                         <li className="text-center ps-3">
-                          <h6>Friends</h6>
-                          <p className="mb-0">{userAccepts.length}</p>
+                          <h4 style={{fontWeight: 'bold'}}>Friends</h4>
+                          <b className="mb-0">{userAccepts.length}</b>
                         </li>
                       </ul>
                     </div>

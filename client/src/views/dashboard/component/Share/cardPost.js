@@ -166,10 +166,10 @@ const CardPost = ({ post, pageInfo }) => {
                                                         }
                                             }
                                             style={{ textDecoration: "none" }}>
-                                            <h6>{post?.user_id
+                                            <h4 style={{fontWeight: 'bold'}}>{post?.user_id
                                                 ? post?.user?.fullname
                                                 : pageInfo?.page_name || 'Unknown Page'
-                                            }</h6>
+                                            }</h4>
                                         </Link>
                                         {pageInfo?.data?.is_verified && (
                                             <i
@@ -532,7 +532,7 @@ const CardPost = ({ post, pageInfo }) => {
                                             />
                                         </div>
                                         <div className="comment-data-block ms-3">
-                                            <h6>{comment.user.username}</h6>
+                                            <h5 style={{fontWeight: 'bold'}}>{comment.user.username}</h5>
                                             <div className="d-flex flex-wrap align-items-center">
                                                 <p className="mb-0">
                                                     {comment.content.split("\n").map((line, index) => (

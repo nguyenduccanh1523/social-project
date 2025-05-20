@@ -3,8 +3,10 @@ import styled from 'styled-components';
 import { apiCreatePostComment, apiUpdatePostComment } from '../../../../services/comment'; // Import the API function
 import { notification } from 'antd'; // Import notification from antd
 import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient from react-query
+import { useSelector } from 'react-redux';
 
 const Send = ({ formData, post, parent, nested, profile, handleClose, onSend }) => {
+  const { token } = useSelector((state) => state.root.auth || {});
   const queryClient = useQueryClient(); // Initialize queryClient
 
   // console.log('Form data:', formData);
@@ -22,15 +24,13 @@ const Send = ({ formData, post, parent, nested, profile, handleClose, onSend }) 
       // console.log('Parent:', parent);
       // console.log('Nested:', nested);
       const payload = {
-        data: {
           post_id: post?.documentId,
           user_id: profile?.documentId,
           parent_id: parent?.documentId,
           content: formData.inputText,
-        }
       };
       try {
-        const response = await apiCreatePostComment(payload);
+        const response = await apiCreatePostComment(payload, token);
         //console.log('Comment created:', response);
 
         // Show success notification
@@ -61,14 +61,12 @@ const Send = ({ formData, post, parent, nested, profile, handleClose, onSend }) 
       // console.log('Form data:', formData);
       // console.log('Post:', post);
       const payload = {
-        data: {
           post_id: post?.documentId,
           user_id: profile?.documentId,
           content: formData.inputText,
-        }
       };
       try {
-        const response = await apiCreatePostComment(payload);
+        const response = await apiCreatePostComment(payload, token);
         //console.log('Comment created:', response);
 
         // Show success notification
