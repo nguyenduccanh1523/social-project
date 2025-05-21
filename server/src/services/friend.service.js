@@ -104,7 +104,7 @@ export const getAllFriend = async ({
                 where: {
                     documentId: { [Op.in]: [...userIds, ...friendIds] }
                 },
-                attributes: ['documentId', 'fullname', 'email', 'phone', 'avatar_id', 'cover_photo_id']
+                attributes: ['documentId', 'fullname', 'email', 'phone', 'avatar_id', 'cover_photo_id', 'status_id']
             });
             
             // Tạo map cho việc tra cứu nhanh thông tin user
@@ -130,6 +130,25 @@ export const getAllFriend = async ({
             const mediaMap = {};
             avatarMedia.forEach(media => {
                 mediaMap[media.documentId] = media;
+            });
+
+            // Lấy status_id từ tất cả users
+            const statusIds = users
+                .map(user => user.status_id)
+                .filter(id => id !== null);
+            
+            // Truy vấn thông tin status cho avatar
+            const status = await db.StatusActivity.findAll({
+                where: {
+                    documentId: { [Op.in]: statusIds }
+                },
+                attributes: ['documentId', 'name']
+            });
+            
+            // Tạo map cho việc tra cứu nhanh thông tin status
+            const statusMap = {};
+            status.forEach(status => {
+                statusMap[status.documentId] = status;
             });
             
             // Lấy số lượng bạn bè cho mỗi user
@@ -164,6 +183,12 @@ export const getAllFriend = async ({
                     if (userData.avatar_id && mediaMap[userData.avatar_id]) {
                         userData.avatarMedia = mediaMap[userData.avatar_id];
                     }
+
+                    if (userData.status_id && statusMap[userData.status_id]) {
+                        userData.status = statusMap[userData.status_id];
+                    }
+
+
                     
                     plainFriend.user = {
                         ...userData,
@@ -176,6 +201,10 @@ export const getAllFriend = async ({
                     // Thêm thông tin avatar media nếu có
                     if (friendData.avatar_id && mediaMap[friendData.avatar_id]) {
                         friendData.avatarMedia = mediaMap[friendData.avatar_id];
+                    }
+
+                    if (friendData.status_id && statusMap[friendData.status_id]) {
+                        friendData.status = statusMap[friendData.status_id];
                     }
                     
                     plainFriend.friend = {

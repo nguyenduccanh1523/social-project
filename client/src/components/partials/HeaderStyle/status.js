@@ -15,8 +15,8 @@ const Status = ({ userId }) => {
 
     useEffect(() => {
         dispatch(fetchStatus());
-        if (userId?.status_id?.length > 0) {
-            const initialStatus = userId.status.name;
+        if (userId?.status) {
+            const initialStatus = userId.status?.name;
             setSelectedStatus(initialStatus);
         }
     }, [dispatch, userId]);

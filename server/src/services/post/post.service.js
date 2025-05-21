@@ -361,7 +361,7 @@ export const getPostById = async (documentId, userId = null) => {
 };
 
 // Tạo bài viết mới
-export const createPost = async (postData, userId) => {
+export const createPost = async (postData) => {
     try {
         // // Thêm user_id vào dữ liệu bài viết
         // const postWithUserId = {

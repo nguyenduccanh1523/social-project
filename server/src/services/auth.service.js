@@ -37,7 +37,7 @@ const validatePassword = (password) => {
 // Đăng ký người dùng mới
 export const registerUser = async (userData) => {
   const { email, password, confirmPassword, username } = userData;
-  
+
   // Kiểm tra các trường bắt buộc
   if (!email || !password || !confirmPassword || !username) {
     return {
@@ -47,7 +47,7 @@ export const registerUser = async (userData) => {
       error: 'Email, username, password và confirmPassword là bắt buộc'
     };
   }
-  
+
   // Kiểm tra xác nhận mật khẩu
   if (password !== confirmPassword) {
     return {
@@ -57,7 +57,7 @@ export const registerUser = async (userData) => {
       error: 'Mật khẩu xác nhận không khớp với mật khẩu'
     };
   }
-  
+
   // Kiểm tra độ mạnh của mật khẩu
   if (!validatePassword(password)) {
     return {
@@ -67,7 +67,7 @@ export const registerUser = async (userData) => {
       error: 'Mật khẩu không đủ mạnh'
     };
   }
-  
+
   try {
     // Kiểm tra email đã tồn tại hay chưa
     const existingEmail = await User.findOne({ where: { email } });
@@ -79,7 +79,7 @@ export const registerUser = async (userData) => {
         error: 'Email đã tồn tại'
       };
     }
-    
+
     // Kiểm tra username đã tồn tại hay chưa
     const existingUsername = await User.findOne({ where: { username } });
     if (existingUsername) {
@@ -90,11 +90,11 @@ export const registerUser = async (userData) => {
         error: 'Username đã tồn tại'
       };
     }
-    
+
     // Mã hóa mật khẩu
     const salt = bcrypt.genSaltSync(10);
     const hashedPassword = bcrypt.hashSync(password, salt);
-    
+
     // Tạo user mới
     const user = await User.create({
       documentId: uuidv4(),
@@ -110,18 +110,18 @@ export const registerUser = async (userData) => {
       is_online: true,
       email_verified: false
     });
-    
+
     // Tạo token
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken();
     const refreshExpires = new Date(Date.now() + REFRESH_TOKEN_EXPIRATION_MS);
-    
+
     // Lưu refresh token vào database
     await user.update({
       refresh_token: refreshToken,
       refresh_token_expires: refreshExpires
     });
-    
+
     // Lấy thêm thông tin avatar nếu có
     const userWithAvatar = await User.findOne({
       where: { documentId: user.documentId },
@@ -131,7 +131,7 @@ export const registerUser = async (userData) => {
         attributes: ['documentId', 'file_path', 'file_type']
       }]
     });
-    
+
     return {
       success: true,
       statusCode: 201,
@@ -169,7 +169,7 @@ export const registerUser = async (userData) => {
 // Đăng nhập
 export const loginUser = async (credentials) => {
   const { identifier, password } = credentials;
-  
+
   // Kiểm tra các trường bắt buộc
   if (!identifier || !password) {
     return {
@@ -179,21 +179,28 @@ export const loginUser = async (credentials) => {
       error: 'Email và password là bắt buộc'
     };
   }
-  
+
   try {
     // Kiểm tra định dạng email
     const isEmail = /\S+@\S+\.\S+/.test(identifier);
-    
+
     // Tìm user theo email hoặc username và include avatarMedia
-    const user = await User.findOne({ 
+    const user = await User.findOne({
       where: isEmail ? { email: identifier } : { username: identifier },
-      include: [{
-        model: db.Media,
-        as: 'avatarMedia',
-        attributes: ['documentId', 'file_path', 'file_type']
-      }]
+      include: [
+        {
+          model: db.Media,
+          as: 'avatarMedia',
+          attributes: ['documentId', 'file_path', 'file_type']
+        },
+        {
+          model: db.StatusActivity,
+          as: 'status',
+          attributes: ['documentId', 'name']
+        }
+      ]
     });
-    
+
     if (!user) {
       return {
         success: false,
@@ -202,7 +209,7 @@ export const loginUser = async (credentials) => {
         error: 'Thông tin đăng nhập không hợp lệ'
       };
     }
-    
+
     // Kiểm tra mật khẩu
     const isPasswordValid = bcrypt.compareSync(password, user.password);
     if (!isPasswordValid) {
@@ -213,21 +220,21 @@ export const loginUser = async (credentials) => {
         error: 'Thông tin đăng nhập không hợp lệ'
       };
     }
-    
+
     // Cập nhật trạng thái online
     await user.update({ is_online: true, last_active: new Date() });
-    
+
     // Tạo access token và refresh token
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken();
     const refreshExpires = new Date(Date.now() + REFRESH_TOKEN_EXPIRATION_MS);
-    
+
     // Lưu refresh token vào database
     await user.update({
       refresh_token: refreshToken,
       refresh_token_expires: refreshExpires
     });
-    
+
     return {
       success: true,
       statusCode: 200,
@@ -245,7 +252,8 @@ export const loginUser = async (credentials) => {
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
           publishedAt: user.createdAt,
-          avatarMedia: user.avatarMedia
+          avatarMedia: user.avatarMedia,
+          statusUser: user.status
         },
         refresh_token: refreshToken
       }
@@ -264,7 +272,7 @@ export const loginUser = async (credentials) => {
 // Làm mới token
 export const refreshUserToken = async (refreshTokenData) => {
   const { refreshToken } = refreshTokenData;
-  
+
   if (!refreshToken) {
     return {
       success: false,
@@ -273,11 +281,11 @@ export const refreshUserToken = async (refreshTokenData) => {
       error: 'Missing refresh token'
     };
   }
-  
+
   try {
     // Tìm user với refresh token này
     const user = await User.findOne({ where: { refresh_token: refreshToken } });
-    
+
     if (!user) {
       return {
         success: false,
@@ -286,12 +294,12 @@ export const refreshUserToken = async (refreshTokenData) => {
         error: 'Invalid refresh token'
       };
     }
-    
+
     // Kiểm tra xem refresh token đã hết hạn chưa
     if (new Date() > new Date(user.refresh_token_expires)) {
       // Xóa refresh token từ database
       await user.update({ refresh_token: null, refresh_token_expires: null });
-      
+
       return {
         success: false,
         statusCode: 401,
@@ -299,20 +307,20 @@ export const refreshUserToken = async (refreshTokenData) => {
         error: 'Expired refresh token'
       };
     }
-    
+
     // Tạo access token mới
     const newAccessToken = generateAccessToken(user);
-    
+
     // Tạo refresh token mới (luân chuyển)
     const newRefreshToken = generateRefreshToken();
     const refreshExpires = new Date(Date.now() + REFRESH_TOKEN_EXPIRATION_MS);
-    
+
     // Cập nhật refresh token mới vào database
     await user.update({
       refresh_token: newRefreshToken,
       refresh_token_expires: refreshExpires
     });
-    
+
     return {
       success: true,
       statusCode: 200,
@@ -343,11 +351,11 @@ export const logoutUser = async (userId) => {
       error: 'Unauthorized'
     };
   }
-  
+
   try {
     // Tìm user
     const user = await User.findOne({ where: { documentId: userId } });
-    
+
     if (!user) {
       return {
         success: false,
@@ -356,7 +364,7 @@ export const logoutUser = async (userId) => {
         error: 'User not found'
       };
     }
-    
+
     // Xóa refresh token và cập nhật trạng thái
     await user.update({
       refresh_token: null,
@@ -364,7 +372,7 @@ export const logoutUser = async (userId) => {
       is_online: false,
       last_active: new Date()
     });
-    
+
     return {
       success: true,
       statusCode: 200,
