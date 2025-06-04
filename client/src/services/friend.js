@@ -130,7 +130,7 @@ export const apiCreatePostFriend = (payload) =>
     }
   });
 
-export const apiGetPostFriend = ({ postId }) =>
+export const apiGetPostFriend = ({ postId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       // Kiểm tra groupId trước khi dùng trong URL
@@ -144,7 +144,10 @@ export const apiGetPostFriend = ({ postId }) =>
       // Gọi API với URL đã được truyền đúng groupId
       const response = await axiosConfig({
         method: "get",
-        url: `/post-friends?filters[$and][0][post][documentId][$eq]=${postId}&populate=*`,
+        url: `/post-friends?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&postId=${postId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);
@@ -155,12 +158,15 @@ export const apiGetPostFriend = ({ postId }) =>
   });
 
 
-export const apiDeletePostFriend = ({ documentId }) =>
+export const apiDeletePostFriend = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "delete",
         url: `/post-friends/${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {

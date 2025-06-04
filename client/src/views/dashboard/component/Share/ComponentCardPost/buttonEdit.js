@@ -5,32 +5,34 @@ import { apiCreatePostTag, apiDeletePostTag, apiGetPostTag } from '../../../../.
 import { uploadToMediaLibrary, createMedia, createPostMedia, apiGetPostMedia, apiDeletePostMeida } from '../../../../../services/media';
 import { apiCreatePostFriend, apiDeletePostFriend, apiGetPostFriend } from '../../../../../services/friend';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 
 
 const ButtonEdit = ({ post, profile, formData, page, group, handleClose, onPostCreated = () => { } }) => {
+    const { token } = useSelector((state) => state.root.auth || {});
     const [loading, setLoading] = useState(false);
     const queryClient = useQueryClient();
 
     const { data: postTags } = useQuery({
-        queryKey: ['postTags', post?.documentId],
-        queryFn: () => apiGetPostTag({ postId: post?.documentId }),
-        enabled: !!post?.documentId,
+        queryKey: ['postTags', post?.documentId || token],
+        queryFn: () => apiGetPostTag({ postId: post?.documentId || token }),
+        enabled: !!post?.documentId || !!token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
 
     const { data: postFriends } = useQuery({
-        queryKey: ['postFriends', post?.documentId],
-        queryFn: () => apiGetPostFriend({ postId: post?.documentId }),
-        enabled: !!post?.documentId,
+        queryKey: ['postFriends', post?.documentId || token],
+        queryFn: () => apiGetPostFriend({ postId: post?.documentId || token }),
+        enabled: !!post?.documentId || !!token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
 
     const { data: postMedias } = useQuery({
-        queryKey: ['postMedias', post?.documentId],
-        queryFn: () => apiGetPostMedia({ postId: post?.documentId }),
-        enabled: !!post?.documentId,
+        queryKey: ['postMedias', post?.documentId || token],
+        queryFn: () => apiGetPostMedia({ postId: post?.documentId || token }),
+        enabled: !!post?.documentId || !!token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
@@ -38,16 +40,10 @@ const ButtonEdit = ({ post, profile, formData, page, group, handleClose, onPostC
     const handleClick = async (e) => {
         e.preventDefault();
         setLoading(true);
-        // console.log('Form data:', formData);
-        // console.log('Profile:', profile);
-        // console.log('Page:', page);
-        // console.log('Group:', group);
-        // console.log('Post:', post);
 
         let postEdit = null;
 
         if (profile && !page && !group) {
-            console.log('Case 1 ')
             const payload = {
                 data: {
                     content: formData.inputText,
@@ -81,19 +77,44 @@ const ButtonEdit = ({ post, profile, formData, page, group, handleClose, onPostC
         }
 
         if (postEdit) {
-
             const postId = post.documentId;
-            console.log('Post ID:', postId);
-            console.log('Form data:', formData?.selectedImages);
-            console.log('Post Media:', postMedias?.data?.data);
 
+            // Xử lý upload media mới
             if (formData?.selectedImages?.length) {
                 const existingMedias = postMedias?.data?.data || [];
                 const selectedMedias = formData?.selectedImages || [];
 
-                for (const mediaId of selectedMedias) {
-                    if (!existingMedias.some(item => item?.media?.file_path === mediaId)) {
-                        const image = mediaId;
+                for (const image of selectedMedias) {
+                    if (!existingMedias.some(item => item?.media?.file_path === image.url)) {
+                        // Upload image lên Cloudinary
+                        const uploadToCloudinary = async (file, folder = "default") => {
+                            const cloudName = 'dkjfmxxom';
+                            const uploadPreset = 'react_upload';
+                            const formData = new FormData();
+                            formData.append('file', file);
+                            formData.append('upload_preset', uploadPreset);
+                            formData.append('folder', folder);
+                            try {
+                                const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+                                    method: 'POST',
+                                    body: formData
+                                });
+                                const data = await response.json();
+                                if (data.secure_url) {
+                                    return {
+                                        url: data.secure_url,
+                                        public_id: data.public_id,
+                                        mime: data.resource_type + "/" + data.format,
+                                        size: data.bytes
+                                    };
+                                } else {
+                                    throw new Error(data.error?.message || "Upload failed");
+                                }
+                            } catch (error) {
+                                console.error("Error uploading file to Cloudinary:", error);
+                            }
+                        };
+                        // Chuyển url sang file blob
                         const binaryImage = await fetch(image.url)
                             .then(res => res.blob())
                             .then(blob => {
@@ -102,33 +123,29 @@ const ButtonEdit = ({ post, profile, formData, page, group, handleClose, onPostC
                                 return new File([blob], fileName, { type: fileType });
                             });
                         try {
-                            const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
+                            const uploadedFile = await uploadToCloudinary(binaryImage, 'default');
                             const payload = {
-                                data: {
-                                    file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-                                    file_type: uploadedFile.data[0].mime,
-                                    file_size: uploadedFile.data[0].size.toString(),
-                                }
+                                file_path: uploadedFile.url,
+                                file_type: uploadedFile.mime,
+                                file_size: uploadedFile.size.toString(),
+                                type_id: 'pkw7l5p5gd4e70uy5bvgpnpv',
                             };
-                            const response = await createMedia(payload);
+                            const response = await createMedia(payload, token);
                             const payloadPostMedia = {
-                                data: {
-                                    post_id: postId,
-                                    media: response.data.data.documentId,
-                                }
+                                post_id: postId,
+                                media_id: response.data.data.documentId,
                             };
-                            await createPostMedia(payloadPostMedia);
+                            await createPostMedia(payloadPostMedia, token);
                         } catch (error) {
-                            console.error('Error adding image:', error.response || error);
+                            console.error('Error adding image:', error?.response || error);
                         }
                     }
                 }
-
-                // Delete old media
+                // Xóa media cũ không còn trong selectedImages
                 for (const item of existingMedias) {
-                    if (!selectedMedias.includes(item?.media?.file_path)) {
+                    if (!selectedMedias.some(img => img.url === item?.media?.file_path)) {
                         try {
-                            await apiDeletePostMeida({ documentId: item?.documentId });
+                            await apiDeletePostMeida({ documentId: item?.documentId, token });
                         } catch (error) {
                             console.error('Error deleting media:', error);
                         }
@@ -136,70 +153,59 @@ const ButtonEdit = ({ post, profile, formData, page, group, handleClose, onPostC
                 }
             }
 
-
-
+            // Xử lý tag bạn bè
             if (formData?.selectedFriends?.length) {
-                // Handle post friends
                 const existingFriends = postFriends?.data?.data || [];
                 const selectedFriendIds = formData?.selectedFriends || [];
-
-                // Create new friends
+                // Thêm bạn bè mới
                 for (const friendId of selectedFriendIds) {
-                    if (!existingFriends.some(item => item?.users_permissions_user?.documentId === friendId)) {
+                    if (!existingFriends.some(item => item?.user?.documentId === friendId)) {
                         const payload = {
-                            data: {
-                                post: postId,
-                                users_permissions_user: friendId,
-                            }
+                            post_id: postId,
+                            user_id: friendId,
                         };
                         try {
-                            await apiCreatePostFriend(payload);
+                            await apiCreatePostFriend(payload, token);
                         } catch (error) {
                             console.error('Error adding friend:', error);
                         }
                     }
                 }
-
-                // Delete old friends
+                // Xóa bạn bè cũ không còn trong selectedFriends
                 for (const item of existingFriends) {
-                    if (!selectedFriendIds.includes(item?.users_permissions_user?.documentId)) {
+                    if (!selectedFriendIds.includes(item?.user?.documentId)) {
                         try {
-                            await apiDeletePostFriend({ documentId: item?.documentId });
+                            await apiDeletePostFriend({ documentId: item?.documentId, token });
                         } catch (error) {
                             console.error('Error deleting friend:', error);
                         }
                     }
                 }
             }
+
+            // Xử lý tag category
             if (formData?.selectedTags?.length) {
                 const existingTags = postTags?.data?.data || [];
                 const selectedTagIds = formData?.selectedTags || [];
-
-                console.log('Existing Tags:', existingTags);
-                console.log('Selected Tag IDs:', selectedTagIds);
-
-                // Create new tags
+                // Thêm tag mới
                 for (const tagId of selectedTagIds) {
-                    if (!existingTags.some(item => item?.tag_id?.documentId === tagId)) {
+                    if (!existingTags.some(item => item?.tag?.documentId === tagId)) {
                         const payload = {
-                            data: {
-                                post_id: postId,
-                                tag_id: tagId,
-                            }
+                            post_id: postId,
+                            tag_id: tagId,
                         };
                         try {
-                            await apiCreatePostTag(payload);
+                            await apiCreatePostTag(payload, token);
                         } catch (error) {
                             console.error('Error adding tag:', error);
                         }
                     }
                 }
-
-                // Delete old tags
+                // Xóa tag cũ không còn trong selectedTags
                 for (const item of existingTags) {
-                    if (!selectedTagIds.includes(item?.tag_id?.documentId)) {
+                    if (!selectedTagIds.includes(item?.tag?.documentId)) {
                         try {
-                            await apiDeletePostTag({ documentId: item?.documentId });
+                            await apiDeletePostTag({ documentId: item?.documentId, token });
                         } catch (error) {
                             console.error('Error deleting tag:', error);
                         }
@@ -207,20 +213,16 @@ const ButtonEdit = ({ post, profile, formData, page, group, handleClose, onPostC
                 }
             }
 
-
-
             notification.success({
                 message: 'Post Updated',
                 description: 'Your post has been updated successfully.',
             });
             handleClose();
             queryClient.invalidateQueries('post');
-            onPostCreated(post); // Callback to update the post list
-
-
+            onPostCreated(postEdit); // Callback to update the post list
             setLoading(false);
-        };
-    }
+        }
+    };
 
     return (
         <Button

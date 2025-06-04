@@ -1,6 +1,6 @@
 import axiosConfig from "../axiosConfig";
 
-export const apiGetPostTag = ({ postId }) =>
+export const apiGetPostTag = ({ postId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       // Kiểm tra groupId trước khi dùng trong URL
@@ -14,7 +14,10 @@ export const apiGetPostTag = ({ postId }) =>
       // Gọi API với URL đã được truyền đúng groupId
       const response = await axiosConfig({
         method: "get",
-        url: `/post-tags?filters[$and][0][post_id][documentId][$eq]=${postId}&populate=*`,
+        url: `/post-tags?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&postId=${postId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);
@@ -68,7 +71,7 @@ export const apiGetTag = ({ token }) =>
     }
   });
 
-export const apiCreatePostTag = (payload) => {
+export const apiCreatePostTag = (payload, token) => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -77,6 +80,7 @@ export const apiCreatePostTag = (payload) => {
         data: payload,
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
       });
       resolve(response);
@@ -86,7 +90,7 @@ export const apiCreatePostTag = (payload) => {
   });
 };
 
-export const apiEditPostTag = ({ documentId, payload }) => {
+export const apiEditPostTag = ({ documentId, payload, token }) => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -94,7 +98,8 @@ export const apiEditPostTag = ({ documentId, payload }) => {
         url: `/post-tags/${documentId}`,
         data: payload,
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         }
       });
       resolve(response);
@@ -104,12 +109,15 @@ export const apiEditPostTag = ({ documentId, payload }) => {
   });
 }
 
-export const apiDeletePostTag = ({ documentId }) =>
+export const apiDeletePostTag = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "delete",
         url: `/post-tags/${documentId}`,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {

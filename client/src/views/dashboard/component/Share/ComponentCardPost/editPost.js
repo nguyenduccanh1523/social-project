@@ -24,7 +24,8 @@ const { Option } = Select;
 
 const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
     //console.log("Edit Post Modal:", post, pageInfo, validSources);
-    const { profile } = useSelector((state) => state.root.user || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
     const [showPicker, setShowPicker] = useState(false);
     const [inputText, setInputText] = useState(post?.content || "");
     const [selectedFriends, setSelectedFriends] = useState([]);
@@ -135,41 +136,41 @@ const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
     };
 
     const { data: tags } = useQuery({
-        queryKey: ['tags', profile?.documentId || page?.documentId],
-        queryFn: () => apiGetTag(profile?.documentId || page?.documentId),
-        enabled: !!profile?.documentId || !!page?.documentId,
+        queryKey: ['tags', user?.documentId || page?.documentId || token],
+        queryFn: () => apiGetTag(user?.documentId || page?.documentId || token),
+        enabled: !!user?.documentId || !!page?.documentId || !!token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
 
     const { data: friends } = useQuery({
-        queryKey: ['friends', profile?.documentId],
-        queryFn: () => apiGetFriendAccepted({ documentId: profile?.documentId }),
-        enabled: !!profile?.documentId,
+        queryKey: ['friends', user?.documentId || token],
+        queryFn: () => apiGetFriendAccepted({ documentId: user?.documentId || token }),
+        enabled: !!user?.documentId || !!token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
 
-    const { data: postTags } = useQuery({
-        queryKey: ['postTags', post?.documentId],
-        queryFn: () => apiGetPostTag({ postId: post?.documentId }),
-        enabled: !!post?.documentId,
-        staleTime: 600000, // 10 minutes
-        refetchOnWindowFocus: false,
-    });
+    // const { data: postTags } = useQuery({
+    //     queryKey: ['postTags', post?.documentId || token],
+    //     queryFn: () => apiGetPostTag({ postId: post?.documentId || token }),
+    //     enabled: !!post?.documentId || !!token,
+    //     staleTime: 600000, // 10 minutes
+    //     refetchOnWindowFocus: false,
+    // });
 
-    const { data: postFriends } = useQuery({
-        queryKey: ['postFriends', post?.documentId],
-        queryFn: () => apiGetPostFriend({ postId: post?.documentId }),
-        enabled: !!post?.documentId,
-        staleTime: 600000, // 10 minutes
-        refetchOnWindowFocus: false,
-    });
+    // const { data: postFriends } = useQuery({
+    //     queryKey: ['postFriends', post?.documentId || token],
+    //     queryFn: () => apiGetPostFriend({ postId: post?.documentId || token }),
+    //     enabled: !!post?.documentId || !!token,
+    //     staleTime: 600000, // 10 minutes
+    //     refetchOnWindowFocus: false,
+    // });
 
     const friendData = friends?.data?.data.map(friend =>
-        friend?.user_id?.documentId === profile.documentId
-            ? friend?.friend_id
-            : friend?.user_id
+        friend?.user?.documentId === user.documentId
+            ? friend?.friend
+            : friend?.user
     ) || [];
 
     const tagData = tags?.data?.data || [];
@@ -201,12 +202,12 @@ const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
             setInputText(post?.content || "");
             setAddress("");
             setLocation(null);
-            setSelectedTags(postTags?.data?.data.map(tag => tag.tag_id.documentId) || []);
-            setSelectedFriends(postFriends?.data?.data.map(friend => friend.users_permissions_user.documentId) || []);
+            setSelectedTags(post?.tags?.map(tag => tag.documentId) || []);
+            setSelectedFriends(post?.friends?.map(friend => friend.user.documentId) || []);
             setSelectedImages(validSources.map(src => ({ url: src })));
             setVisibility(post?.type_id?.name || 'public');
         }
-    }, [show, post, validSources, postTags, postFriends]);
+    }, [show, post, validSources]);
 
 
     return (
@@ -237,7 +238,7 @@ const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
                             <div className="user-img">
                                 <img
                                     loading="lazy"
-                                    src={post?.user_id?.profile_picture || page?.data?.profile_picture?.file_path}
+                                    src={post?.user?.avatarMedia?.file_path || page?.data?.profile_picture?.file_path}
                                     alt="userimg"
                                     className="avatar-60 rounded-circle img-fluid"
                                 />
@@ -313,7 +314,7 @@ const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
                                     >
                                         {friendData.map((friend) => (
                                             <Option key={friend.documentId} value={friend.documentId}>
-                                                {friend.username}
+                                                {friend.fullname}
                                             </Option>
                                         ))}
                                     </Select>
@@ -401,7 +402,7 @@ const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
                                     <div className="user-img me-3">
                                         <img
                                             loading="lazy"
-                                            src={post?.user_id?.profile_picture || page?.data?.profile_picture?.file_path}
+                                            src={post?.user?.avatarMedia?.file_path || page?.data?.profile_picture?.file_path}
                                             alt="userimg"
                                             className="avatar-60 rounded-circle img-fluid"
                                         />
@@ -453,7 +454,7 @@ const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
                                 </div>
                             </div>
                         </div>
-                        <ButtonEdit profile={post?.user_id} formData={{
+                        <ButtonEdit profile={post?.user} formData={{
                             inputText,
                             selectedFriends,
                             selectedTags,

@@ -117,12 +117,7 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
 
     const handleCloseConfirm = () => {
         setShowConfirm(false);
-        setInputText("");
-        setSelectedFriends([]);
-        setSelectedTags([]);
-        setAddress("");
-        setLocation(null);
-        setSelectedImages([]);
+        resetForm();
         handleClose();
         notification.info({
             message: 'Post Discarded',
@@ -134,6 +129,7 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
         if (inputText || selectedImages.length > 0) {
             setShowConfirm(true);
         } else {
+            resetForm();
             handleClose();
         }
     };
@@ -172,6 +168,19 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
         setTimeout(() => {
             onSuccess("ok");
         }, 0);
+    };
+
+    const resetForm = () => {
+        setInputText("");
+        setSelectedFriends([]);
+        setSelectedTags([]);
+        setAddress("");
+        setLocation(null);
+        setSelectedImages([]);
+        setFileList([]);
+        setPreviewImage(null);
+        setUploading(false);
+        setVisibility('public');
     };
 
     useEffect(() => {
@@ -478,7 +487,7 @@ const CreatePost = ({ show, handleClose, profile, page, group, onPostCreated }) 
                             location,
                             selectedImages,
                             visibility,
-                        }} page={page} group={group} handleClose={handleClose} onPostCreated={onPostCreated} />
+                        }} page={page} group={group} handleClose={() => { resetForm(); handleClose(); }} onPostCreated={onPostCreated} />
                     </form>
                 </Modal.Body>
             </Modal>

@@ -237,7 +237,7 @@ export const deletePostTag = async (documentId) => {
             throw new Error('Không tìm thấy post-tag');
         }
 
-        await postTag.destroy();
+        await postTag.destroy({ force: true });
         return { message: 'Xóa post-tag thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa post-tag: ${error.message}`);

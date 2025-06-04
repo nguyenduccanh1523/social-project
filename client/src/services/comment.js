@@ -24,7 +24,7 @@ export const apiCreatePostReaction = (payload) => {
           "Content-Type": "application/json",
         },
       });
-      console.log("Post Reaction response:", response);
+      // console.log("Post Reaction response:", response);
       resolve(response);
     } catch (error) {
       reject(error);

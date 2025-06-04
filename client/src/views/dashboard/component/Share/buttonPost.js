@@ -5,10 +5,13 @@ import { apiCreatePostTag } from '../../../../services/tag';
 import { uploadToMediaLibrary, createMedia, createPostMedia } from '../../../../services/media';
 import { apiCreatePostFriend } from '../../../../services/friend';
 import { useQueryClient } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
 
 const ButtonPost = ({ profile, formData, page, group, handleClose, onPostCreated = () => {} }) => {
+    const { token } = useSelector((state) => state.root.auth || {});
     const [loading, setLoading] = useState(false);
     const queryClient = useQueryClient();
+    console.log('formData', formData);
 
     const handleClick = async (e) => {
         e.preventDefault();
@@ -28,48 +31,44 @@ const ButtonPost = ({ profile, formData, page, group, handleClose, onPostCreated
 
         if (profile && !page && !group) {
             const payload = {
-                data: {
                     user_id: profile.documentId,
                     content: formData.inputText,
                     type_id: formData?.visibility === 'public' ? 'elx6zlfz9ywp6esoyfi6a1yl' : 'pkw7l5p5gd4e70uy5bvgpnpv',
-                }
             };
             post = await createPost(payload);
         }
         if (page && !profile && !group) {
             const payload = {
-                data: {
+
                     page: page.documentId,
                     content: formData.inputText,
                     type_id: formData?.visibility === 'public' ? 'elx6zlfz9ywp6esoyfi6a1yl' : 'pkw7l5p5gd4e70uy5bvgpnpv',
-                }
+
             };
             post = await createPost(payload);
         }
         if (profile && group && !page) {
             const payload = {
-                data: {
+
                     user_id: profile.documentId,
                     group: group.documentId,
                     content: formData.inputText,
                     type_id: formData?.visibility === 'public' ? 'elx6zlfz9ywp6esoyfi6a1yl' : 'pkw7l5p5gd4e70uy5bvgpnpv',
-                }
             };
             post = await createPost(payload);
         }
 
         if (post) {
-            const postId = post.documentId;
+            const postId = post?.data?.documentId;
+            
             if (formData?.selectedFriends?.length) {
                 for (const friend of formData.selectedFriends) {
                     const payload = {
-                        data: {
-                            post: postId,
-                            users_permissions_user: friend,
-                        }
+                            post_id: postId,
+                            user_id: friend,
                     };
                     try {
-                        await apiCreatePostFriend(payload);
+                        await apiCreatePostFriend(payload, token);
                     } catch (error) {
                         console.error('Error tagging friend:', error);
                     }
@@ -77,7 +76,36 @@ const ButtonPost = ({ profile, formData, page, group, handleClose, onPostCreated
             }
             if (formData?.selectedImages?.length) {
                 for (const image of formData.selectedImages) {
-                    console.log('Uploading image:', image);
+                    // Upload image lên Cloudinary
+                    const uploadToCloudinary = async (file, folder = "default") => {
+                        const cloudName = 'dkjfmxxom';
+                        const uploadPreset = 'react_upload';
+                        const formData = new FormData();
+                        formData.append('file', file);
+                        formData.append('upload_preset', uploadPreset);
+                        formData.append('folder', folder);
+                        try {
+                            const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+                                method: 'POST',
+                                body: formData
+                            });
+                            const data = await response.json();
+                            if (data.secure_url) {
+                                return {
+                                    url: data.secure_url,
+                                    public_id: data.public_id,
+                                    mime: data.resource_type + "/" + data.format,
+                                    size: data.bytes
+                                };
+                            } else {
+                                throw new Error(data.error?.message || "Upload failed");
+                            }
+                        } catch (error) {
+                            console.error("Error uploading file to Cloudinary:", error);
+                        }
+                    };
+
+                    // Chuyển url sang file blob
                     const binaryImage = await fetch(image.url)
                         .then(res => res.blob())
                         .then(blob => {
@@ -86,37 +114,34 @@ const ButtonPost = ({ profile, formData, page, group, handleClose, onPostCreated
                             return new File([blob], fileName, { type: fileType });
                         });
                     try {
-                        const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
+                        const uploadedFile = await uploadToCloudinary(binaryImage, 'default');
+                        console.log('uploadedFile', uploadedFile);
                         const payload = {
-                            data: {
-                                file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-                                file_type: uploadedFile.data[0].mime,
-                                file_size: uploadedFile.data[0].size.toString(),
-                            }
+                                file_path: uploadedFile.url,
+                                file_type: uploadedFile.mime,
+                                file_size: uploadedFile.size.toString(),
+                                type_id: 'pkw7l5p5gd4e70uy5bvgpnpv',
                         };
-                        const response = await createMedia(payload);
+                        const response = await createMedia(payload, token);
+                        console.log('response', response);
                         const payloadPostMedia = {
-                            data: {
                                 post_id: postId,
-                                media: response.data.data.documentId,
-                            }
+                                media_id: response.data.data.documentId,
                         };
-                        await createPostMedia(payloadPostMedia);
+                        await createPostMedia(payloadPostMedia, token);
                     } catch (error) {
-                        console.error('Error adding image:', error.response || error);
+                        console.error('Error adding image:', error?.response || error);
                     }
                 }
             }
             if (formData?.selectedTags?.length) {
                 for (const tag of formData.selectedTags) {
                     const payload = {
-                        data: {
                             post_id: postId,
                             tag_id: tag,
-                        }
                     };
                     try {
-                        await apiCreatePostTag(payload);
+                        await apiCreatePostTag(payload, token);
                     } catch (error) {
                         console.error('Error adding tag:', error);
                     }

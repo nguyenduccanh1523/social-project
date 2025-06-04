@@ -383,7 +383,7 @@ export const createPost = async (postData) => {
         //     }
         // }
 
-        console.log(postData)
+        
         const newPost = await db.Post.create(postData);
 
 
@@ -478,13 +478,13 @@ export const deletePost = async (documentId, userId) => {
 
         // Xóa các comments liên quan
         await db.Comment.destroy({
-            where: { post_id: documentId },
+            where: { documentId: documentId },
             transaction
         });
 
         // Xóa các media liên quan
         await db.Media.destroy({
-            where: { post_id: documentId },
+            where: { documentId: documentId },
             transaction
         });
 

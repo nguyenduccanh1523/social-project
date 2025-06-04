@@ -105,7 +105,8 @@ export const getMediaById = async (documentId) => {
 export const createMedia = async (mediaData) => {
     try {
         const newMedia = await db.Media.create(mediaData);
-        return await getMediaById(newMedia.documentId);
+        // return await getMediaById(newMedia.documentId);
+        return newMedia;
     } catch (error) {
         throw new Error(`Lỗi khi tạo media mới: ${error.message}`);
     }

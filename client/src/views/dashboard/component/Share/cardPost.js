@@ -85,19 +85,12 @@ const CardPost = ({ post, pageInfo }) => {
 
     const colors = colorsTag;
 
-
-    const { data: friendsData } = useQuery({
-        queryKey: ['postFriends', post?.post_friends?.map(friend => friend.documentId)],
-        queryFn: () => Promise.all(post?.post_friends?.map(friend => apiGetPostFriend({ documentId: friend.documentId }))),
-        enabled: !!post?.post_friends,
-    });
-
-    const friends = friendsData?.map(friend => friend?.data?.data) || [];
-
-
-    const friendNames = friends?.map(friend => friend?.users_permissions_user?.username) || [];
-
     const [reactionCount, setReactionCount] = useState(post?.reactions?.length || 0);
+
+    // Luôn đồng bộ reactionCount với post.reactions
+    useEffect(() => {
+        setReactionCount(post?.reactions?.length || 0);
+    }, [post?.reactions]);
 
     const handleReactionSelect = (reaction, change) => {
         if (change === 1) {
@@ -112,7 +105,7 @@ const CardPost = ({ post, pageInfo }) => {
             title: 'Are you sure you want to delete this post?',
             onOk: async () => {
                 try {
-                    await apiDeletePost({ documentId: post?.documentId });
+                    await apiDeletePost({ documentId: post?.documentId, token });
                     notification.success({
                         message: "Delete Post",
                         description: "Post deleted successfully",
@@ -258,20 +251,20 @@ const CardPost = ({ post, pageInfo }) => {
                     </div>
                 </div >
                 <div className="mt-2">
-                    {friendNames.length > 0 && (
+                    {post?.friends?.length > 0 && (
                         <div className="d-flex flex-wrap">
-                            {friends.map((friend, index) => (
+                            {post?.friends?.map((friend, index) => (
                                 <Tag
                                     key={index}
                                     color="blue"
                                     className="me-1 mb-1"
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    <Link to={`/friend-profile/${friend?.users_permissions_user?.documentId}`}
-                                        state={{ friendId: friend?.users_permissions_user }}
+                                    <Link to={`/friend-profile/${friend?.user?.documentId}`}
+                                        state={{ friendId: friend?.user?.documentId }}
                                         style={{ color: 'inherit', textDecoration: 'none' }}
                                     >
-                                        @{friend?.users_permissions_user?.username}
+                                        @{friend?.user?.username}
                                     </Link>
                                 </Tag>
                             ))}
@@ -576,7 +569,7 @@ const CardPost = ({ post, pageInfo }) => {
                 handleClose={handleCloseEditModal}
                 post={post}
                 page={pageInfo}
-                friends={friends}
+                friends={post?.friends}
                 validTags={validTags}
                 validSources={validSources}
             />

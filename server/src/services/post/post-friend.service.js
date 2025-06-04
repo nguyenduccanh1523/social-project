@@ -76,7 +76,7 @@ export const getPostFriendById = async (documentId) => {
 export const createPostFriend = async (data) => {
     try {
         const newPostFriend = await db.PostFriend.create(data);
-        return await getPostFriendById(newPostFriend.documentId);
+        return newPostFriend;
     } catch (error) {
         throw new Error(`Lỗi khi tạo post-friend mới: ${error.message}`);
     }
@@ -97,7 +97,7 @@ export const deletePostFriend = async (documentId) => {
     try {
         const postFriend = await db.PostFriend.findByPk(documentId);
         if (!postFriend) throw new Error('Không tìm thấy post-friend');
-        await postFriend.destroy();
+        await postFriend.destroy({ force: true });
         return { message: 'Xóa post-friend thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa post-friend: ${error.message}`);

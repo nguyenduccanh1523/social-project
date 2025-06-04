@@ -76,7 +76,7 @@ export const getPostMediaById = async (documentId) => {
 export const createPostMedia = async (data) => {
     try {
         const newPostMedia = await db.PostMedia.create(data);
-        return await getPostMediaById(newPostMedia.documentId);
+        return newPostMedia;
     } catch (error) {
         throw new Error(`Lỗi khi tạo post-media mới: ${error.message}`);
     }
@@ -97,7 +97,7 @@ export const deletePostMedia = async (documentId) => {
     try {
         const postMedia = await db.PostMedia.findByPk(documentId);
         if (!postMedia) throw new Error('Không tìm thấy post-media');
-        await postMedia.destroy();
+        await postMedia.destroy({ force: true });
         return { message: 'Xóa post-media thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa post-media: ${error.message}`);

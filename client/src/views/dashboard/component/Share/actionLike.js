@@ -31,6 +31,11 @@ const ActionLike = ({ post, onSelect }) => {
     cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
+  // Reset state khi post thay đổi
+  useEffect(() => {
+    setSelectedReaction(null);
+    setReactionId(null);
+  }, [post.documentId]);
 
   useEffect(() => {
     if (userReactionData?.data?.data?.length > 0) {
@@ -74,7 +79,7 @@ const ActionLike = ({ post, onSelect }) => {
         console.error("Error deleting reaction:", error);
       }
     } else {
-      console.log("Checked action:", name);
+      // console.log("Checked action:", name);
       setSelectedReaction(icon);
       if (selectedReaction) {
         onSelect(icon, 0); // Giữ nguyên số lượng nếu đã có reaction trước đó
@@ -88,7 +93,7 @@ const ActionLike = ({ post, onSelect }) => {
         onSelect(icon, 1); // Tăng số lượng reaction lên 1 nếu trước đó chưa có reaction
         try {
           const response = await apiCreatePostReaction(payload);
-          console.log("Created reaction:", response);
+          // console.log("Created reaction:", response);
           setReactionId(response?.data?.data?.documentId);
         } catch (error) {
           console.error("Error creating reaction:", error);

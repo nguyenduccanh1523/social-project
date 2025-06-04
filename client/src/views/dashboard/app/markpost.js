@@ -25,7 +25,11 @@ const MarkPost = () => {
     const [postMedia, setPostMedia] = useState([]);
     const [bookmarkedPosts, setBookmarkedPosts] = useState({});
     const { profile } = useSelector((state) => state.root.user || {});
-    const document = profile?.documentId;
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
+    const document = user?.documentId;
+
+    console.log('user', user)
 
     const fetchMarkPost = async () => {
         try {
