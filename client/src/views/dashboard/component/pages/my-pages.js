@@ -10,7 +10,6 @@ import img9 from "../../../../assets/images/page-img/profile-bg9.jpg";
 import user05 from "../../../../assets/images/user/05.jpg";
 import {
   apiGetMyPage,
-  apiGetPageDetailTag,
   apiGetCheckFollowPage,
   apiDeletePageMember,
   apiCreatePageMember,
@@ -25,39 +24,26 @@ const { Search } = Input;
 const MyPage = () => {
   const location = useLocation();
   const { tagName } = location.state || {};
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [searchTerm, setSearchTerm] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: myPagesData, isLoading: isPagesLoading } = useQuery({
-    queryKey: ["myPages", profile?.documentId],
-    queryFn: () => apiGetMyPage({ userId: profile?.documentId }),
-    enabled: !!profile?.documentId,
+    queryKey: ["myPages", user?.documentId, token],
+    queryFn: () => apiGetMyPage({ userId: user?.documentId, token }),
+    enabled: !!user?.documentId || !!token,
   });
 
   const pages = myPagesData?.data?.data || [];
   const pageIds = pages.map((page) => page?.documentId);
 
-  const { data: pageDetailsMap, isLoading: isPageDetailsLoading } = useQuery({
-    queryKey: ["pageDetailsMap", pageIds],
-    queryFn: async () => {
-      const promises = pageIds.map((pageId) =>
-        apiGetPageDetailTag({ pageId })
-          .then((res) => ({ [pageId]: res.data?.data?.[0] }))
-          .catch(() => ({ [pageId]: null }))
-      );
-      const results = await Promise.all(promises);
-      return results.reduce((acc, curr) => ({ ...acc, ...curr }), {});
-    },
-    enabled: !!pageIds.length,
-  });
-
   const { data: followStatusMap, isLoading: isFollowStatusLoading } = useQuery({
-    queryKey: ["followStatus", pageIds, profile?.documentId],
+    queryKey: ["followStatus", pageIds, user?.documentId, token],
     queryFn: async () => {
       const followStatusPromises = pageIds.map((pageId) =>
-        apiGetCheckFollowPage({ pageId, userId: profile?.documentId })
+        apiGetCheckFollowPage({ pageId, userId: user?.documentId, token })
           .then((res) => ({ [pageId]: res.data?.data?.length > 0 }))
           .catch(() => ({ [pageId]: false }))
       );
@@ -67,18 +53,18 @@ const MyPage = () => {
         {}
       );
     },
-    enabled: !!pageIds.length && !!profile?.documentId,
+    enabled: !!pageIds.length && !!user?.documentId && !!token,
   });
 
   const handleUnfollow = async (pageId) => {
     try {
       const response = await apiGetCheckFollowPage({
         pageId,
-        userId: profile?.documentId,
+        userId: user?.documentId,
       });
       const memberId = response.data?.data?.[0]?.documentId;
       if (memberId) {
-        await apiDeletePageMember({ documentId: memberId });
+        await apiDeletePageMember({ documentId: memberId, token });
         message.success("Unfollowed successfully");
         queryClient.invalidateQueries(["followStatus"]);
       } else {
@@ -92,10 +78,9 @@ const MyPage = () => {
   const handleFollow = async (pageId) => {
     try {
       const payload = {
-        data: {
-          page: pageId,
-          user_id: profile?.documentId,
-        },
+          pageId: pageId,
+          userId: user?.documentId,
+          role: 'member'
       };
       await apiCreatePageMember(payload);
       message.success("Followed successfully");
@@ -108,8 +93,7 @@ const MyPage = () => {
   const handleSearch = (value) => setSearchTerm(value);
 
   const filteredPages = pages.filter((page) => {
-    const detail = pageDetailsMap?.[page.documentId];
-    const name = detail?.page_name?.toLowerCase() || "";
+    const name = page?.page_name?.toLowerCase() || "";
     return name.includes(searchTerm.toLowerCase());
   });
 
@@ -145,7 +129,7 @@ const MyPage = () => {
               />
             </Col>
 
-            {isPagesLoading || isPageDetailsLoading || isFollowStatusLoading ? (
+            {isPagesLoading || isFollowStatusLoading ? (
               <div className="col-sm-12 text-center">
                 <Loader />
               </div>
@@ -173,7 +157,6 @@ const MyPage = () => {
             ) : (
               filteredPages.map((page) => {
                 const pageId = page.documentId;
-                const detail = pageDetailsMap?.[pageId];
                 const isFollowed = followStatusMap?.[pageId];
 
                 return (
@@ -183,7 +166,7 @@ const MyPage = () => {
                         <div className="profile-header-image">
                           <div className="cover-container">
                             <img
-                              src={detail?.media?.url || img8}
+                              src={page?.coverImage?.url || img8}
                               alt="cover"
                               className="rounded img-fluid w-100"
                             />
@@ -193,7 +176,7 @@ const MyPage = () => {
                               <div className="profile-img pe-4">
                                 <img
                                   src={
-                                    detail?.profile_picture?.file_path || user05
+                                    page?.profileImage?.file_path || user05
                                   }
                                   alt="avatar"
                                   className="avatar-130 img-fluid rounded-circle"
@@ -205,25 +188,25 @@ const MyPage = () => {
                                     to={`/page/${pageId}`}
                                     state={{ pageId, pageInfo: page }}
                                   >
-                                    {detail?.page_name}
+                                    {page?.page_name}
                                   </Link>
-                                  {detail?.is_verified && (
+                                  {page?.is_verified && (
                                     <i className="material-symbols-outlined verified-badge ms-2">
                                       verified
                                     </i>
                                   )}
                                 </h4>
-                                <p>{detail?.intro || "No intro available"}</p>
+                                <p>{page?.intro || "No intro available"}</p>
                                 <div className="d-flex align-items-center mb-2">
                                   <img
                                     src={
-                                      detail?.author?.profile_picture || user05
+                                      page?.creator?.avatarMedia?.file_path || user05
                                     }
                                     alt="author"
                                     className="avatar-30 rounded-circle me-2"
                                   />
                                   <span>
-                                    @{detail?.author?.username || "anonymous"}
+                                    @{page?.creator?.username || "anonymous"}
                                   </span>
                                 </div>
                                 <div className="d-flex align-items-center">
@@ -231,7 +214,7 @@ const MyPage = () => {
                                     group
                                   </i>
                                   <span>
-                                    {detail?.page_members?.length || 0}{" "}
+                                    {page?.members?.length || 0}{" "}
                                     followers
                                   </span>
                                   <span
@@ -243,7 +226,7 @@ const MyPage = () => {
                                   >
                                     star
                                   </span>
-                                  {detail?.rate || 0}
+                                  {page?.rate || 0}
                                 </div>
                               </div>
                             </div>

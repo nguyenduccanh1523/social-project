@@ -233,13 +233,16 @@ export const apiEditPage = ({ documentId, payload, token }) => {
     });
 }
 
-export const apiGetMyPage = ({ userId }) =>
+export const apiGetMyPage = ({ userId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             
             const response = await axiosConfig({
                 method: "get",
-                url: `/pages?filters[$and][0][author][documentId][$eq]=${userId}&populate=*`,
+                url: `/pages?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&author=${userId}`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             //console.log("Response:", response); // Log ra chi tiết phản hồi
             resolve(response);

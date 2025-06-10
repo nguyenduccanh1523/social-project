@@ -460,7 +460,7 @@ const PageDetail = () => {
                 </Card>
               </Col>
               <Col lg="8">
-                {pageData?.author?.documentId === user?.documentId && (
+                {pageData?.creator?.documentId === user?.documentId && (
                   <Card id="post-modal-data">
                     <div className="card-header d-flex justify-content-between">
                       <div className="header-title">
@@ -534,13 +534,17 @@ const PageDetail = () => {
                     <CreatePost show={show} handleClose={handleClose} page={pageData} />
                   </Card>
                 )}
-                {pageData?.posts ?
+                {pageData?.posts.length >= 1 ?
                   pageData?.posts?.map((post, index) => (
                     <Card key={index}>
                       <CardPost post={post} pageInfo={pageData} />
                     </Card>
                   ))
-                  : "No post"
+                  : <>
+                    <Card>
+                      <h3 style={{textAlign: 'center'}}>No post</h3>
+                    </Card>
+                  </>
                 }
               </Col>
             </Row>

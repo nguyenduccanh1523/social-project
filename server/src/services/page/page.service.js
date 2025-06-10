@@ -45,12 +45,19 @@ export const getAllPages = async ({
                 {
                     model: db.Nation,
                     as: 'nation',
-                    attributes: ['documentId', 'name', 'code']
+                    attributes: ['documentId', 'name']
                 },
                 {
                     model: db.User,
                     as: 'creator',
-                    attributes: ['documentId', 'username', 'email', 'avatar_id']
+                    attributes: ['documentId', 'username', 'email', 'avatar_id'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
                 },
                 {
                     model: db.Media,
@@ -201,7 +208,7 @@ export const getPageById = async (documentId) => {
 export const createPage = async (pageData) => {
     try {
         const newPage = await db.Page.create(pageData);
-        return await getPageById(newPage.documentId);
+        return newPage
     } catch (error) {
         throw new Error(`Lỗi khi tạo trang mới: ${error.message}`);
     }

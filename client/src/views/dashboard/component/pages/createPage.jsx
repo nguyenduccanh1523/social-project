@@ -18,7 +18,6 @@ import {
   uploadToMediaLibrary,
 } from "../../../../services/media";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiCreateEvent } from "../../../../services/eventServices/event";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTag } from "../../../../actions/actions/tag";
 import { apiCreatePage } from "../../../../services/page";
@@ -27,7 +26,8 @@ import { apiCreatePostTag } from "../../../../services/tag"; // Import the API f
 const CreatePage = ({ open, onClose }) => {
   const dispatch = useDispatch();
   const { tags } = useSelector((state) => state.root.tag || {});
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [form] = Form.useForm();
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState([]);
@@ -100,10 +100,42 @@ const CreatePage = ({ open, onClose }) => {
       tag: values.tag,
       image: imageData,
     };
+    console.log(pageData);
 
     try {
       let pageResponse;
       if (imageData.type === "uploaded") {
+        const uploadToCloudinary = async (file, folder = "default") => {
+          const cloudName = process.env.REACT_APP_CLOUDINARY_NAME;
+          const uploadPreset = process.env.REACT_APP_REACT_UPLOAD;
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", uploadPreset);
+          formData.append("folder", folder);
+          try {
+            const response = await fetch(
+              `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+            const data = await response.json();
+            if (data.secure_url) {
+              return {
+                url: data.secure_url,
+                public_id: data.public_id,
+                mime: data.resource_type + "/" + data.format,
+                size: data.bytes,
+              };
+            } else {
+              throw new Error(data.error?.message || "Upload failed");
+            }
+          } catch (error) {
+            console.error("Error uploading file to Cloudinary:", error);
+          }
+        };
+
         const binaryImage = await fetch(imageData.url)
           .then((res) => res.blob())
           .then((blob) => {
@@ -112,36 +144,33 @@ const CreatePage = ({ open, onClose }) => {
             return new File([blob], fileName, { type: fileType });
           });
 
-        const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
+        const uploadedFile = await uploadToCloudinary(binaryImage, "default");
         const payload = {
-          data: {
-            file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-            file_type: uploadedFile.data[0].mime,
-            file_size: uploadedFile.data[0].size.toString(),
-          },
+          file_path: uploadedFile.url,
+          file_type: uploadedFile.mime,
+          file_size: uploadedFile.size.toString(),
+          type_id: "pkw7l5p5gd4e70uy5bvgpnpv",
         };
-        const response = await createMedia(payload);
+        const response = await createMedia(payload, token);
         const payloadEvent = {
-          data: {
-            page_name: values.name,
-            intro: values.intro,
-            about: values.about,
-            phone: values.phone,
-            author: profile.documentId,
-            profile_picture: response.data.data.documentId,
-          },
+          page_name: pageData.name,
+          intro: pageData.intro,
+          about: pageData.about,
+          phone: pageData.phone,
+          author: user.documentId,
+          lives_in: "bwq3fmbh54ryf0uimcc4lsfc",
+          profile_picture: response.data.data.documentId,
         };
         pageResponse = await apiCreatePage(payloadEvent);
       } else if (imageData.type === "media") {
         const payload = {
-          data: {
-            page_name: values.name,
-            intro: values.intro,
-            about: values.about,
-            phone: values.phone,
-            author: profile.documentId,
-            profile_picture: imageData.documentId,
-          },
+          page_name: pageData.name,
+          intro: pageData.intro,
+          about: pageData.about,
+          phone: pageData.phone,
+          author: user.documentId,
+          lives_in: "bwq3fmbh54ryf0uimcc4lsfc",
+          profile_picture: imageData.documentId,
         };
         pageResponse = await apiCreatePage(payload);
       }
@@ -149,10 +178,8 @@ const CreatePage = ({ open, onClose }) => {
       const pageId = pageResponse?.data?.data?.documentId; // Extract the page ID
       if (pageId) {
         const postTagPayload = {
-          data: {
-            page_id: pageId,
-            tag_id: values.tag,
-          },
+          page_id: pageId,
+          tag_id: values.tag,
         };
         await apiCreatePostTag(postTagPayload); // Call the API to create the post tag
       }

@@ -11,8 +11,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import img8 from "../../../../assets/images/page-img/profile-bg8.jpg";
 import img9 from "../../../../assets/images/page-img/profile-bg9.jpg";
 import user05 from "../../../../assets/images/user/05.jpg";
-import { apiGetPagesTags, apiGetPageDetailTag, apiGetCheckFollowPage, apiDeletePageMember, apiCreatePageMember } from "../../../../services/page";
-import loader from "../../../../assets/images/page-img/page-load-loader.gif";
+import { apiGetPagesTags, apiGetCheckFollowPage, apiDeletePageMember, apiCreatePageMember } from "../../../../services/page";
 import Loader from "../../icons/uiverse/Loading";
 import { useSelector } from "react-redux";
 
@@ -29,7 +28,7 @@ const cardHoverStyle = {
 
 const PageLists = () => {
   const location = useLocation();
-  const { selectedTag, tagName, tagId } = location.state || {};
+  const {tagName, tagId } = location.state || {};
   const { token, user } = useSelector((state) => state.root.auth || {});
   const [searchTerm, setSearchTerm] = useState("");
   const queryClient = useQueryClient();
