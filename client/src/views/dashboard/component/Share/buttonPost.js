@@ -78,8 +78,8 @@ const ButtonPost = ({ profile, formData, page, group, handleClose, onPostCreated
                 for (const image of formData.selectedImages) {
                     // Upload image lên Cloudinary
                     const uploadToCloudinary = async (file, folder = "default") => {
-                        const cloudName = 'dkjfmxxom';
-                        const uploadPreset = 'react_upload';
+                        const cloudName = process.env.REACT_APP_CLOUDINARY_NAME;
+                        const uploadPreset = process.env.REACT_APP_REACT_UPLOAD;
                         const formData = new FormData();
                         formData.append('file', file);
                         formData.append('upload_preset', uploadPreset);

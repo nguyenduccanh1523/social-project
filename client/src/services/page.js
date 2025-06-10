@@ -6,7 +6,7 @@ export const apiGetPagesTags = ({ tagId, token }) =>
     
             const response = await axiosConfig({
                 method: "get",
-                url: `/post-tags/by-tag/${tagId}?fields=page_id,createdAt&pageIdNotNull=true&includePage=true`,
+                url: `/post-tags/by-tag/${tagId}?fields=page_id&createdAt&pageIdNotNull=true&includePage=true`,
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -18,12 +18,15 @@ export const apiGetPagesTags = ({ tagId, token }) =>
         }
     });
 
-export const apiGetPageDetail = ({ pageId }) =>
+export const apiGetPageDetail = ({ pageId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
                 url: `/pages/${pageId}?populate=*`,
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
             //console.log("Response from apiGetPageDetail:", response); // Log phản hồi
             resolve(response);
@@ -76,7 +79,7 @@ export const apiGetPageHour = ({ pageId }) =>
     });
 
 
-export const apiEditPageHour = ({ documentId, payload }) => {
+export const apiEditPageHour = ({ documentId, payload, token }) => {
     return new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
@@ -84,7 +87,8 @@ export const apiEditPageHour = ({ documentId, payload }) => {
                 url: `/page-open-hours/${documentId}`,
                 data: payload,
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
                 }
             });
             resolve(response);
@@ -210,7 +214,7 @@ export const apiGetPostPage = ({ pageId }) =>
     });
 
 
-export const apiEditPage = ({ documentId, payload }) => {
+export const apiEditPage = ({ documentId, payload, token }) => {
     return new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
@@ -218,7 +222,8 @@ export const apiEditPage = ({ documentId, payload }) => {
                 url: `/pages/${documentId}`,
                 data: payload,
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
                 }
             });
             resolve(response);

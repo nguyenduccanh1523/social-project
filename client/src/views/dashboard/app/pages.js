@@ -58,7 +58,6 @@ const Pages = () => {
         for (const tag of filteredTags) {
           try {
             const response = await apiGetPageTag({ tagId: tag.documentId, token });
-            console.log(response)
             counts[tag.documentId] = response.data?.data.length;
           } catch (error) {
             console.error("Error fetching page count for tag:", tag.name, error);

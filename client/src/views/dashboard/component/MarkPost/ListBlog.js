@@ -14,20 +14,21 @@ import { message, Pagination } from 'antd'
 //img 
 import user1 from '../../../../assets/images/user/01.jpg'
 import store1 from '../../../../assets/images/store/01.jpg'
+import { convertToVietnamDate } from '../../others/format';
 
 const ListBlog = () => {
     const [markPost, setMarkPost] = useState([]);
-    const [postDetails, setPostDetails] = useState([]);
-    const [postMedia, setPostMedia] = useState([]);
     const [bookmarkedPosts, setBookmarkedPosts] = useState({});
-    const { profile } = useSelector((state) => state.root.user || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 6;
-    const document = profile?.documentId;
+    const document = user?.documentId;
+
 
     const fetchMarkPost = async () => {
         try {
-            const response = await apiGetMarkBlog({ userId: document });
+            const response = await apiGetMarkBlog({ userId: document, token });
             if (Array.isArray(response.data.data)) {
                 setMarkPost(response.data.data);
                 const initialBookmarks = response.data.data.reduce((acc, post) => {
@@ -45,25 +46,6 @@ const ListBlog = () => {
         fetchMarkPost();
     }, [document]);
 
-    useEffect(() => {
-        const fetchPostDetails = async () => {
-            try {
-                const details = await Promise.all(
-                    markPost.map(async (post) => {
-                        const response = await apiGetBlogDetail({ documentId: post?.document_share?.documentId });
-                        return response.data;
-                    })
-                );
-                setPostDetails(details);
-            } catch (error) {
-                console.error("Error fetching post details:", error);
-            }
-        };
-
-        if (markPost.length > 0) {
-            fetchPostDetails();
-        }
-    }, [markPost]);
 
 
     const handleToggleBookmark = async (e, postId) => {
@@ -71,7 +53,7 @@ const ListBlog = () => {
         if (bookmarkedPosts[postId]) {
             // Nếu đang bookmark, gọi API để xóa
             try {
-                await apiDeleteMarkPost({ documentId: postId });
+                await apiDeleteMarkPost({ documentId: postId, token });
                 setBookmarkedPosts((prev) => ({
                     ...prev,
                     [postId]: false, // Đặt lại trạng thái bookmark
@@ -123,10 +105,10 @@ const ListBlog = () => {
                                             <Card.Body>
                                                 <div className="d-flex align-items-center justify-content-between pb-3">
                                                     <div className="d-flex align-items-center">
-                                                        <img className="img-fluid rounded-circle avatar-30" src={postDetails[index]?.data?.author?.profile_picture} alt="" />
+                                                        <img className="img-fluid rounded-circle avatar-30" src={post?.documentShare?.creator?.avatarMedia?.file_path} alt="" />
                                                         <div className="ms-2">
-                                                            <p className="mb-0 line-height">{postDetails[index]?.data?.author?.username || 'Unknown'}</p>
-                                                            {/* <h6><div to="#">{convertToVietnamDate(postDetails[index]?.data?.createdAt)}</div></h6> */}
+                                                            <p className="mb-0 line-height">{post?.documentShare?.creator?.username || 'Unknown'}</p>
+                                                            <h6><div to="#">{convertToVietnamDate(post?.documentShare?.createdAt)}</div></h6>
                                                             {/* {console.log('postDetails[index]?.data?.createdAt', convertToVietnamDate(postDetails[index]?.data?.createdAt))} */}
                                                         </div>
                                                     </div>
@@ -139,9 +121,9 @@ const ListBlog = () => {
                                                     </div>
                                                 </div>
                                                 <div className="image-block position-relative">
-                                                    {postDetails[index]?.data?.media?.file_path ? (
+                                                    {post?.documentShare?.media ? (
                                                         <img
-                                                            src={postDetails[index]?.data?.media?.file_path || store1}
+                                                            src={post?.documentShare?.media?.file_path || store1}
                                                             className="img-fluid w-100 h-100 rounded"
                                                             alt="product-img"
                                                         />
@@ -152,19 +134,19 @@ const ListBlog = () => {
                                                     )}
                                                 </div>
                                                 <div className="product-description mt-3">
-                                                    <h4 className="mb-1 text-truncate fw-bold">{postDetails[index]?.data?.title || 'Post Title'}</h4>
+                                                    <h4 className="mb-1 text-truncate fw-bold">{post?.documentShare?.title || 'Post Title'}</h4>
                                                 </div>
                                                 <div className="product-description mt-3">
-                                                    <h6 className="mb-1">{postDetails[index]?.data?.content || 'Post Title'}</h6>
+                                                    <h6 className="mb-1">{post?.documentShare?.content || 'Post Title'}</h6>
                                                 </div>
                                                 <div className="d-flex gap-2 mt-3">
                                                     <span className="material-symbols-outlined">link</span>
-                                                    <Link to={postDetails[index]?.data?.link_document} className='text-truncate'>{postDetails[index]?.data?.link_document}</Link>
+                                                    <Link to={post?.documentShare?.link_document} className='text-truncate'>{post?.documentShare?.link_document}</Link>
                                                 </div>
                                                 <div className="d-flex gap-2 mt-3">
                                                     
-                                                    {postDetails[index]?.data?.comments?.length || 0} <span className="material-symbols-outlined">comment</span>
-                                                    {postDetails[index]?.data?.shares?.length || 0} <span className="material-symbols-outlined">share</span>
+                                                    {post?.documentShare?.comments?.length || 0} <span className="material-symbols-outlined">comment</span>
+                                                    {post?.documentShare?.shares?.length || 0} <span className="material-symbols-outlined">share</span>
                                                 </div>
                                             </Card.Body>
                                         </Card>

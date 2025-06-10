@@ -61,6 +61,11 @@ export const getAllPages = async ({
                     model: db.Media,
                     as: 'coverImage',
                     attributes: ['documentId', 'file_path']
+                },
+                {
+                    model: db.PageMember,
+                    as: 'members',
+                    attributes: ['documentId']
                 }
             );
         }
@@ -124,6 +129,11 @@ export const getPageById = async (documentId) => {
                     attributes: ['documentId', 'file_path']
                 },
                 {
+                    model: db.PageOpenHour,
+                    as: 'openHours',
+                    attributes: ['documentId', 'status', 'open_time', 'close_time', 'day_of_week']
+                },
+                {
                     model: db.PageMember,
                     as: 'members',
                     attributes: ['documentId'],
@@ -139,6 +149,38 @@ export const getPageById = async (documentId) => {
                                     attributes: ['documentId', 'file_path']
                                 }
                             ]
+                        }
+                    ]
+                },
+                {
+                    model: db.Post,
+                    as: 'posts',
+                    attributes: ['documentId', 'content', 'createdAt'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'medias',
+                            attributes: ['documentId', 'file_path']
+                        },
+                        {
+                            model: db.Reaction,
+                            as: 'reactions',
+                            attributes: ['documentId']
+                        },
+                        {
+                            model: db.Comment,
+                            as: 'comments',
+                            attributes: ['documentId']
+                        },
+                        {
+                            model: db.Share,
+                            as: 'shares',
+                            attributes: ['documentId']
+                        },
+                        {
+                            model: db.Type,
+                            as: 'postType',
+                            attributes: ['documentId', 'name', 'description']
                         }
                     ]
                 }

@@ -1,12 +1,15 @@
 import axiosConfig from "../axiosConfig";
 
-export const apiGetMarkPost = ({ userId }) =>
+export const apiGetMarkPost = ({ userId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
     
       const response = await axiosConfig({
         method: "get",
-        url: `/mark-posts?populate=*&filters[$and][0][user_id][documentId][$eq]=${userId}&filters[$and][1][post_id][id][$notNull]=true&pagination[pageSize]=100&pagination[page]=1&sort=id%3ADESC`,
+        url: `/mark-posts?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}&postIdFilter=true`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);
@@ -16,21 +19,15 @@ export const apiGetMarkPost = ({ userId }) =>
     }
   });
 
-export const apiGetMarkBlog = ({ userId }) =>
+export const apiGetMarkBlog = ({ userId, token }) =>
   new Promise(async (resolve, reject) => {
-    try {
-      // Kiểm tra groupId trước khi dùng trong URL
-      if (typeof userId !== "string") {
-        //console.error("Invalid groupId:", groupId);
-        return reject(new Error("groupId should be a string"));
-      }
-
-      //console.log("Fetching group members for groupId:", groupId);
-
-      // Gọi API với URL đã được truyền đúng groupId    
+    try {  
       const response = await axiosConfig({
         method: "get",
-        url: `/mark-posts?populate=*&filters[$and][0][user_id][documentId][$eq]=${userId}&filters[$and][1][document_share][id][$notNull]=true&pagination[pageSize]=100&pagination[page]=1&sort=id%3ADESC`,
+        url: `/mark-posts?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}&documentShareIdFilter=true`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);
@@ -40,12 +37,15 @@ export const apiGetMarkBlog = ({ userId }) =>
     }
   });
 
-export const apiDeleteMarkPost = ({ documentId }) =>
+export const apiDeleteMarkPost = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "delete",
         url: `/mark-posts/${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -74,19 +74,16 @@ export const apiCreateMarkPost = (payload) => {
 };
 
 
-export const apiGetCheckMarkPost = ({ postId, userId }) =>
+export const apiGetCheckMarkPost = ({ postId, userId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
-      // Kiểm tra groupId trước khi dùng trong URL
-      if (typeof postId !== "string") {
-        //console.error("Invalid groupId:", groupId);
-        return reject(new Error("groupId should be a string"));
-      }
-
-      // Gọi API với URL đã được truyền đúng groupId
+      
       const response = await axiosConfig({
         method: "get",
-        url: `/mark-posts?populate=*&filters[$and][0][post_id][documentId][$eq]=${postId}&filters[$and][1][user_id][documentId][$eq]=${userId}&sort=id%3ADESC`,
+        url: `/mark-posts?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}&postId=${postId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);

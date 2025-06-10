@@ -4,33 +4,22 @@ import { Link } from "react-router-dom";
 import { apiGetPageHour } from "../../../../services/page";
 
 const BioDetailModal = ({ show, onHide, pageData }) => {
-  const [pageHour, setPageHour] = useState(null);
-
-  // Lấy thông tin giờ mở cửa
-  useEffect(() => {
-    if (pageData?.page_open_hour?.documentId) {
-      apiGetPageHour({ pageId: pageData.page_open_hour.documentId }).then(
-        (res) => {
-          setPageHour(res.data);
-        }
-      );
-    }
-  }, [pageData?.page_open_hour?.documentId]);
 
   // Tạo chuỗi hiển thị giờ mở cửa
   const getOpenHourString = () => {
-    if (!pageHour) return "Updating...";
+    if (!pageData?.openHours) return "Updating...";
+
 
     // Cắt bỏ phần .000 từ chuỗi thời gian
-    const openTime = pageHour?.data?.open_time?.split(".")[0]; // "05:50:00"
-    const closeTime = pageHour?.data?.close_time?.split(".")[0];
-    const isOpen = pageHour?.data?.status_open;
+    const openTime = pageData?.openHours?.[0]?.open_time?.split(".")[0]; // "05:50:00"
+    const closeTime = pageData?.openHours?.[0]?.close_time?.split(".")[0];
+    const isOpen = pageData?.openHours?.[0]?.status;
 
     return (
       <div>
         <div className="d-flex align-items-center">
-          <span className={`me-2 ${isOpen ? "text-success" : "text-danger"}`}>
-            {isOpen ? "● Opened" : "● Closed"}
+          <span className={`me-2 ${isOpen === 'open' ? "text-success" : "text-danger"}`}>
+            {isOpen === 'open' ? "● Opened" : "● Closed"}
           </span>
         </div>
         <div className="mt-1">
@@ -112,7 +101,7 @@ const BioDetailModal = ({ show, onHide, pageData }) => {
                 <span className="material-symbols-outlined md-18 me-1">
                   calendar_today
                 </span>
-                <span>{pageHour?.data?.day}</span>
+                <span>{pageData?.openHours?.[0]?.day_of_week}</span>
               </div>
               <div className="d-flex align-items-center">
                 <span className="material-symbols-outlined md-18">star</span>
@@ -123,7 +112,7 @@ const BioDetailModal = ({ show, onHide, pageData }) => {
               <div className="d-flex align-items-center">
                 <span className="material-symbols-outlined md-18">group</span>
                 <span className="ms-2">
-                  {pageData?.followers_count || "0"} followers
+                  {pageData?.members?.length || "0"} followers
                 </span>
               </div>
             </div>

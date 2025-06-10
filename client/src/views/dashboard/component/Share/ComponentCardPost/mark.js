@@ -5,15 +5,17 @@ import { IoIosBookmark } from "react-icons/io";
 import { useQueryClient } from '@tanstack/react-query';
 import { apiCreateMarkPost, apiDeleteMarkPost, apiGetCheckMarkPost } from "../../../../../services/markpost";
 import { message } from "antd";
+import { useSelector } from "react-redux";
 
 const Mark = ({ post, profile }) => {
+    const { token } = useSelector((state) => state.root.auth || {});
     const [marked, setMarked] = useState(false);
     const queryClient = useQueryClient();
 
     useEffect(() => {
         const checkIfMarked = async () => {
             try {
-                const response = await apiGetCheckMarkPost({ postId: post.documentId, userId: profile.documentId });
+                const response = await apiGetCheckMarkPost({ postId: post.documentId, userId: profile.documentId, token });
                 //console.log("Response:", response);
                 if (response?.data?.data.length > 0) {
                     setMarked(true);
@@ -30,7 +32,7 @@ const Mark = ({ post, profile }) => {
         e.stopPropagation();
         if (marked) {
             try {
-                await apiDeleteMarkPost({ documentId: postId });
+                await apiDeleteMarkPost({ documentId: postId, token });
                 setMarked(false);
                 message.success('Mark post removed successfully!');
                 setTimeout(() => {
@@ -42,10 +44,8 @@ const Mark = ({ post, profile }) => {
             }
         } else {
             const payload = {
-                data: {
-                    user_id: profile.id,
-                    post_id: postId
-                }
+                user_id: profile.documentId,
+                post_id: postId
             };
             try {
                 await apiCreateMarkPost(payload);

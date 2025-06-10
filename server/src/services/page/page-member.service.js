@@ -207,7 +207,7 @@ export const removePageMember = async (documentId) => {
             throw new Error('Không tìm thấy thành viên');
         }
 
-        await member.destroy();
+        await member.destroy({ force: true });
         return { message: 'Đã xóa thành viên khỏi trang' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa thành viên: ${error.message}`);

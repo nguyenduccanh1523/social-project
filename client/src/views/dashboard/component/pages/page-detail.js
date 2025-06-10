@@ -46,12 +46,12 @@ const PageDetail = () => {
   const { data: pageDetails, isLoading: isPageDetailLoading } = useQuery({
     queryKey: ["pageDetais", pageId],
     queryFn: async () => {
-      const response = await apiGetPageDetail({ pageId });
+      const response = await apiGetPageDetail({ pageId, token });
       return response.data?.data || [];
     },
     enabled: !!pageId,
   });
-  //console.log("pageDetails", pageDetails);
+
   const [pageData, setPageData] = useState(pageDetails || null);
   const [loading, setLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -67,40 +67,31 @@ const PageDetail = () => {
   const [showBioModal, setShowBioModal] = useState(false);
   const handleCloseBioModal = () => setShowBioModal(false);
 
-  const [pageHour, setPageHour] = useState(null);
 
   const queryClient = useQueryClient();
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
 
 
 
   const { data: followStatus, isLoading: isFollowStatusLoading } = useQuery({
-    queryKey: ["followStatus", pageId, profile?.documentId],
+    queryKey: ["followStatus", pageId, user?.documentId],
     queryFn: async () => {
-      const response = await apiGetCheckFollowPage({ pageId, userId: profile?.documentId });
+      const response = await apiGetCheckFollowPage({ pageId, userId: user?.documentId, token });
       return response.data?.data?.length > 0;
     },
-    enabled: !!pageId && !!profile?.documentId,
-  });
-
-  const { data: pageMembers, isLoading: isPageMembersLoading } = useQuery({
-    queryKey: ["pageMembers", pageId],
-    queryFn: async () => {
-      const response = await apiGetPageMember({ pageId });
-      return response.data?.data || [];
-    },
-    enabled: !!pageId,
+    enabled: !!pageId && !!user?.documentId,
   });
 
   const handleUnfollow = async () => {
     try {
-      const response = await apiGetCheckFollowPage({ pageId, userId: profile?.documentId });
+      const response = await apiGetCheckFollowPage({ pageId, userId: user?.documentId, token });
       const memberId = response.data?.data?.[0]?.documentId;
 
       if (memberId) {
-        await apiDeletePageMember({ documentId: memberId });
+        await apiDeletePageMember({ documentId: memberId, token });
         message.success("Unfollowed successfully");
-        queryClient.invalidateQueries(["followStatus", pageId, profile?.documentId]);
+        queryClient.invalidateQueries(["followStatus", pageId, user?.documentId]);
       } else {
         message.error("Failed to unfollow");
       }
@@ -113,14 +104,13 @@ const PageDetail = () => {
   const handleFollow = async () => {
     try {
       const payload = {
-        data: {
-          page: pageId,
-          user_id: profile?.documentId,
-        }
+        pageId: pageId,
+        userId: user?.documentId,
+        role: 'member'
       };
       await apiCreatePageMember(payload);
       message.success("Followed successfully");
-      queryClient.invalidateQueries(["followStatus", pageId, profile?.documentId]);
+      queryClient.invalidateQueries(["followStatus", pageId, user?.documentId]);
     } catch (error) {
       console.error("Error following page:", error);
       message.error("Failed to follow");
@@ -138,52 +128,18 @@ const PageDetail = () => {
     setPageData(pageDetails || null);
   }, [pageDetails]);
 
-  // useEffect(() => {
-  //   const fetchPageDetail = async () => {
-  //     if (!pageId || typeof pageId !== "string") {
-  //       console.error("Invalid pageId:", pageId);
-  //       return; // Ngừng thực hiện nếu pageId không hợp lệ
-  //     }
+  console.log("pageDetails", pageData);
 
-  //     setLoading(true);
-  //     try {
-  //       // Fetch lại data mới nhất nếu cần
-  //       const response = await apiGetPageDetail(pageId);
-  //       setPageData(response.data?.data?.[0] ||  pageDetails);
-  //     } catch (error) {
-  //       console.error("Error fetching page detail:", error);
-  //       // Giữ lại data cũ nếu fetch thất bại
-  //       setPageData(initialPageDetail);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-
-  //   fetchPageDetail();
-  // }, [pageId, initialPageDetail]);
-
-  // Lấy thông tin giờ mở cửa
-  useEffect(() => {
-    if (pageData?.page_open_hour?.documentId) {
-      apiGetPageHour({ pageId: pageData.page_open_hour.documentId }).then(
-        (res) => {
-          setPageHour(res.data);
-        }
-      );
-    }
-  }, [pageData?.page_open_hour?.documentId]);
-
-  // Tạo chuỗi hiển thị giờ mở cửa
   const getOpenHourString = () => {
-    if (!pageHour) return "Updating...";
+    if (!pageData?.openHours) return "Updating...";
 
-    const isOpen = pageHour?.data?.status_open;
+    const isOpen = pageData?.openHours?.[0]?.status;
 
     return (
       <div>
         <div className="d-flex align-items-center">
-          <span className={`me-2 ${isOpen ? "text-success" : "text-danger"}`}>
-            {isOpen ? "● Opened" : "● Closed"}
+          <span className={`me-2 ${isOpen === 'open' ? "text-success" : "text-danger"}`}>
+            {isOpen === 'open' ? "● Opened" : "● Closed"}
           </span>
         </div>
       </div>
@@ -191,18 +147,10 @@ const PageDetail = () => {
   };
   //console.log("pageData", pageData);
 
-  const { data: post, error, isLoading } = useQuery({
-    queryKey: ['postPage', pageId],
-    queryFn: () => apiGetPostPage({ pageId }),
-    enabled: !!pageId,
-  });
-  const postPage = post?.data?.data || [];
-  //console.log("postPage", postPage);
 
-  if (isLoading) return <Loader />;
-  if (error) return <p>Error fetching post: {error.message}</p>;
 
-  if (loading || isFollowStatusLoading || isPageMembersLoading || isPageDetailLoading)
+
+  if (loading || isFollowStatusLoading || isPageDetailLoading)
     return (
       <div className="col-sm-12 text-center">
         <Loader />
@@ -230,7 +178,7 @@ const PageDetail = () => {
                         <div className="item1 ms-1">
                           <img
                             loading="lazy"
-                            src={pageData?.profile_picture?.file_path}
+                            src={pageData?.profileImage?.file_path}
                             className="img-fluid rounded profile-image"
                             alt="profile-img"
                           />
@@ -255,7 +203,7 @@ const PageDetail = () => {
                               )}
                             </h4>
                             <span>
-                              {pageData?.page_members.length || 0} followers
+                              {pageData?.members.length || 0} followers
                             </span>
                           </div>
                           <div className="item4 ms-1">
@@ -322,7 +270,7 @@ const PageDetail = () => {
                                 </h6>
                               </div>
                               <div className="iq-media-group ms-2">
-                                {pageMembers?.map((item, index) => (
+                                {pageData?.members?.map((item, index) => (
                                   <Link
                                     to="#"
                                     className="iq-media"
@@ -331,7 +279,7 @@ const PageDetail = () => {
                                     <img
                                       loading="lazy"
                                       className="img-fluid avatar-40 rounded-circle"
-                                      src={item?.user_id?.profile_picture}
+                                      src={item?.user?.avatarMedia?.file_path}
                                       alt=""
                                     />
                                   </Link>
@@ -339,7 +287,7 @@ const PageDetail = () => {
                               </div>
                             </div>
                           </Col>
-                          {pageData?.author?.documentId === profile?.documentId && (
+                          {pageData?.creator?.documentId === user?.documentId && (
                             <Col lg="1" className="d-flex align-items-center">
                               <div onClick={() => setDrawerOpen(true)}>
                                 <IconEdit />
@@ -512,7 +460,7 @@ const PageDetail = () => {
                 </Card>
               </Col>
               <Col lg="8">
-                {pageData?.author?.documentId === profile?.documentId && (
+                {pageData?.author?.documentId === user?.documentId && (
                   <Card id="post-modal-data">
                     <div className="card-header d-flex justify-content-between">
                       <div className="header-title">
@@ -524,7 +472,7 @@ const PageDetail = () => {
                         <div className="user-img">
                           <img
                             loading="lazy"
-                            src={pageData?.profile_picture?.file_path}
+                            src={pageData?.profileImage?.file_path}
                             alt="userimg"
                             className="avatar-60 rounded-circle"
                           />
@@ -586,12 +534,14 @@ const PageDetail = () => {
                     <CreatePost show={show} handleClose={handleClose} page={pageData} />
                   </Card>
                 )}
-                {postPage.map((post, index) => (
-                  <Card key={index}>
-                    <CardPost post={post} pageInfo={pageData} />
-                  </Card>
-                ))}
-
+                {pageData?.posts ?
+                  pageData?.posts?.map((post, index) => (
+                    <Card key={index}>
+                      <CardPost post={post} pageInfo={pageData} />
+                    </Card>
+                  ))
+                  : "No post"
+                }
               </Col>
             </Row>
           </Container>

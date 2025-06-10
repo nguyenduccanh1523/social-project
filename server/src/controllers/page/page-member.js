@@ -88,7 +88,7 @@ export const addPageMember = async (req, res) => {
         const memberData = {
             page_id: pageId,
             user_id: userId,
-            role: member
+            role: role
         };
         
         const newMember = await pageMemberService.addPageMember(memberData);

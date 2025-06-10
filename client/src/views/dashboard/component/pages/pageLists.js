@@ -30,7 +30,6 @@ const cardHoverStyle = {
 const PageLists = () => {
   const location = useLocation();
   const { selectedTag, tagName, tagId } = location.state || {};
-  const { profile } = useSelector((state) => state.root.user || {});
   const { token, user } = useSelector((state) => state.root.auth || {});
   const [searchTerm, setSearchTerm] = useState("");
   const queryClient = useQueryClient();
@@ -44,13 +43,15 @@ const PageLists = () => {
     queryFn: async () => {
       if (!tagId) return { data: [] };
       const response = await apiGetPagesTags({ tagId, token });
-      return response.data || [];
+      return response?.data?.data || [];
     },
     enabled: !!tagId && !!token
   });
 
+
   // Lấy danh sách pageIds từ pagesData
-  const pageIds = pagesData?.data?.map(page => page.page_id) || [];
+  const pageIds = pagesData?.map(page => page.page_id) || [];
+  
 
   // // Sử dụng useQuery để lấy chi tiết của từng page
   // const {
@@ -80,7 +81,7 @@ const PageLists = () => {
   // });
 
   const { data: followStatusMap, isLoading: isFollowStatusLoading } = useQuery({
-    queryKey: ["followStatus", pageIds, profile?.documentId],
+    queryKey: ["followStatus", pageIds, user?.documentId],
     queryFn: async () => {
       const followStatusPromises = pageIds.map((pageId) =>
         apiGetCheckFollowPage({ pageId, userId: user?.documentId, token })
@@ -108,7 +109,7 @@ const PageLists = () => {
       const memberId = response.data?.data?.[0]?.documentId;
 
       if (memberId) {
-        await apiDeletePageMember({ documentId: memberId });
+        await apiDeletePageMember({ documentId: memberId, token });
         message.success("Unfollowed successfully");
         queryClient.invalidateQueries("followStatus");
       } else {
@@ -123,12 +124,11 @@ const PageLists = () => {
   const handleFollow = async (pageId) => {
     try {
       const payload = {
-        data: {
-          page: pageId,
-          user_id: profile?.documentId,
-        }
+          pageId: pageId,
+          userId: user?.documentId,
+          role: 'member'
       };
-      await apiCreatePageMember(payload);
+      await apiCreatePageMember(payload, token);
       message.success("Followed successfully");
       queryClient.invalidateQueries("followStatus");
     } catch (error) {
@@ -138,7 +138,7 @@ const PageLists = () => {
   };
 
   // Lọc pages theo tên từ pageDetails
-  const filteredPages = pagesData?.data?.filter((page) => {
+  const filteredPages = pagesData?.filter((page) => {
     if (!searchTerm) return true;
     const pageName = page?.page?.page_name?.toLowerCase() || "";
     return pageName.includes(searchTerm.toLowerCase());
@@ -280,7 +280,7 @@ const PageLists = () => {
                                         group
                                       </i>
                                       <span>
-                                        {page?.page_members?.length || 0}{" "}
+                                        {page?.page?.members?.length || 0}{" "}
                                         followers
                                       </span>
                                       <span className="material-symbols-outlined" style={{ marginLeft: "10px", color: "gold" }}>

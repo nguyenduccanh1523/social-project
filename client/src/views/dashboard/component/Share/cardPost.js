@@ -54,7 +54,7 @@ const CardPost = ({ post, pageInfo }) => {
     const handleCloseEditModal = () => setShowEditModal(false);
     const queryClient = useQueryClient();
 
-    
+
     // Hàm xử lý `onClick` khi click vào ảnh
     const handleImageClick = (index) => {
         setImageController({
@@ -130,7 +130,7 @@ const CardPost = ({ post, pageInfo }) => {
                                     src={
                                         post?.user_id
                                             ? post?.user?.avatarMedia?.file_path
-                                            : pageInfo?.profile_picture?.file_path
+                                            : pageInfo?.profileImage?.file_path
                                     }
                                     alt="userimg"
                                     className="avatar-60 rounded-circle"
@@ -159,12 +159,12 @@ const CardPost = ({ post, pageInfo }) => {
                                                         }
                                             }
                                             style={{ textDecoration: "none" }}>
-                                            <h4 style={{fontWeight: 'bold'}}>{post?.user_id
+                                            <h4 style={{ fontWeight: 'bold' }}>{post?.user_id
                                                 ? post?.user?.fullname
                                                 : pageInfo?.page_name || 'Unknown Page'
                                             }</h4>
                                         </Link>
-                                        {pageInfo?.data?.is_verified && (
+                                        {pageInfo?.is_verified && (
                                             <i
                                                 className="material-symbols-outlined verified-badge ms-2"
                                                 style={{
@@ -183,10 +183,10 @@ const CardPost = ({ post, pageInfo }) => {
                                                 <p className="mb-0 text-primary">{timeAgo}</p>
                                             </span>
                                         </OverlayTrigger>
-                                        <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.type === 'public' ? 'Public' : 'Private'}</Tooltip>}>
+                                        <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.type === 'public' || post?.postType?.name === 'public' ? 'Public' : 'Private'}</Tooltip>}>
                                             <span className="d-inline-block">
                                                 <p disabled style={{ pointerEvents: 'none' }}>
-                                                    {post?.type === 'public' ? <span className="material-symbols-outlined">
+                                                    {post?.type === 'public' || post?.postType?.name === 'public' ? <span className="material-symbols-outlined">
                                                         public
                                                     </span> : <span className="material-symbols-outlined">
                                                         lock
@@ -194,6 +194,7 @@ const CardPost = ({ post, pageInfo }) => {
                                                 </p>
                                             </span>
                                         </OverlayTrigger>
+
                                     </div>
                                 </div>
 
@@ -206,30 +207,33 @@ const CardPost = ({ post, pageInfo }) => {
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu className="dropdown-menu m-0 p-0">
                                             <Mark post={post} profile={user} />
-                                            <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
-                                                <div className="d-flex align-items-top">
-                                                    <i className="material-symbols-outlined">edit</i>
-                                                    <div className="data ms-2">
-                                                        <h6>Edit Post</h6>
-                                                        <p className="mb-0">
-                                                            Update your post and saved items
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleDeletePost}>
-                                                <div className="d-flex align-items-top">
-                                                    <i className="material-symbols-outlined">
-                                                        delete
-                                                    </i>
-                                                    <div className="data ms-2">
-                                                        <h6>Delete</h6>
-                                                        <p className="mb-0">
-                                                            Remove thids Post on Timeline
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </Dropdown.Item>
+                                            {post?.user?.documentId === user?.documentId || pageInfo?.creator?.documentId === user?.documentId && (
+                                                <>
+                                                    < Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
+                                                        <div className="d-flex align-items-top">
+                                                            <i className="material-symbols-outlined">edit</i>
+                                                            <div className="data ms-2">
+                                                                <h6>Edit Post</h6>
+                                                                <p className="mb-0">
+                                                                    Update your post and saved items
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleDeletePost}>
+                                                        <div className="d-flex align-items-top">
+                                                            <i className="material-symbols-outlined">
+                                                                delete
+                                                            </i>
+                                                            <div className="data ms-2">
+                                                                <h6>Delete</h6>
+                                                                <p className="mb-0">
+                                                                    Remove thids Post on Timeline
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </Dropdown.Item>
+                                                </>)}
                                             <Dropdown.Item className="dropdown-item p-3" to="#">
                                                 <div className="d-flex align-items-top">
                                                     <i className="material-symbols-outlined">
@@ -525,7 +529,7 @@ const CardPost = ({ post, pageInfo }) => {
                                             />
                                         </div>
                                         <div className="comment-data-block ms-3">
-                                            <h5 style={{fontWeight: 'bold'}}>{comment.user.username}</h5>
+                                            <h5 style={{ fontWeight: 'bold' }}>{comment.user.username}</h5>
                                             <div className="d-flex flex-wrap align-items-center">
                                                 <p className="mb-0">
                                                     {comment.content.split("\n").map((line, index) => (
@@ -578,3 +582,4 @@ const CardPost = ({ post, pageInfo }) => {
 };
 
 export default CardPost;
+

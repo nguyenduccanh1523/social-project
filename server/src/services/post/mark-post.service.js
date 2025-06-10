@@ -66,27 +66,87 @@ export const getAllMarkPosts = async ({
 
         if (populate) {
             includes.push(
+                // {
+                //     model: db.User,
+                //     as: 'user',
+                //     attributes: ['documentId', 'username', 'email', 'avatar_id'],
+                //     include: [
+                //         {
+                //             model: db.Media,
+                //             as: 'avatarMedia',
+                //             attributes: ['file_path']
+                //         }
+                //     ]
+                // },
                 {
-                    model: db.User,
-                    as: 'user',
-                    attributes: ['documentId', 'username', 'email', 'avatar_id'],
+                    model: db.Post,
+                    as: 'post',
+                    attributes: ['documentId', 'content', 'createdAt'],
                     include: [
                         {
                             model: db.Media,
-                            as: 'avatarMedia',
-                            attributes: ['file_path']
+                            as: 'medias',
+                            attributes: ['documentId', 'file_path']
+                        },
+                        {
+                            model: db.Reaction,
+                            as: 'reactions',
+                            attributes: ['documentId']
+                        },
+                        {
+                            model: db.Comment,
+                            as: 'comments',
+                            attributes: ['documentId']
+                        },
+                        {
+                            model: db.Share,
+                            as: 'shares',
+                            attributes: ['documentId']
+                        },
+                        {
+                            model: db.User,
+                            as: 'user',
+                            attributes: ['documentId', 'username', 'email', 'avatar_id'],
+                            include: [
+                                {
+                                    model: db.Media,
+                                    as: 'avatarMedia',
+                                    attributes: ['file_path']
+                                }
+                            ]
                         }
                     ]
                 },
                 {
-                    model: db.Post,
-                    as: 'post',
-                    attributes: ['documentId', 'content', 'createdAt']
-                },
-                {
                     model: db.DocumentShare,
                     as: 'documentShare',
-                    attributes: ['documentId', 'title', 'createdAt']
+                    attributes: ['documentId', 'title', 'content', 'link_document', 'createdAt'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'media',
+                            attributes: ['documentId', 'file_path']
+                        },
+                        
+                        {
+                            model: db.User,
+                            as: 'creator',
+                            attributes: ['documentId', 'username', 'email', 'avatar_id'],
+                            include: [
+                                {
+                                    model: db.Media,
+                                    as: 'avatarMedia',
+                                    attributes: ['file_path']
+                                }
+                            ]
+                        },
+                        {
+                            model: db.CmtDocument,
+                            as: 'comments',
+                            attributes: ['documentId']
+
+                        }
+                    ]
                 }
             );
         }
@@ -162,7 +222,7 @@ export const createMarkPost = async (markPostData) => {
     try {
         // Kiểm tra xem đã có mark-post cho user_id và post_id/document_share_id này chưa
         let existingMarkPost = null;
-        
+
         if (markPostData.post_id) {
             existingMarkPost = await db.MarkPost.findOne({
                 where: {
@@ -178,11 +238,11 @@ export const createMarkPost = async (markPostData) => {
                 }
             });
         }
-        
+
         if (existingMarkPost) {
             throw new Error('Người dùng đã đánh dấu bài viết/tài liệu này');
         }
-        
+
         const newMarkPost = await db.MarkPost.create(markPostData);
         return await getMarkPostById(newMarkPost.documentId);
     } catch (error) {
@@ -194,7 +254,7 @@ export const createMarkPost = async (markPostData) => {
 export const updateMarkPost = async (documentId, markPostData) => {
     try {
         const markPost = await db.MarkPost.findByPk(documentId);
-        
+
         if (!markPost) {
             throw new Error('Không tìm thấy mark-post');
         }
@@ -210,12 +270,12 @@ export const updateMarkPost = async (documentId, markPostData) => {
 export const deleteMarkPost = async (documentId) => {
     try {
         const markPost = await db.MarkPost.findByPk(documentId);
-        
+
         if (!markPost) {
             throw new Error('Không tìm thấy mark-post');
         }
 
-        await markPost.destroy();
+        await markPost.destroy({ force: true });
         return { message: 'Xóa mark-post thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa mark-post: ${error.message}`);
@@ -226,7 +286,7 @@ export const deleteMarkPost = async (documentId) => {
 export const deleteMarkPostByUserAndResource = async (userId, postId, documentShareId) => {
     try {
         const whereConditions = { user_id: userId };
-        
+
         if (postId) {
             whereConditions.post_id = postId;
         } else if (documentShareId) {
@@ -234,14 +294,14 @@ export const deleteMarkPostByUserAndResource = async (userId, postId, documentSh
         } else {
             throw new Error('Cần cung cấp postId hoặc documentShareId');
         }
-        
+
         const markPost = await db.MarkPost.findOne({ where: whereConditions });
-        
+
         if (!markPost) {
             throw new Error('Không tìm thấy mark-post');
         }
-        
-        await markPost.destroy();
+
+        await markPost.destroy({ force: true });
         return { message: 'Xóa mark-post thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa mark-post: ${error.message}`);

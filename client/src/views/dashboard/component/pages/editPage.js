@@ -12,10 +12,9 @@ import {
 } from "antd"; // Modify this line
 import ImgCrop from "antd-img-crop"; // Ensure you have antd-img-crop installed
 import moment from "moment"; // Add this line
-import { createMedia, uploadToMediaLibrary } from "../../../../services/media";
+import { createMedia } from "../../../../services/media";
 import {
   apiEditPage,
-  apiGetPageHour,
   apiEditPageHour,
 } from "../../../../services/page"; // Ensure these functions are correctly imported
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -28,6 +27,7 @@ import { set } from "date-fns";
 
 const EditPage = ({ pageData, open, onClose }) => {
   const dispatch = useDispatch();
+  const { token } = useSelector((state) => state.root.auth || {});
   const { nations } = useSelector((state) => state.root.nation || {});
   const { tags } = useSelector((state) => state.root.tag || {});
   const [fileList, setFileList] = useState([]);
@@ -49,12 +49,13 @@ const EditPage = ({ pageData, open, onClose }) => {
 
   const { data: PageTag } = useQuery({
     queryKey: ["PageTag", pageData?.documentId],
-    queryFn: () => apiGetTagPage({ documentId: pageData?.documentId }),
+    queryFn: () => apiGetTagPage({ documentId: pageData?.documentId, token }),
     enabled: !!pageData?.documentId,
     cacheTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 
   const tagsData = PageTag?.data?.data?.[0] || [];
+
 
   useEffect(() => {
     dispatch(fetchNation());
@@ -64,10 +65,10 @@ const EditPage = ({ pageData, open, onClose }) => {
     setEmailPage(pageData?.email || "");
     setPhonePage(pageData?.phone || "");
     setLivePage(pageData?.nation?.documentId || "");
-    setTagPage(tagsData?.tag_id?.documentId || "");
+    setTagPage(tagsData?.tag?.documentId || "");
     setIntroPage(pageData?.intro || "");
-    setOpenHour(pageData?.page_open_hour?.open_time || "");
-    setCloseHour(pageData?.page_open_hour?.close_time || "");
+    setOpenHour(pageData?.openHours?.[0]?.open_time || "");
+    setCloseHour(pageData?.openHours?.[0]?.close_time || "");
     setVerified(pageData?.is_verified === false ? false : true);
   }, [pageData]);
 
@@ -156,15 +157,42 @@ const EditPage = ({ pageData, open, onClose }) => {
 
     if (tagPage) {
       const payload = {
-        data: {
-          tag_id: tagPage,
-        },
+        tag_id: tagPage,
       };
-      await apiEditPostTag({ documentId: tagsData.documentId, payload });
+      await apiEditPostTag({ documentId: tagsData.documentId, payload, token });
     }
+
 
     if (selectedImages.length > 0) {
       const image = selectedImages[selectedImages.length - 1];
+      const uploadToCloudinary = async (file, folder = "default") => {
+        const cloudName = process.env.REACT_APP_CLOUDINARY_NAME;
+        const uploadPreset = process.env.REACT_APP_REACT_UPLOAD;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', uploadPreset);
+        formData.append('folder', folder);
+        try {
+          const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+            method: 'POST',
+            body: formData
+          });
+          const data = await response.json();
+          if (data.secure_url) {
+            return {
+              url: data.secure_url,
+              public_id: data.public_id,
+              mime: data.resource_type + "/" + data.format,
+              size: data.bytes
+            };
+          } else {
+            throw new Error(data.error?.message || "Upload failed");
+          }
+        } catch (error) {
+          console.error("Error uploading file to Cloudinary:", error);
+        }
+      };
+
       const binaryImage = await fetch(image.url)
         .then((res) => res.blob())
         .then((blob) => {
@@ -174,42 +202,39 @@ const EditPage = ({ pageData, open, onClose }) => {
         });
 
       try {
-        const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
+        const uploadedFile = await uploadToCloudinary(binaryImage, 'default');
         const payload = {
-          data: {
-            file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-            file_type: uploadedFile.data[0].mime,
-            file_size: uploadedFile.data[0].size.toString(),
-          },
+          file_path: uploadedFile.url,
+          file_type: uploadedFile.mime,
+          file_size: uploadedFile.size.toString(),
+          type_id: 'pkw7l5p5gd4e70uy5bvgpnpv',
         };
-        const response = await createMedia(payload);
+        const response = await createMedia(payload, token);
         const payloadPostMedia = {
-          data: {
-            page_name: namePage,
-            about: descriptionPage,
-            profile_picture: response.data.data.documentId,
-            email: emailPage,
-            phone: phonePage,
-            nation: livePage,
-            intro: introPage,
-            ...(pageData?.is_verified !== null && { is_verified: isVerified }), // Conditionally add is_verified
-          },
+          page_name: namePage,
+          about: descriptionPage,
+          profile_picture: response.data.data.documentId,
+          email: emailPage,
+          phone: phonePage,
+          lives_in: livePage,
+          intro: introPage,
+          ...(pageData?.is_verified !== null && { is_verified: isVerified }), // Conditionally add is_verified
         };
         await apiEditPage({
           documentId: pageData?.documentId,
           payload: payloadPostMedia,
+          token
         });
         try {
           const hourPayload = {
-            data: {
-              open_time: openHour,
-              close_time: closeHour,
-            },
+            open_time: openHour,
+            close_time: closeHour,
           };
           //console.log('Hour Payload:', hourPayload); // Add this line
           await apiEditPageHour({
-            documentId: pageData?.page_open_hour?.documentId,
+            documentId: pageData?.openHours?.[0]?.documentId,
             payload: hourPayload,
+            token
           });
           notification.success({
             message: "Success",
@@ -233,28 +258,25 @@ const EditPage = ({ pageData, open, onClose }) => {
     } else {
       try {
         const payload = {
-          data: {
-            page_name: namePage,
-            about: descriptionPage,
-            email: emailPage,
-            phone: phonePage,
-            nation: livePage,
-            intro: introPage,
-            ...(pageData?.is_verified !== null && { is_verified: isVerified }), // Conditionally add is_verified
-          },
+          page_name: namePage,
+          about: descriptionPage,
+          email: emailPage,
+          phone: phonePage,
+          lives_in: livePage,
+          intro: introPage,
+          ...(pageData?.is_verified !== null && { is_verified: isVerified }), // Conditionally add is_verified
         };
-        await apiEditPage({ documentId: pageData?.documentId, payload });
+        await apiEditPage({ documentId: pageData?.documentId, payload, token });
         try {
           const hourPayload = {
-            data: {
-              open_time: openHour,
-              close_time: closeHour,
-            },
+            open_time: openHour,
+            close_time: closeHour,
           };
           //console.log('Hour Payload:', hourPayload); // Add this line
           await apiEditPageHour({
-            documentId: pageData?.page_open_hour?.documentId,
+            documentId: pageData?.openHours?.[0]?.documentId,
             payload: hourPayload,
+            token
           });
           notification.success({
             message: "Success",
@@ -279,17 +301,39 @@ const EditPage = ({ pageData, open, onClose }) => {
     queryClient.invalidateQueries("pageDetais");
   };
 
+  // Hàm reset form về dữ liệu gốc
+  const resetForm = () => {
+    setNamePage(pageData?.page_name || "");
+    setDescriptionPage(pageData?.about || "");
+    setEmailPage(pageData?.email || "");
+    setPhonePage(pageData?.phone || "");
+    setLivePage(pageData?.nation?.documentId || "");
+    setTagPage(tagsData?.tag?.documentId || "");
+    setIntroPage(pageData?.intro || "");
+    setOpenHour(pageData?.openHours?.[0]?.open_time || "");
+    setCloseHour(pageData?.openHours?.[0]?.close_time || "");
+    setVerified(pageData?.is_verified === false ? false : true);
+    setFileList([]);
+    setSelectedImages([]);
+  };
+
   return (
     <>
       <Drawer
         title="Edit Page"
         placement="right"
         width={500}
-        onClose={onClose}
+        onClose={() => {
+          resetForm();
+          onClose();
+        }}
         open={open}
         extra={
           <Space>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={() => {
+              resetForm();
+              onClose();
+            }}>Cancel</Button>
             <Button type="primary" onClick={handleOk}>
               OK
             </Button>
@@ -373,7 +417,7 @@ const EditPage = ({ pageData, open, onClose }) => {
                 (
                   nation // Ensure nations is an array
                 ) => (
-                  <Select.Option key={nation.id} value={nation.documentId}>
+                  <Select.Option key={nation.documentId} value={nation.documentId}>
                     {nation.name}
                   </Select.Option>
                 )
@@ -399,7 +443,7 @@ const EditPage = ({ pageData, open, onClose }) => {
               (
                 tag // Ensure nations is an array
               ) => (
-                <Select.Option key={tag.id} value={tag.documentId}>
+                <Select.Option key={tag.documentId || tag.id} value={tag.documentId}>
                   {tag.name}
                 </Select.Option>
               )
@@ -413,7 +457,7 @@ const EditPage = ({ pageData, open, onClose }) => {
             src={
               selectedImages.length > 0
                 ? selectedImages[selectedImages.length - 1].url
-                : pageData?.profile_picture?.file_path
+                : pageData?.profileImage?.file_path
             }
             alt={`group-${pageData?.name}`}
             className="img-fluid rounded"

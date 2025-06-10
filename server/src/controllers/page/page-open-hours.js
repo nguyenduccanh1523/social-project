@@ -80,20 +80,6 @@ export const addPageOpenHour = async (req, res) => {
 export const updatePageOpenHour = async (req, res) => {
     try {
         const { id } = req.params;
-        const { user } = req;
-        
-        // Lấy thông tin giờ mở cửa
-        const openHour = await pageOpenHourService.getPageOpenHourById(id);
-        
-        // Kiểm tra quyền (chỉ người tạo trang hoặc admin mới được cập nhật giờ mở cửa)
-        const isAdmin = await pageMemberService.isPageAdmin(user.documentId, openHour.page_id);
-        const page = await pageService.getPageById(openHour.page_id);
-        
-        if (page.author !== user.documentId && !isAdmin) {
-            return res.status(403).json({
-                message: 'Bạn không có quyền cập nhật giờ mở cửa cho trang này'
-            });
-        }
         
         const updatedOpenHour = await pageOpenHourService.updatePageOpenHour(id, req.body);
         return res.status(200).json(updatedOpenHour);

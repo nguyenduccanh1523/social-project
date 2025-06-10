@@ -103,6 +103,11 @@ export const getAllPostTags = async ({
                         attributes: ['documentId', 'file_path'],
                     },
                     {
+                        model: db.PageMember,
+                        as: 'members',
+                        attributes: ['documentId'],
+                    },
+                    {
                         model: db.User,
                         as: 'creator',
                         attributes: ['documentId', 'username', 'email'],

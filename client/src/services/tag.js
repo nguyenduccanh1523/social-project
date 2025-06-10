@@ -41,12 +41,15 @@ export const apiGetDocumentTag = ({ documentId }) =>
     }
   });
 
-export const apiGetTagPage = ({ documentId }) =>
+export const apiGetTagPage = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/post-tags?filters[$and][0][page_id][documentId][$eq]=${documentId}&populate=*`,
+        url: `/post-tags?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&pageId=${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
