@@ -3,10 +3,11 @@ import * as documentShareService from '../../services/document/document-share.se
 
 export const getAllDocumentShares = async (req, res) => {
     try {
-        const { 
+        const {
+            pagination = req.query.pagination || {},
             sort,
-            'pagination[page]': page = 1,
-            'pagination[pageSize]': pageSize = 10,
+            page = parseInt(pagination.page) || parseInt(req.query.page) || 1,
+            pageSize = parseInt(pagination.pageSize) || parseInt(req.query.pageSize) || 10,
             populate,
             searchText,
             userId
@@ -34,7 +35,7 @@ export const getDocumentShareById = async (req, res) => {
     try {
         const { id } = req.params
         const result = await documentShareService.getDocumentShareById(id)
-        
+
         return res.status(200).json({
             err: 0,
             message: 'Lấy thông tin document share thành công',
@@ -55,7 +56,7 @@ export const createDocumentShare = async (req, res) => {
             // userId: req.user.id
         }
         const result = await documentShareService.createDocumentShare(documentShareData)
-        
+
         return res.status(201).json({
             err: 0,
             message: 'Tạo document share mới thành công',
@@ -74,7 +75,7 @@ export const updateDocumentShare = async (req, res) => {
         const { id } = req.params
         const documentShareData = req.body
         const result = await documentShareService.updateDocumentShare(id, documentShareData)
-        
+
         return res.status(200).json({
             err: 0,
             message: 'Cập nhật document share thành công',
@@ -92,7 +93,7 @@ export const deleteDocumentShare = async (req, res) => {
     try {
         const { id } = req.params
         const result = await documentShareService.deleteDocumentShare(id)
-        
+
         return res.status(200).json({
             err: 0,
             message: result.message

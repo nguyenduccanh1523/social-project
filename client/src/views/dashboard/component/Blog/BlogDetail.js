@@ -25,7 +25,8 @@ import { apiGetDocumentTag } from "../../../../services/tag";
 const { Title, Text, Paragraph } = Typography;
 
 const BlogDetail = ({ blog, visible, onClose, onSave, isSaved }) => {
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [comment, setComment] = useState((''));
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef(null);
@@ -33,14 +34,13 @@ const BlogDetail = ({ blog, visible, onClose, onSave, isSaved }) => {
   const { data: documentTag, isLoading: isFollowStatusLoading } = useQuery({
     queryKey: ["documentTag", blog?.documentId],
     queryFn: async () => {
-      const response = await apiGetDocumentTag({ documentId: blog?.documentId });
+      const response = await apiGetDocumentTag({ documentId: blog?.documentId, token });
       //console.log('s', response )
       return response.data?.data;
     },
     enabled: !!blog?.documentId,
   });
 
-  // console.log('documenttag:', documentTag);
   if (!blog) return null;
 
   const handleKeyDown = (e) => {
@@ -119,35 +119,37 @@ const BlogDetail = ({ blog, visible, onClose, onSave, isSaved }) => {
             <div className="blog-author-header">
               <Space align="center">
                 <Avatar
-                  src={blog?.author?.profile_picture}
+                  src={blog?.creator?.avatarMedia?.file_path}
                   icon={<UserOutlined />}
                   size={45}
                 />
                 <div>
-                  <Text strong style={{ fontSize: 16 }}>
-                    {blog?.author?.username || "Anonymous"}
+                  <Text strong style={{ fontSize: 16, marginTop: '10px' }}>
+                    {blog?.creator?.username || "Anonymous"}
                   </Text>
-                  <br />
-                  <Text type="secondary">
-                    {convertToVietnamDate(blog?.createdAt)}
-                  </Text>
+                  <div>
+                    <Text type="secondary">
+                      {convertToVietnamDate(blog?.createdAt)}
+                    </Text>
+
+                  </div>
                 </div>
               </Space>
               <div className="blog-tags mb-2">
-                {documentTag?.map((tagItem, index) => (
+                {blog?.tags?.map((tagItem, index) => (
                   <Tag
-                    key={tagItem?.tag_id?.id}
+                    key={tagItem?.tag?.documentId}
                     color={colorsTag[index % colorsTag.length]}
                     style={{ marginBottom: '5px' }}
                   >
-                    {tagItem?.tag_id?.name}
+                    {tagItem?.tag?.name}
                   </Tag>
                 ))}
               </div>
               <Space size="large">
                 <div style={{ display: "flex", alignItems: "center" }}>
                   <MessageOutlined style={{ fontSize: 22, marginRight: 8 }} />
-                  <Text>{blog?.commentCount || 0} comments</Text>
+                  <Text>{blog?.comments?.length || 0} comments</Text>
                 </div>
               </Space>
             </div>
@@ -166,11 +168,10 @@ const BlogDetail = ({ blog, visible, onClose, onSave, isSaved }) => {
               )}
             </div>
 
-
             <div className="d-flex justify-content-center align-items-center">
               <div className="user-img">
                 <img
-                  src={profile.profile_picture}
+                  src={user?.avatarMedia?.file_path}
                   alt="user1"
                   className="avatar-45 rounded-circle img-fluid"
                 />
@@ -195,7 +196,7 @@ const BlogDetail = ({ blog, visible, onClose, onSave, isSaved }) => {
                   </span>
                   <Send formData={{
                     inputText: comment,
-                  }} blog={blog} profile={profile} onSend={handleSendSuccess} />
+                  }} blog={blog} profile={user} onSend={handleSendSuccess} />
                 </div>
               </form>
 

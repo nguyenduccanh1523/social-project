@@ -1,12 +1,15 @@
 import axiosConfig from "../axiosConfig";
 
 
-export const apiGetDocumentComment = ({ documentId }) =>
+export const apiGetDocumentComment = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/cmt-documents?populate=*&sort=createdAt:DESC&filters[$and][0][document_share][documentId][$eq]=${documentId}&filters[$and][1][parent_id][documentId][$null]=true`,
+        url: `/cmt-documents?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&document_share_id=${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -14,12 +17,15 @@ export const apiGetDocumentComment = ({ documentId }) =>
     }
   });
 
-export const apiGetDocumentCommentParent = ({ documentId, parentId }) =>
+export const apiGetDocumentCommentParent = ({ documentId, parentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/cmt-documents?populate=*&sort=createdAt:ASC&filters[$and][0][document_share][documentId][$eq]=${documentId}&filters[$and][1][parent_id][documentId][$eq]=${parentId}`,
+        url: `/cmt-documents?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&document_share_id=${documentId}&parentId=${parentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -46,7 +52,7 @@ export const apiCreateDocumentComment = (payload) => {
   });
 };
 
-export const apiUpdateDocumentComment = ({ documentId, payload }) => {
+export const apiUpdateDocumentComment = ({ documentId, payload, token }) => {
   return new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -55,6 +61,7 @@ export const apiUpdateDocumentComment = ({ documentId, payload }) => {
         data: payload,
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
         },
       });
       //console.log("Update Comment response:", response);
@@ -65,12 +72,15 @@ export const apiUpdateDocumentComment = ({ documentId, payload }) => {
   });
 };
 
-export const apiDeleteDocumentComment = ({ documentId }) =>
+export const apiDeleteDocumentComment = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "delete",
         url: `/cmt-documents/${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Delete Comment response:", response);
       resolve(response);

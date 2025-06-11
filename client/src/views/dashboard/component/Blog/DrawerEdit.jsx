@@ -11,7 +11,8 @@ import { apiUpdateBlog } from '../../../../services/blog';
 const { Option } = Select;
 
 const DrawerEdit = ({ blog, visible, onClose }) => {
-    const { profile } = useSelector((state) => state.root.user || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
     const [fileList, setFileList] = useState([]);
     const [selectedImages, setSelectedImages] = useState([]);
     const [uploading, setUploading] = useState(false);
@@ -23,32 +24,28 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
     const [selectedTags, setSelectedTags] = useState([]);
     const queryClient = useQueryClient();
 
-    //console.log('blog', blog);
-
-
     const { data: tags } = useQuery({
-        queryKey: ['tags', profile?.documentId],
-        queryFn: () => apiGetTag(profile?.documentId),
-        enabled: !!profile?.documentId,
+        queryKey: ['tags', token],
+        queryFn: () => apiGetTag({ token }),
+        enabled: !!token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
 
     const { data: documentTags } = useQuery({
-        queryKey: ['documentTags', blog?.documentId],
-        queryFn: () => apiGetDocumentTag({ documentId: blog?.documentId }),
-        enabled: !!blog?.documentId,
+        queryKey: ['documentTags', blog?.documentId, token],
+        queryFn: () => apiGetDocumentTag({ documentId: blog?.documentId, token }),
+        enabled: !!blog?.documentId && !token,
         staleTime: 600000, // 10 minutes
         refetchOnWindowFocus: false,
     });
 
-
     const tagData = tags?.data?.data || [];
+    console.log(tagData)
 
     const handleTagSelect = (values) => {
         setSelectedTags(values);
     };
-
 
     const handleBannerUpload = ({ file, fileList }) => {
         setFileList(fileList);
@@ -89,11 +86,45 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
             type: isGLobal ? true : false,
             tags: selectedTags,
         };
-        //console.log('formData', formData);
+        console.log('formData', formData);
+
+        // Lấy danh sách tag cũ từ blog (nếu có)
+        const oldBlogTags = blog?.tags || [];
+        const oldTagIds = oldBlogTags.map(tag => tag.tag?.documentId);
+        const oldBlogTagDocumentIds = oldBlogTags.map(tag => tag.documentId);
 
         if (selectedImages.length > 0) {
             console.log('selectedImages', selectedImages);
             const image = selectedImages[selectedImages.length - 1];
+
+            const uploadToCloudinary = async (file, folder = "default") => {
+                const cloudName = process.env.REACT_APP_CLOUDINARY_NAME;
+                const uploadPreset = process.env.REACT_APP_REACT_UPLOAD;
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', uploadPreset);
+                formData.append('folder', folder);
+                try {
+                    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.secure_url) {
+                        return {
+                            url: data.secure_url,
+                            public_id: data.public_id,
+                            mime: data.resource_type + "/" + data.format,
+                            size: data.bytes
+                        };
+                    } else {
+                        throw new Error(data.error?.message || "Upload failed");
+                    }
+                } catch (error) {
+                    console.error("Error uploading file to Cloudinary:", error);
+                }
+            };
+
             const binaryImage = await fetch(image.url)
                 .then(res => res.blob())
                 .then(blob => {
@@ -103,42 +134,39 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
                 });
 
             try {
-                const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
+                const uploadedFile = await uploadToCloudinary(binaryImage, 'default');
                 const payload = {
-                    data: {
-                        file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-                        file_type: uploadedFile.data[0].mime,
-                        file_size: uploadedFile.data[0].size.toString(),
-                    }
+                    file_path: uploadedFile.url,
+                    file_type: uploadedFile.mime,
+                    file_size: uploadedFile.size.toString(),
+                    type_id: 'pkw7l5p5gd4e70uy5bvgpnpv',
                 };
-                const response = await createMedia(payload);
+                const response = await createMedia(payload, token);
                 const payloadBlogMedia = {
-                    data: {
-                        title: titleBlog,
-                        description: descriptionBlog,
-                        content: contentBlog,
-                        link_document: linkBlog,
-                        media: response.data.data.documentId,
-                        is_global: isGLobal ? true : false,
-                        author: profile.documentId
-                    }
+                    title: titleBlog,
+                    description: descriptionBlog,
+                    content: contentBlog,
+                    link_document: linkBlog,
+                    media_id: response.data.data.documentId,
+                    is_global: isGLobal ? true : false,
+                    type_id: isGLobal ? 'elx6zlfz9ywp6esoyfi6a1yl' : 'pkw7l5p5gd4e70uy5bvgpnpv',
+                    author: user.documentId
                 };
                 await apiUpdateBlog({ documentId: blog?.documentId, payload: payloadBlogMedia });
                 if (selectedTags?.length) {
                     const existingTags = documentTags?.data?.data || [];
                     const selectedTagIds = selectedTags || [];
-
-                    console.log('Existing Tags:', existingTags);
-                    console.log('Selected Tag IDs:', selectedTagIds);
-
-                    // Create new tags
+                    // Lấy tất cả tagId đã có trong post-tag (bao gồm cả documentTags và blog?.tags)
+                    const allExistingTagIds = [
+                        ...existingTags.map(item => item?.tag?.documentId),
+                        ...(blog?.tags || []).map(tag => tag.tag?.documentId)
+                    ];
+                    // Tạo tag mới nếu chưa có trong cả hai nguồn
                     for (const tagId of selectedTagIds) {
-                        if (!existingTags.some(item => item?.tag_id?.documentId === tagId)) {
+                        if (!allExistingTagIds.includes(tagId)) {
                             const payload = {
-                                data: {
-                                    document_share_id: blog?.documentId,
-                                    tag_id: tagId,
-                                }
+                                document_share_id: blog?.documentId,
+                                tag_id: tagId,
                             };
                             try {
                                 await apiCreatePostTag(payload);
@@ -148,11 +176,12 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
                         }
                     }
 
-                    // Delete old tags
-                    for (const item of existingTags) {
-                        if (!selectedTagIds.includes(item?.tag_id?.documentId)) {
+                    // Xóa tag cũ nếu không còn trong selectedTagIds
+                    // So sánh với blog?.tags để lấy đúng documentId của blogTag
+                    for (const blogTag of oldBlogTags) {
+                        if (!selectedTagIds.includes(blogTag?.tag?.documentId)) {
                             try {
-                                await apiDeletePostTag({ documentId: item?.documentId });
+                                await apiDeletePostTag({ documentId: blogTag?.documentId, token });
                             } catch (error) {
                                 console.error('Error deleting tag:', error);
                             }
@@ -165,34 +194,31 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
                 console.error('Error adding image:', error.response || error);
             }
         } else {
-            console.log('selected', selectedImages);
             try {
                 const payload = {
-                    data: {
-                        title: titleBlog,
-                        description: descriptionBlog,
-                        content: contentBlog,
-                        link_document: linkBlog,
-                        is_global: isGLobal ? true : false,
-                        author: profile.documentId
-                    }
+                    title: titleBlog,
+                    description: descriptionBlog,
+                    content: contentBlog,
+                    link_document: linkBlog,
+                    is_global: isGLobal ? true : false,
+                    type_id: isGLobal ? 'elx6zlfz9ywp6esoyfi6a1yl' : 'pkw7l5p5gd4e70uy5bvgpnpv',
+                    author: user.documentId
                 };
                 await apiUpdateBlog({ documentId: blog?.documentId, payload: payload });
                 if (selectedTags?.length) {
                     const existingTags = documentTags?.data?.data || [];
                     const selectedTagIds = selectedTags || [];
-
-                    console.log('Existing Tags:', existingTags);
-                    console.log('Selected Tag IDs:', selectedTagIds);
-
-                    // Create new tags
+                    // Lấy tất cả tagId đã có trong post-tag (bao gồm cả documentTags và blog?.tags)
+                    const allExistingTagIds = [
+                        ...existingTags.map(item => item?.tag?.documentId),
+                        ...(blog?.tags || []).map(tag => tag.tag?.documentId)
+                    ];
+                    // Tạo tag mới nếu chưa có trong cả hai nguồn
                     for (const tagId of selectedTagIds) {
-                        if (!existingTags.some(item => item?.tag_id?.documentId === tagId)) {
+                        if (!allExistingTagIds.includes(tagId)) {
                             const payload = {
-                                data: {
-                                    document_share_id: blog?.documentId,
-                                    tag_id: tagId,
-                                }
+                                document_share_id: blog?.documentId,
+                                tag_id: tagId,
                             };
                             try {
                                 await apiCreatePostTag(payload);
@@ -202,11 +228,11 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
                         }
                     }
 
-                    // Delete old tags
-                    for (const item of existingTags) {
-                        if (!selectedTagIds.includes(item?.tag_id?.documentId)) {
+                    // Xóa tag cũ nếu không còn trong selectedTagIds
+                    for (const blogTag of oldBlogTags) {
+                        if (!selectedTagIds.includes(blogTag?.tag?.documentId)) {
                             try {
-                                await apiDeletePostTag({ documentId: item?.documentId });
+                                await apiDeletePostTag({ documentId: blogTag?.documentId, token });
                             } catch (error) {
                                 console.error('Error deleting tag:', error);
                             }
@@ -229,7 +255,9 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
         setContentBlog(blog?.content || '');
         setLinkBlog(blog?.link_document || '');
         setIsGlobal(blog?.is_global);
-        setSelectedTags(documentTags?.data?.data.map(tag => tag.tag_id.documentId) || []);
+        // Lấy tất cả tagId từ blog, không lọc theo tagData
+        const allTagIds = (blog?.tags || []).map(tag => tag.tag?.documentId);
+        setSelectedTags(allTagIds);
     }, [blog]);
 
     return (
@@ -313,6 +341,18 @@ const DrawerEdit = ({ blog, visible, onClose }) => {
                 filterOption={(input, option) =>
                     option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
                 }
+                tagRender={(props) => {
+                    const { value, closable, onClose } = props;
+                    const tagObj = tagData.find(tag => tag.documentId === value);
+                    return (
+                        <span style={{ marginRight: 3, background: '#f0f0f0', padding: '2px 8px', borderRadius: 4, display: 'inline-block' }}>
+                            {tagObj ? tagObj.name : 'Tag đã bị xóa'}
+                            {closable && (
+                                <span style={{ marginLeft: 4, cursor: 'pointer' }} onClick={onClose}>×</span>
+                            )}
+                        </span>
+                    );
+                }}
             >
                 {tagData.map((tag) => (
                     <Option key={tag.documentId} value={tag.documentId}>

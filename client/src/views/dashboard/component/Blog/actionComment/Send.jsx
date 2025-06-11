@@ -22,12 +22,10 @@ const Send = ({ formData, blog, parent, nested, profile, handleClose, onSend }) 
       // console.log('Parent:', parent);
       // console.log('Nested:', nested);
       const payload = {
-        data: {
-          document_share: blog?.documentId,
-          users_id: profile?.documentId,
+          document_id: blog?.documentId,
+          user_id: profile?.documentId,
           parent_id: parent?.documentId,
           content: formData.inputText,
-        }
       };
       try {
         const response = await apiCreateDocumentComment(payload);
@@ -61,11 +59,9 @@ const Send = ({ formData, blog, parent, nested, profile, handleClose, onSend }) 
       // console.log('Form data:', formData);
       // console.log('Post:', blog);
       const payload = {
-        data: {
-          document_share: blog?.documentId,
-          users_id: profile?.documentId,
+          document_id: blog?.documentId,
+          user_id: profile?.documentId,
           content: formData.inputText,
-        }
       };
       try {
         const response = await apiCreateDocumentComment(payload);

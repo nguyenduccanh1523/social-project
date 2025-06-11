@@ -27,8 +27,8 @@ const { Option } = Select;
 
 const MyBlog = () => {
     const dispatch = useDispatch();
-    const { profile } = useSelector((state) => state.root.user || {});
-    const { tags } = useSelector((state) => state.root.tag || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
     const queryClient = useQueryClient();
 
     const [searchText, setSearchText] = useState("");
@@ -41,6 +41,7 @@ const MyBlog = () => {
     const [isEditDrawerOpen, setIsEditDrawerOpen] = useState(false);
     const [editBlog, setEditBlog] = useState(null);
 
+    console.log('s', filteredBlogs)
     const showDrawer = () => {
         setIsDrawerOpen(true);
     };
@@ -60,21 +61,21 @@ const MyBlog = () => {
     };
 
     const { data: myBlogs = [], isLoading: isMyBlogLoading } = useQuery({
-        queryKey: ["myBlogs", profile?.documentId],
+        queryKey: ["myBlogs", user?.documentId],
         queryFn: async () => {
-            const response = await apiGetMyBlog({ userId: profile?.documentId });
+            const response = await apiGetMyBlog({ userId: user?.documentId, token });
             return response.data?.data || [];
         },
-        enabled: !!profile?.documentId,
+        enabled: !!user?.documentId && !!token,
     });
-    const { data: tag, isLoading: isTagLoading } = useQuery({
-        queryKey: ["tags"],
-        queryFn: async () => {
-            const response = await fetchTag();
-            return response.data?.data || [];
-        },
-        enabled: !!profile?.documentId,
-    });
+    // const { data: tag, isLoading: isTagLoading } = useQuery({
+    //     queryKey: ["tags"],
+    //     queryFn: async () => {
+    //         const response = await fetchTag();
+    //         return response.data?.data || [];
+    //     },
+    //     enabled: !!user?.documentId,
+    // });
 
     useEffect(() => {
         if (searchText) {
@@ -112,7 +113,7 @@ const MyBlog = () => {
             title: 'Are you sure you want to delete this blog?',
             onOk: async () => {
                 try {
-                    await apiDeleteBlog({ documentId });
+                    await apiDeleteBlog({ documentId, token });
                     notification.success({
                         message: "Delete Blog",
                         description: "Blog deleted successfully",
@@ -124,23 +125,6 @@ const MyBlog = () => {
             },
         });
     };
-
-    const { data: blogTags, isLoading: isBlogTagsLoading, error: blogTagsError } = useQuery({
-        queryKey: ["blogTags", myBlogs?.map(blog => blog.documentId)],
-        queryFn: async () => {
-            const tags = await Promise.all(
-                myBlogs.map(async (blog) => {
-                    const response = await apiGetDocumentTag({ documentId: blog.documentId });
-                    //console.log("Response:", response); // Log ra chi tiết phản hồi
-                    return { [blog.documentId]: response?.data?.data || [] };
-                })
-            );
-            return tags.reduce((acc, tag) => ({ ...acc, ...tag }), {});
-        },
-        enabled: !!myBlogs?.length,
-    });
-
-
 
     //console.log("myBlogs", myBlogs);
     //console.log("blogTags", blogTags);
@@ -181,7 +165,7 @@ const MyBlog = () => {
                         <>
                             <Row>
                                 {(filteredBlogs.length ? filteredBlogs : myBlogs).map((blog, blogIndex) => (
-                                    <Col lg="12" key={blog.id}>
+                                    <Col lg="12" key={blog.documentId}>
                                         <Card
                                             className={`card-block card-stretch card-height blog-list ${blogIndex % 2 !== 0 ? "list-even" : ""
                                                 }`}
@@ -202,10 +186,19 @@ const MyBlog = () => {
                                                             <Col md="6">
                                                                 <div className="blog-description rounded p-2">
                                                                     <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                                                                        <div className="date">
+                                                                        <div className="date d-flex gap-2">
                                                                             <Link to="#" tabIndex="-1">
                                                                                 {convertToVietnamDate(blog?.createdAt)}
                                                                             </Link>
+                                                                            <span className="d-inline-block">
+                                                                                <p disabled style={{ pointerEvents: 'none' }}>
+                                                                                    {blog?.documentType?.name === 'public' ? <span className="material-symbols-outlined">
+                                                                                        public
+                                                                                    </span> : <span className="material-symbols-outlined">
+                                                                                        lock
+                                                                                    </span>}
+                                                                                </p>
+                                                                            </span>
                                                                         </div>
                                                                         <div className="d-flex align-items-center">
                                                                             <div
@@ -217,7 +210,7 @@ const MyBlog = () => {
                                                                                     color: "#1890ff",
                                                                                 }}
                                                                             >
-                                                                                <span class="material-symbols-outlined">
+                                                                                <span className="material-symbols-outlined">
                                                                                     border_color
                                                                                 </span>
                                                                             </div>
@@ -231,7 +224,7 @@ const MyBlog = () => {
                                                                                     marginLeft: "10px",
                                                                                 }}
                                                                             >
-                                                                                <span class="material-symbols-outlined">
+                                                                                <span className="material-symbols-outlined">
                                                                                     delete
                                                                                 </span>
                                                                             </div>
@@ -246,13 +239,13 @@ const MyBlog = () => {
                                                                     </h5>
                                                                     <p>{blog?.description}</p>
                                                                     <div className="blog-tags mb-2">
-                                                                        {blogTags?.[blog?.documentId]?.map((tagItem) => (
+                                                                        {blog?.tags?.map((tagItem) => (
                                                                             <Tag
-                                                                                key={tagItem?.tag_id?.id}
+                                                                                key={tagItem?.tag?.documentId}
                                                                                 color={colorsTag[blogIndex % colorsTag.length]}
                                                                                 style={{ marginBottom: '5px' }}
                                                                             >
-                                                                                {tagItem?.tag_id?.name}
+                                                                                {tagItem?.tag?.name}
                                                                             </Tag>
                                                                         ))}
                                                                     </div>
@@ -275,19 +268,19 @@ const MyBlog = () => {
                                                                             <Link to="#" className="iq-media">
                                                                                 <Image
                                                                                     className="img-fluid rounded-circle avatar-50"
-                                                                                    src={blog?.author?.profile_picture || blog6}
+                                                                                    src={blog?.creator?.avatarMedia?.file_path || blog6}
                                                                                     alt="avatar"
                                                                                 />
                                                                             </Link>
                                                                             <span className="ms-2">
-                                                                                {blog?.author?.username || "Anonymous"}
+                                                                                {blog?.creator?.username || "Anonymous"}
                                                                             </span>
                                                                         </div>
                                                                         <div className="comment d-flex align-items-center">
                                                                             <i className="material-symbols-outlined me-2 md-18">
                                                                                 chat_bubble_outline
                                                                             </i>
-                                                                            {blog?.commentCount || 0} comments
+                                                                            {blog?.comments.length || 0} comments
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -308,7 +301,7 @@ const MyBlog = () => {
                                                                                     color: "#1890ff",
                                                                                 }}
                                                                             >
-                                                                                <span class="material-symbols-outlined">
+                                                                                <span className="material-symbols-outlined">
                                                                                     border_color
                                                                                 </span>
                                                                             </div>
@@ -322,15 +315,24 @@ const MyBlog = () => {
                                                                                     marginLeft: "10px",
                                                                                 }}
                                                                             >
-                                                                                <span class="material-symbols-outlined">
+                                                                                <span className="material-symbols-outlined">
                                                                                     delete
                                                                                 </span>
                                                                             </div>
                                                                         </div>
-                                                                        <div className="date">
+                                                                        <div className="date d-flex gap-2">
                                                                             <Link to="#" tabIndex="-1">
                                                                                 {convertToVietnamDate(blog?.createdAt)}
                                                                             </Link>
+                                                                            <span className="d-inline-block">
+                                                                                <p disabled style={{ pointerEvents: 'none' }}>
+                                                                                    {blog?.documentType?.name === 'public' ? <span className="material-symbols-outlined">
+                                                                                        public
+                                                                                    </span> : <span className="material-symbols-outlined">
+                                                                                        lock
+                                                                                    </span>}
+                                                                                </p>
+                                                                            </span>
                                                                         </div>
                                                                     </div>
                                                                     <h5
@@ -342,14 +344,14 @@ const MyBlog = () => {
                                                                     </h5>
                                                                     <p>{blog?.description}</p>
                                                                     <div className="blog-tags mb-2">
-                                                                        {blogTags?.[blog?.documentId]?.map((tagItem) => (
+                                                                        {blog?.tags?.map((tagItem) => (
 
                                                                             <Tag
-                                                                                key={tagItem?.tag_id?.id}
+                                                                                key={tagItem?.tag?.documentId}
                                                                                 color={colorsTag[blogIndex % colorsTag.length]}
                                                                                 style={{ marginBottom: '5px' }}
                                                                             >
-                                                                                {tagItem?.tag_id?.name}
+                                                                                {tagItem?.tag?.name}
                                                                             </Tag>
                                                                         ))}
                                                                     </div>
@@ -371,19 +373,19 @@ const MyBlog = () => {
                                                                             <Link to="#" className="iq-media">
                                                                                 <Image
                                                                                     className="img-fluid rounded-circle avatar-50"
-                                                                                    src={blog?.author?.profile_picture || blog6}
+                                                                                    src={blog?.creator?.avatarMedia?.file_path || blog6}
                                                                                     alt="avatar"
                                                                                 />
                                                                             </Link>
                                                                             <span className="ms-2">
-                                                                                {blog?.author?.username || "Anonymous"}
+                                                                                {blog?.creator?.username || "Anonymous"}
                                                                             </span>
                                                                         </div>
                                                                         <div className="comment d-flex align-items-center">
                                                                             <i className="material-symbols-outlined me-2 md-18">
                                                                                 chat_bubble_outline
                                                                             </i>
-                                                                            {blog?.commentCount || 0} comments
+                                                                            {blog?.comments.length || 0} comments
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -433,7 +435,9 @@ const MyBlog = () => {
             <AppDrawer title="Verify article" width={520} closable={false} onClose={closeDrawer} open={isDrawerOpen}>
                 {/* Content of the Drawer */}
             </AppDrawer>
-            <DrawerEdit blog={editBlog} visible={isEditDrawerOpen} onClose={closeEditDrawer} />
+            {editBlog && (
+                <DrawerEdit blog={editBlog} visible={isEditDrawerOpen} onClose={closeEditDrawer} />
+            )}
         </>
     );
 };

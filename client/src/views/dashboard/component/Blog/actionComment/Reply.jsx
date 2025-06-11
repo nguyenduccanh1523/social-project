@@ -4,8 +4,8 @@ import EmojiPicker from 'emoji-picker-react';
 import Send from "./Send";
 
 const Reply = ({ blog, parent, nested, handleReplyFormClose }) => {
-  const { profile } = useSelector((state) => state.root.user || {});
-  const [comment, setComment] = useState((nested ? `@${nested?.users_id?.username} ` : ''));
+  const { user } = useSelector((state) => state.root.auth || {});
+  const [comment, setComment] = useState((nested ? `@${nested?.user?.username} ` : ''));
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef(null);
 
@@ -88,7 +88,7 @@ const Reply = ({ blog, parent, nested, handleReplyFormClose }) => {
       <div className="d-flex align-items-center">
         <div className="user-img">
           <img
-            src={profile.profile_picture}
+            src={user?.avatarMedia?.file_path}
             alt="user1"
             className="avatar-25 rounded-circle img-fluid"
           />
@@ -113,12 +113,12 @@ const Reply = ({ blog, parent, nested, handleReplyFormClose }) => {
             </span>
             {showPicker && (
               <div ref={pickerRef} className="replyPicker">
-                <EmojiPicker onEmojiClick={onEmojiClick} style={{ height: '400px'}} />
+                <EmojiPicker onEmojiClick={onEmojiClick} style={{ height: '400px' }} />
               </div>
             )}
             <Send formData={{
               inputText: comment,
-            }} blog={blog} parent={parent} nested={nested} profile={profile} handleClose={handleReplyFormClose} />
+            }} blog={blog} parent={parent} nested={nested} profile={user} handleClose={handleReplyFormClose} />
           </div>
 
         </form>

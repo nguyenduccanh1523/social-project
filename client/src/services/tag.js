@@ -27,12 +27,15 @@ export const apiGetPostTag = ({ postId, token }) =>
     }
   });
 
-export const apiGetDocumentTag = ({ documentId }) =>
+export const apiGetDocumentTag = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/post-tags?filters[$and][0][document_share_id][documentId][$eq]=${documentId}&populate=*`,
+        url: `/post-tags?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&document_share_id=${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -63,7 +66,7 @@ export const apiGetTag = ({ token }) =>
     try {
       const response = await axiosConfig({
         method: "get",
-        url: "/tags??pagination[pageSize]=10&pagination[page]=1&populate=*&sort=createdAt:DESC",
+        url: "/tags?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC",
         headers: {
           Authorization: `Bearer ${token}`
         }

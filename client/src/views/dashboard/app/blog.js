@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Row, Col, Image, Container } from "react-bootstrap";
-import { Input, Select, Space, Pagination, Tag, notification, ExclamationCircleOutlined } from "antd";
+import { Input, Select, Space, Pagination, Tag, notification } from "antd";
 import Card from "../../../components/Card";
 import { Link } from "react-router-dom";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
@@ -24,7 +24,8 @@ const { Option } = Select;
 const BlogList = () => {
   const dispatch = useDispatch();
   const { tags } = useSelector((state) => state.root.tag || {});
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [searchText, setSearchText] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
@@ -49,6 +50,7 @@ const BlogList = () => {
             pageParam: currentPage,
             searchText,
             filterType,
+            token
           });
           allData = [...allData, ...res.data];
           if (currentPage >= res.hasNextPage) {
@@ -64,9 +66,11 @@ const BlogList = () => {
         const tagsPromises = allData.map(async (blog) => {
           try {
             const tagResponse = await apiGetDocumentTag({
-              documentId: blog?.documentId
+              documentId: blog?.documentId,
+              token
             });
             return { blogId: blog?.documentId, tags: tagResponse.data };
+
           } catch (err) {
             console.error(`Error fetching tags for blog ${blog?.documentId}:`, err);
             return { blogId: blog?.documentId, tags: [] };
@@ -98,28 +102,28 @@ const BlogList = () => {
   useEffect(() => {
     const fetchSavedBlogs = async () => {
       try {
-        const response = await apiGetMarkBlog({ userId: profile?.documentId });
-        const savedBlogIds = response.data.data.map(item => item.document_share.documentId);
+        const response = await apiGetMarkBlog({ userId: user?.documentId, token });
+        const savedBlogIds = response.data.data.map(item => item.documentShare.documentId);
         setSavedBlogs(savedBlogIds);
       } catch (error) {
         console.error("Error fetching saved blogs:", error);
       }
     };
 
-    if (profile?.documentId) {
+    if (user?.documentId) {
       fetchSavedBlogs();
     }
-  }, [profile?.documentId]);
+  }, [user?.documentId]);
 
   const handleSaveBlog = async (blogId) => {
     console.log('handleSaveBlog called with blogId:', blogId); // Debug log
     if (savedBlogs.includes(blogId)) {
       console.log('Removing blogId:', blogId); // Debug log
       try {
-        const response = await apiGetCheckMarkDocument({ documentId: blogId, userId: profile?.documentId });
+        const response = await apiGetCheckMarkDocument({ documentId: blogId, userId: user?.documentId, token });
         const markDocumentId = response?.data?.data[0]?.documentId;
         if (markDocumentId) {
-          await apiDeleteMarkPost({ documentId: markDocumentId });
+          await apiDeleteMarkPost({ documentId: markDocumentId, token });
           setSavedBlogs(savedBlogs.filter((id) => id !== blogId));
           notification.success({
             message: 'Success',
@@ -137,10 +141,8 @@ const BlogList = () => {
       console.log('Saving blogId:', blogId); // Debug log
       try {
         const payload = {
-          data: {
-            user_id: profile?.documentId,
-            document_share: blogId,
-          }
+          user_id: user?.documentId,
+          document_share_id: blogId,
         }
         await apiCreateMarkPost(payload);
         setSavedBlogs([...savedBlogs, blogId]);
@@ -167,7 +169,7 @@ const BlogList = () => {
     // Filter by selected tags
     const matchesTags = selectedTags.length === 0 ||
       blogTags[blog?.documentId]?.data?.some(tagItem =>
-        selectedTags.includes(tagItem?.tag_id?.documentId)
+        selectedTags.includes(tagItem?.tag?.documentId)
       );
 
     return matchesSearch && matchesTags;
@@ -234,11 +236,11 @@ const BlogList = () => {
                       >
                         {tags?.data?.map((tag) => (
                           <Option
-                            key={tag.id}
+                            key={tag.documentId}
                             value={tag.documentId}
                             label={tag.name}
                           >
-                            <Tag color={colorsTag[tag.id % colorsTag.length]}>
+                            <Tag color={colorsTag[tag.documentId % colorsTag.length]}>
                               {tag.name}
                             </Tag>
                           </Option>
@@ -272,7 +274,7 @@ const BlogList = () => {
             <>
               <Row>
                 {currentPageData.map((blog, blogIndex) => (
-                  <Col lg="12" key={blog.id}>
+                  <Col lg="12" key={blog.documentId}>
                     <Card
                       className={`card-block card-stretch card-height blog-list ${blogIndex % 2 !== 0 ? "list-even" : ""
                         }`}
@@ -293,10 +295,19 @@ const BlogList = () => {
                               <Col md="6">
                                 <div className="blog-description rounded p-2">
                                   <div className="blog-meta d-flex align-items-center justify-content-between mb-2">
-                                    <div className="date">
+                                    <div className="date d-flex gap-2">
                                       <Link to="#" tabIndex="-1">
                                         {convertToVietnamDate(blog?.createdAt)}
                                       </Link>
+                                      <span className="d-inline-block">
+                                        <p disabled style={{ pointerEvents: 'none' }}>
+                                          {blog?.documentType?.name === 'public' ? <span className="material-symbols-outlined">
+                                            public
+                                          </span> : <span className="material-symbols-outlined">
+                                            lock
+                                          </span>}
+                                        </p>
+                                      </span>
                                     </div>
                                     <div className="d-flex align-items-center gap-2">
                                       <div
@@ -330,13 +341,13 @@ const BlogList = () => {
                                   </h5>
                                   <p>{blog?.description}</p>
                                   <div className="blog-tags mb-2">
-                                    {blogTags[blog?.documentId]?.data?.map((tagItem) => (
+                                    {blog?.tags?.map((tagItem) => (
                                       <Tag
-                                        key={tagItem?.tag_id?.id}
+                                        key={tagItem?.tag?.documentId}
                                         color={colorsTag[blogIndex % colorsTag.length]}
                                         style={{ marginBottom: '5px' }}
                                       >
-                                        {tagItem?.tag_id?.name}
+                                        {tagItem?.tag?.name}
                                       </Tag>
                                     ))}
                                   </div>
@@ -360,20 +371,20 @@ const BlogList = () => {
                                         <Image
                                           className="img-fluid rounded-circle avatar-50"
                                           src={
-                                            blog?.author?.profile_picture || blog6
+                                            blog?.creator?.avatarMedia?.file_path || blog6
                                           }
                                           alt="avatar"
                                         />
                                       </Link>
                                       <span className="ms-2">
-                                        {blog?.author?.username || "Anonymous"}
+                                        {blog?.creator?.username || "Anonymous"}
                                       </span>
                                     </div>
                                     <div className="comment d-flex align-items-center">
                                       <i className="material-symbols-outlined me-2 md-18">
                                         chat_bubble_outline
                                       </i>
-                                      {blog?.commentCount || 0} comments
+                                      {blog?.comments?.length || 0} comments
                                     </div>
                                   </div>
                                 </div>
@@ -406,7 +417,16 @@ const BlogList = () => {
                                         )}
                                       </div>
                                     </div>
-                                    <div className="date">
+                                    <div className="date d-flex gap-2">
+                                      <span className="d-inline-block">
+                                        <p disabled style={{ pointerEvents: 'none' }}>
+                                          {blog?.documentType?.name === 'public' ? <span className="material-symbols-outlined">
+                                            public
+                                          </span> : <span className="material-symbols-outlined">
+                                            lock
+                                          </span>}
+                                        </p>
+                                      </span>
                                       <Link to="#" tabIndex="-1">
                                         {convertToVietnamDate(blog?.createdAt)}
                                       </Link>
@@ -421,13 +441,13 @@ const BlogList = () => {
                                   </h5>
                                   <p>{blog?.description}</p>
                                   <div className="blog-tags mb-2">
-                                    {blogTags[blog?.documentId]?.data?.map((tagItem) => (
+                                    {blog?.tags?.map((tagItem) => (
                                       <Tag
-                                        key={tagItem?.tag_id?.id}
+                                        key={tagItem?.tag?.documentId}
                                         color={colorsTag[blogIndex % colorsTag.length]}
                                         style={{ marginBottom: '5px' }}
                                       >
-                                        {tagItem?.tag_id?.name}
+                                        {tagItem?.tag?.name}
                                       </Tag>
                                     ))}
                                   </div>
@@ -450,20 +470,20 @@ const BlogList = () => {
                                         <Image
                                           className="img-fluid rounded-circle avatar-50"
                                           src={
-                                            blog?.author?.profile_picture || blog6
+                                            blog?.creator?.avatarMedia?.file_path || blog6
                                           }
                                           alt="avatar"
                                         />
                                       </Link>
                                       <span className="ms-2">
-                                        {blog?.author?.username || "Anonymous"}
+                                        {blog?.creator?.username || "Anonymous"}
                                       </span>
                                     </div>
                                     <div className="comment d-flex align-items-center">
                                       <i className="material-symbols-outlined me-2 md-18">
                                         chat_bubble_outline
                                       </i>
-                                      {blog?.commentCount || 0} comments
+                                      {blog?.comments.length || 0} comments
                                     </div>
                                   </div>
                                 </div>

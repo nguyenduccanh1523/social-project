@@ -3,8 +3,8 @@ import { useSelector } from "react-redux";
 import EmojiPicker from 'emoji-picker-react';
 import Edit from "./Edit";
 
-const ReplyEdit = ({  handleReplyEditClose, commentId, inputText}) => {
-  const { profile } = useSelector((state) => state.root.user || {});
+const ReplyEdit = ({ handleReplyEditClose, commentId, inputText }) => {
+  const { user } = useSelector((state) => state.root.auth || {});
   const [comment, setComment] = useState(inputText);
   const [showPicker, setShowPicker] = useState(false);
   const pickerRef = useRef(null);
@@ -89,7 +89,7 @@ const ReplyEdit = ({  handleReplyEditClose, commentId, inputText}) => {
       <div className="d-flex align-items-center">
         <div className="user-img">
           <img
-            src={profile.profile_picture}
+            src={user?.avatarMedia?.file_path}
             alt="user1"
             className="avatar-25 rounded-circle img-fluid"
           />
@@ -113,7 +113,7 @@ const ReplyEdit = ({  handleReplyEditClose, commentId, inputText}) => {
             </span>
             <Edit formData={{
               inputText: comment,
-            }} handleClose={handleReplyEditClose} commentId={commentId}/>
+            }} handleClose={handleReplyEditClose} commentId={commentId} />
           </div>
         </form>
       </div>

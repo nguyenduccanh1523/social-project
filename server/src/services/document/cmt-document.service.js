@@ -170,7 +170,7 @@ export const deleteCmtDocument = async (documentId) => {
             throw new Error('Không tìm thấy comment document');
         }
 
-        await cmtDocument.destroy();
+        await cmtDocument.destroy({ force: true});
         return { message: 'Xóa comment document thành công' };
     } catch (error) {
         throw new Error(`Lỗi khi xóa comment document: ${error.message}`);

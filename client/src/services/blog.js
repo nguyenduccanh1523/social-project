@@ -4,6 +4,7 @@ export const apiGetBlogList = ({
   pageParam = 1,
   searchText = "",
   filterType = "all",
+  token
 }) =>
   new Promise(async (resolve, reject) => {
     try {
@@ -11,16 +12,16 @@ export const apiGetBlogList = ({
       let sortQuery = "";
       switch (filterType) {
         case "newest":
-          sortQuery = "id%3ADESC"; // Sắp xếp mới nhất
+          sortQuery = "createdAt:DESC"; // Sắp xếp mới nhất
           break;
         case "oldest":
-          sortQuery = "id%3AASC"; // Sắp xếp cũ nhất
+          sortQuery = "createdAt:ASC"; // Sắp xếp cũ nhất
           break;
         case "most_commented":
           sortQuery = "commentCount%3ADESC"; // Sắp xếp theo số comment
           break;
         default:
-          sortQuery = "id%3ADESC"; // Mặc định
+          sortQuery = "createdAt:DESC"; // Mặc định
       }
 
       // Kiểm tra groupId trước khi dùng trong URL
@@ -36,6 +37,10 @@ export const apiGetBlogList = ({
         method: "get",
         url: `/document-shares?sort=${sortQuery}&pagination[page]=${pageParam}&pagination[pageSize]=10&populate=*${searchText ? `&filters[title][$contains]=${searchText}` : ""
           }`,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve({
@@ -64,12 +69,16 @@ export const apiGetBlogDetail = ({ documentId }) =>
   });
 
 
-export const apiGetMyBlog = ({ userId }) =>
+export const apiGetMyBlog = ({ userId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "get",
-        url: `/document-shares?populate=*&filters[$and][0][author][documentId][$eq]=${userId}`,
+        url: `/document-shares?pagination[pageSize]=200&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}`,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {
@@ -112,12 +121,16 @@ export const apiUpdateBlog = ({ documentId, payload }) =>
     }
   });
 
-export const apiDeleteBlog = ({ documentId }) =>
+export const apiDeleteBlog = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
         method: "delete",
         url: `/document-shares/${documentId}`,
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
       });
       resolve(response);
     } catch (error) {

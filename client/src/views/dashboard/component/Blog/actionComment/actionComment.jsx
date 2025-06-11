@@ -27,8 +27,8 @@ import { useQueryClient } from '@tanstack/react-query'; // Import useQueryClient
 const { Text } = Typography;
 
 const ActionComment = ({ blog }) => {
-    console.log('Blog:', blog);
-    const { profile } = useSelector((state) => state.root.user || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
     const [showNestedComments, setShowNestedComments] = useState({});
     const [showReplyForm, setShowReplyForm] = useState({});
     const [showReplyEdit, setShowReplyEdit] = useState({});
@@ -40,24 +40,23 @@ const ActionComment = ({ blog }) => {
     // Fetch parent comments (Cấp 1)
     const { data: parentComments = { data: { data: [] } } } = useQuery({
         queryKey: ["parentComments", blog.documentId],
-        queryFn: () => apiGetDocumentComment({ documentId: blog.documentId }),
-        enabled: !!blog.documentId,
+        queryFn: () => apiGetDocumentComment({ documentId: blog.documentId, token }),
+        enabled: !!blog.documentId && !!token,
     });
-
 
     // Fetch nested comments (Cấp 2) chỉ khi có `currentParentId`
     const {
         data: nestedComments = { data: { data: [] } },
         isLoading,
     } = useQuery({
-        queryKey: ["nestedComments", blog.documentId, currentParentId],
+        queryKey: ["nestedComments", blog.documentId, currentParentId, token],
         queryFn: () =>
-            apiGetDocumentCommentParent({ documentId: blog.documentId, parentId: currentParentId }),
-        enabled: !!currentParentId,
+            apiGetDocumentCommentParent({ documentId: blog.documentId, parentId: currentParentId, token }),
+        enabled: !!currentParentId && !!token,
         staleTime: 5 * 60 * 1000, // Cache trong 5 phút
     });
 
-    console.log('ParentComments:', nestedComments);
+    // console.log('ParentComments:', nestedComments);
 
     const toggleNestedComments = (parentId) => {
         setShowNestedComments((prev) => {
@@ -121,7 +120,7 @@ const ActionComment = ({ blog }) => {
             content: 'This action cannot be undone.',
             onOk: async () => {
                 try {
-                    await apiDeleteDocumentComment({ documentId: commentId });
+                    await apiDeleteDocumentComment({ documentId: commentId, token });
                     // Show success notification
                     notification.success({
                         message: 'Deleted Created',
@@ -157,13 +156,13 @@ const ActionComment = ({ blog }) => {
                             <div className="d-flex">
                                 <div className="user-img">
                                     <img
-                                        src={comment.users_id.profile_picture}
+                                        src={comment.user?.avatarMedia?.file_path}
                                         alt="user1"
                                         className="avatar-35 rounded-circle img-fluid"
                                     />
                                 </div>
                                 <div className="comment-data-block ms-3">
-                                    <h6>{comment.users_id.username}</h6>
+                                    <h6>{comment.user.username}</h6>
                                     <div className="d-flex flex-wrap align-items-center">
                                         <p className="mb-0">
                                             {comment.content.split("\n").map((line, index) => (
@@ -176,13 +175,13 @@ const ActionComment = ({ blog }) => {
                                         <div className="card-blog-toolbar ms-2">
                                             <Dropdown>
                                                 <Dropdown.Toggle variant="bg-transparent">
-                                                    
+
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu className="dropdown-menu m-0 p-0">
                                                     <Dropdown.Item
                                                         className="dropdown-item p-3"
                                                         to="#"
-                                                        style={{ display: comment?.users_id?.documentId === profile?.documentId ? 'block' : 'none' }}
+                                                        style={{ display: comment?.user?.documentId === user?.documentId ? 'block' : 'none' }}
                                                         onClick={() => {
                                                             setInputText(comment.content); // Set the input text to the comment content
                                                             toggleReplyEdit(comment.documentId);
@@ -198,7 +197,7 @@ const ActionComment = ({ blog }) => {
                                                             </div>
                                                         </div>
                                                     </Dropdown.Item>
-                                                    <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (comment?.users_id?.documentId === profile?.documentId || blog?.users_id?.documentId === profile?.documentId) ? 'block' : 'none' }}
+                                                    <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (comment?.user?.documentId === user?.documentId || blog?.user?.documentId === user?.documentId) ? 'block' : 'none' }}
                                                         onClick={() => handleDeleteComment(comment.documentId)}
                                                     >
                                                         <div className="d-flex align-items-top">
@@ -254,7 +253,7 @@ const ActionComment = ({ blog }) => {
                                             blog={blog}
                                             parent={comment} // Pass empty object if inputText is set
                                             nested={comment} // Pass empty object if inputText is set
-                                            profile={profile}
+                                            profile={user}
                                             handleReplyFormClose={() => handleReplyFormClose(comment.documentId)}
                                         />
                                     )}
@@ -275,13 +274,13 @@ const ActionComment = ({ blog }) => {
                                                         <div className="d-flex">
                                                             <div className="user-img">
                                                                 <img
-                                                                    src={nestedComment.users_id.profile_picture}
+                                                                    src={nestedComment.user.avatarMedia?.file_path}
                                                                     alt="user1"
                                                                     className="avatar-25 rounded-circle img-fluid"
                                                                 />
                                                             </div>
                                                             <div className="comment-data-block ms-3">
-                                                                <h6>{nestedComment.users_id.username}</h6>
+                                                                <h6>{nestedComment.user.username}</h6>
                                                                 <div className="d-flex flex-wrap align-items-center">
                                                                     <p className="mb-0">
                                                                         {nestedComment.content.split("\n").map((line, index) => (
@@ -294,10 +293,10 @@ const ActionComment = ({ blog }) => {
                                                                     <div className="card-blog-toolbar ms-2">
                                                                         <Dropdown>
                                                                             <Dropdown.Toggle variant="bg-transparent">
-                                                                                
+
                                                                             </Dropdown.Toggle>
                                                                             <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                                                                <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: nestedComment?.users_id?.documentId === profile?.documentId ? 'block' : 'none' }} onClick={() => {
+                                                                                <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: nestedComment?.user?.documentId === user?.documentId ? 'block' : 'none' }} onClick={() => {
                                                                                     setInputText(nestedComment.content); // Set the input text to the comment content
                                                                                     toggleReplyEdit(nestedComment.documentId);
                                                                                 }}>
@@ -311,7 +310,7 @@ const ActionComment = ({ blog }) => {
                                                                                         </div>
                                                                                     </div>
                                                                                 </Dropdown.Item>
-                                                                                <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (nestedComment?.users_id?.documentId === profile?.documentId || blog?.users_id?.documentId === profile?.documentId) ? 'block' : 'none' }}
+                                                                                <Dropdown.Item className="dropdown-item p-3" to="#" style={{ display: (nestedComment?.user?.documentId === user?.documentId || blog?.user?.documentId === user?.documentId) ? 'block' : 'none' }}
                                                                                     onClick={() => handleDeleteComment(nestedComment.documentId)}
                                                                                 >
                                                                                     <div className="d-flex align-items-top">
@@ -352,7 +351,7 @@ const ActionComment = ({ blog }) => {
                                                                         blog={blog}
                                                                         parent={comment}
                                                                         nested={nestedComment}
-                                                                        profile={profile}
+                                                                        profile={user}
                                                                         handleReplyFormClose={() => handleReplyFormClose(nestedComment.documentId)}
                                                                     />
                                                                 )}

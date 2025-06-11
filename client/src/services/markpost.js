@@ -93,13 +93,16 @@ export const apiGetCheckMarkPost = ({ postId, userId, token }) =>
     }
   });
 
-export const apiGetCheckMarkDocument = ({ documentId, userId }) =>
+export const apiGetCheckMarkDocument = ({ documentId, userId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       // Gọi API với URL đã được truyền đúng groupId
       const response = await axiosConfig({
         method: "get",
-        url: `/mark-posts?populate=*&filters[$and][0][document_share][documentId][$eq]=${documentId}&filters[$and][1][user_id][documentId][$eq]=${userId}&sort=id%3ADESC`,
+        url: `/mark-posts?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}&documentShareId=${documentId}`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       //console.log("Response:", response); // Log ra chi tiết phản hồi
       resolve(response);

@@ -45,7 +45,34 @@ export const getAllDocumentShares = async ({
                             attributes: ['documentId', 'file_path']
                         }
                     ]
-                }
+                },
+                {
+                    model: db.Media,
+                    as: 'media',
+                    attributes: ['documentId', 'file_path'],
+                },
+                {
+                    model: db.Type,
+                    as: 'documentType',
+                    attributes: ['documentId', 'name'],
+                },
+                {
+                    model: db.PostTag,
+                    as: 'tags',
+                    attributes: ['documentId'],
+                    include: [
+                        {
+                            model: db.Tag,
+                            as: 'tag',
+                            attributes: ['documentId', 'name'],
+                        }
+                    ]
+                },
+                {
+                    model: db.CmtDocument,
+                    as: 'comments',
+                    attributes: ['documentId'],
+                }             
             )
         }
 
@@ -108,7 +135,7 @@ export const createDocumentShare = async (documentShareData) => {
 export const updateDocumentShare = async (id, documentShareData) => {
     try {
         const documentShare = await db.DocumentShare.findByPk(id)
-        
+
         if (!documentShare) {
             throw new Error('Không tìm thấy document share')
         }
@@ -123,7 +150,7 @@ export const updateDocumentShare = async (id, documentShareData) => {
 export const deleteDocumentShare = async (id) => {
     try {
         const documentShare = await db.DocumentShare.findByPk(id)
-        
+
         if (!documentShare) {
             throw new Error('Không tìm thấy document share')
         }

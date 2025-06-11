@@ -18,9 +18,7 @@ const Edit = ({ formData, handleClose, commentId  }) => {
     //   console.log('Form data:', formData);
     //   console.log('Comemnt:', commentId);
       const payload = {
-        data: {
           content: formData.inputText,
-        }
       };
       try {
         const response = await apiUpdateDocumentComment({documentId: commentId, payload});
