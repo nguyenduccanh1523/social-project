@@ -5,7 +5,7 @@ import Conversation from "../component/Conversation/conversation";
 import { useSelector } from "react-redux";
 
 const Chat = () => {
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
 
       
   return (
@@ -18,7 +18,7 @@ const Chat = () => {
                 <Card.Body className="chat-page p-0">
                   <div className="chat-data-block">
                     <Row>
-                      <Conversation profile={profile} />
+                      <Conversation profile={user} />
                     </Row>
                   </div>
                 </Card.Body>

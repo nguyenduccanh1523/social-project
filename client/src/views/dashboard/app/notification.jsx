@@ -10,14 +10,15 @@ import Loader from '../../dashboard/icons/uiverse/Loading';
 import Noti from '../component/Notification/notifi'
 
 const Notification = () => {
-   const { profile } = useSelector((state) => state.root.user || {});
-   const userId = profile?.documentId;
+   const { user } = useSelector((state) => state.root.auth || {});
+   const { token } = useSelector((state) => state.root.auth || {});
+   const userId = user?.documentId;
 
    // Sử dụng `useInfiniteQuery` để quản lý phân trang
    const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
-      queryKey: ['notifications', userId],
-      queryFn: ({ pageParam = 1 }) => apiGetNotificationUser({ userId, page: pageParam }),
-      enabled: !!userId,
+      queryKey: ['notifications', userId, token],
+      queryFn: ({ pageParam = 1 }) => apiGetNotificationUser({ userId, page: pageParam, token }),
+      enabled: !!userId && !!token,
       getNextPageParam: (lastPage, allPages) => {
          const totalPages = lastPage?.data?.meta?.pagination?.pageCount || 1;
          const nextPage = allPages.length + 1;

@@ -68,23 +68,23 @@ export const createMessage = async (req, res) => {
     try {
         const messageData = {
             ...req.body,
-            sender_id: req.user.id // Người gửi là người đăng nhập
+            // sender_id: req.user.id // Người gửi là người đăng nhập
         };
         
-        // Kiểm tra dữ liệu đầu vào
-        if (!messageData.conversation_id) {
-            return res.status(400).json({
-                err: -1,
-                message: 'Thiếu thông tin cuộc trò chuyện'
-            });
-        }
+        // // Kiểm tra dữ liệu đầu vào
+        // if (!messageData.conversation_id) {
+        //     return res.status(400).json({
+        //         err: -1,
+        //         message: 'Thiếu thông tin cuộc trò chuyện'
+        //     });
+        // }
         
-        if (!messageData.content && !messageData.media_id) {
-            return res.status(400).json({
-                err: -1,
-                message: 'Tin nhắn phải có nội dung hoặc đính kèm media'
-            });
-        }
+        // if (!messageData.content && !messageData.media_id) {
+        //     return res.status(400).json({
+        //         err: -1,
+        //         message: 'Tin nhắn phải có nội dung hoặc đính kèm media'
+        //     });
+        // }
         
         const newMessage = await messageService.createMessage(messageData);
         

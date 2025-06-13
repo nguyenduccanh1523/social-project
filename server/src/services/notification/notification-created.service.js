@@ -6,13 +6,13 @@ import { Op } from 'sequelize';
 export const createNotificationCreator = async (data) => {
   try {
     const { notification_id, user_id, page_id, group_id, event_id } = data;
-    
+
     // Kiểm tra notification_id có tồn tại không
     const notificationExists = await db.Notification.findByPk(notification_id);
     if (!notificationExists) {
       throw new Error('Thông báo không tồn tại');
     }
-    
+
     // Kiểm tra các đối tượng tạo thông báo tồn tại không
     if (user_id) {
       const userExists = await db.User.findByPk(user_id);
@@ -20,28 +20,28 @@ export const createNotificationCreator = async (data) => {
         throw new Error('Người dùng không tồn tại');
       }
     }
-    
+
     if (page_id) {
       const pageExists = await db.Page.findByPk(page_id);
       if (!pageExists) {
         throw new Error('Trang không tồn tại');
       }
     }
-    
+
     if (group_id) {
       const groupExists = await db.Group.findByPk(group_id);
       if (!groupExists) {
         throw new Error('Nhóm không tồn tại');
       }
     }
-    
+
     if (event_id) {
       const eventExists = await db.Event.findByPk(event_id);
       if (!eventExists) {
         throw new Error('Sự kiện không tồn tại');
       }
     }
-    
+
     // Tạo thông tin người tạo thông báo
     const notificationCreated = await db.NotificationCreated.create({
       notification_id,
@@ -50,7 +50,7 @@ export const createNotificationCreator = async (data) => {
       group_id: group_id || null,
       event_id: event_id || null
     });
-    
+
     return await getNotificationCreatorById(notificationCreated.documentId);
   } catch (error) {
     throw new Error(`Lỗi khi tạo thông tin người tạo thông báo: ${error.message}`);
@@ -61,29 +61,29 @@ export const createNotificationCreator = async (data) => {
 export const getAllNotificationCreators = async (query) => {
   try {
     const { notification_id, user_id, page_id, group_id, event_id } = query;
-    
+
     let condition = {};
-    
+
     if (notification_id) {
       condition.notification_id = notification_id;
     }
-    
+
     if (user_id) {
       condition.user_id = user_id;
     }
-    
+
     if (page_id) {
       condition.page_id = page_id;
     }
-    
+
     if (group_id) {
       condition.group_id = group_id;
     }
-    
+
     if (event_id) {
       condition.event_id = event_id;
     }
-    
+
     const creators = await db.NotificationCreated.findAll({
       where: condition,
       include: [
@@ -100,26 +100,54 @@ export const getAllNotificationCreators = async (query) => {
         {
           model: db.User,
           as: 'user',
-          attributes: ['documentId', 'firstName', 'lastName', 'avatar']
+          attributes: ['documentId', 'username'],
+          include: [
+            {
+              model: db.Media,
+              as: 'avatarMedia',
+              attributes: ['documentId', 'file_path']
+            }
+          ]
         },
         {
           model: db.Page,
           as: 'page',
-          attributes: ['documentId', 'name', 'avatar']
+          attributes: ['documentId', 'page_name'],
+          iclude: [
+            {
+              model: db.Media,
+              as: 'profileImage',
+              attributes: ['documentId', 'file_path']
+            }
+          ]
         },
         {
           model: db.Group,
           as: 'group',
-          attributes: ['documentId', 'name', 'avatar']
+          attributes: ['documentId', 'group_name'],
+          include: [
+            {
+              model: db.Media,
+              as: 'image',
+              attributes: ['documentId', 'file_path']
+            },
+          ]
         },
         {
           model: db.Event,
           as: 'event',
-          attributes: ['documentId', 'name', 'image']
+          attributes: ['documentId', 'name'],
+          include: [
+            {
+              model: db.Media,
+              as: "image",
+              attributes: ["documentId", "file_path"],
+            },
+          ]
         }
       ]
     });
-    
+
     return creators;
   } catch (error) {
     throw new Error(`Lỗi khi lấy danh sách người tạo thông báo: ${error.message}`);
@@ -144,30 +172,58 @@ export const getNotificationCreatorById = async (id) => {
         {
           model: db.User,
           as: 'user',
-          attributes: ['documentId', 'firstName', 'lastName', 'avatar']
+          attributes: ['documentId', 'username'],
+          include: [
+            {
+              model: db.Media,
+              as: 'avatarMedia',
+              attributes: ['documentId', 'file_path']
+            }
+          ]
         },
         {
           model: db.Page,
           as: 'page',
-          attributes: ['documentId', 'name', 'avatar']
+          attributes: ['documentId', 'page_name'],
+          iclude: [
+            {
+              model: db.Media,
+              as: 'profileImage',
+              attributes: ['documentId', 'file_path']
+            }
+          ]
         },
         {
           model: db.Group,
           as: 'group',
-          attributes: ['documentId', 'name', 'avatar']
+          attributes: ['documentId', 'group_name'],
+          include: [
+            {
+              model: db.Media,
+              as: 'image',
+              attributes: ['documentId', 'file_path']
+            },
+          ]
         },
         {
           model: db.Event,
           as: 'event',
-          attributes: ['documentId', 'name', 'image']
+          attributes: ['documentId', 'name'],
+          include: [
+            {
+              model: db.Media,
+              as: "image",
+              attributes: ["documentId", "file_path"],
+            },
+          ]
         }
       ]
     });
-    
+
     if (!creator) {
       throw new Error('Thông tin người tạo thông báo không tồn tại');
     }
-    
+
     return creator;
   } catch (error) {
     throw new Error(`Lỗi khi lấy thông tin người tạo thông báo: ${error.message}`);
@@ -178,12 +234,12 @@ export const getNotificationCreatorById = async (id) => {
 export const updateNotificationCreator = async (id, data) => {
   try {
     const { user_id, page_id, group_id, event_id } = data;
-    
+
     const creator = await db.NotificationCreated.findByPk(id);
     if (!creator) {
       throw new Error('Thông tin người tạo thông báo không tồn tại');
     }
-    
+
     // Kiểm tra các đối tượng tạo thông báo tồn tại không
     if (user_id) {
       const userExists = await db.User.findByPk(user_id);
@@ -191,28 +247,28 @@ export const updateNotificationCreator = async (id, data) => {
         throw new Error('Người dùng không tồn tại');
       }
     }
-    
+
     if (page_id) {
       const pageExists = await db.Page.findByPk(page_id);
       if (!pageExists) {
         throw new Error('Trang không tồn tại');
       }
     }
-    
+
     if (group_id) {
       const groupExists = await db.Group.findByPk(group_id);
       if (!groupExists) {
         throw new Error('Nhóm không tồn tại');
       }
     }
-    
+
     if (event_id) {
       const eventExists = await db.Event.findByPk(event_id);
       if (!eventExists) {
         throw new Error('Sự kiện không tồn tại');
       }
     }
-    
+
     // Cập nhật thông tin người tạo thông báo
     await creator.update({
       user_id: user_id !== undefined ? user_id : creator.user_id,
@@ -220,7 +276,7 @@ export const updateNotificationCreator = async (id, data) => {
       group_id: group_id !== undefined ? group_id : creator.group_id,
       event_id: event_id !== undefined ? event_id : creator.event_id
     });
-    
+
     return await getNotificationCreatorById(id);
   } catch (error) {
     throw new Error(`Lỗi khi cập nhật thông tin người tạo thông báo: ${error.message}`);
@@ -234,10 +290,10 @@ export const deleteNotificationCreator = async (id) => {
     if (!creator) {
       throw new Error('Thông tin người tạo thông báo không tồn tại');
     }
-    
+
     // Xóa thông tin người tạo thông báo
     await creator.destroy();
-    
+
     return { message: 'Xóa thông tin người tạo thông báo thành công' };
   } catch (error) {
     throw new Error(`Lỗi khi xóa thông tin người tạo thông báo: ${error.message}`);

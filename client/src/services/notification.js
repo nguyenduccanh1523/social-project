@@ -55,12 +55,15 @@ export const apiEditGroupNotification = ({ documentId, payload, token }) =>
 
 
 
-export const apiGetNotificationUser = ({ userId, page = 1 }) =>
+export const apiGetNotificationUser = ({ userId, page = 1, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/user-notifications?sort=createdAt:DESC&filters[$and][0][users_permissions_user][documentId][$eq]=${userId}&pagination[pageSize]=20&pagination[page]=${page}&populate=*`,
+                url: `/user-notifications?pagination[pageSize]=20&pagination[page]=${page}&populate=*&sort=createdAt:DESC&userId=${userId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
@@ -95,12 +98,15 @@ export const apiGetNotificationCreated = ({ documentId }) =>
         }
     })
 
-export const apiGetUserNoti = ({ notiId, userId }) =>
+export const apiGetUserNoti = ({ notiId, userId, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
                 method: "get",
-                url: `/user-notifications?populate=*&filters[$and][0][users_permissions_user][documentId][$eq]=${userId}&filters[$and][1][notification][documentId][$eq]=${notiId}`,
+                url: `/user-notifications?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}&notificationId=${notiId}`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             });
             resolve(response);
         } catch (error) {
@@ -109,7 +115,7 @@ export const apiGetUserNoti = ({ notiId, userId }) =>
     })
 
 
-export const apiUpdateUserNoti = ({ documentId, payload }) =>
+export const apiUpdateUserNoti = ({ documentId, payload, token }) =>
     new Promise(async (resolve, reject) => {
         try {
             const response = await axiosConfig({
@@ -117,7 +123,8 @@ export const apiUpdateUserNoti = ({ documentId, payload }) =>
                 url: `/user-notifications/${documentId}`,
                 data: payload,
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 }
             });
             resolve(response);

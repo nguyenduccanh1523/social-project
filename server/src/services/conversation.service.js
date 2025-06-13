@@ -61,25 +61,35 @@ export const getAllConversations = async ({
                 {
                     model: db.User,
                     as: 'creator',
-                    attributes: ['documentId', 'username', 'email', 'avatar_id'],
+                    attributes: ['documentId', 'username', 'email', 'date_of_birth', 'about', 'phone'],
                     include: [
                         {
                             model: db.Media,
                             as: 'avatarMedia',
                             attributes: ['documentId', 'file_path']
-                        }
+                        },
+                        {
+                            model: db.Nation,
+                            as: 'nation',
+                            attributes: ['documentId', 'name']
+                        },
                     ]
                 },
                 {
                     model: db.User,
                     as: 'participant',
-                    attributes: ['documentId', 'username', 'email', 'avatar_id'],
+                    attributes: ['documentId', 'username', 'email', 'date_of_birth', 'about', 'phone'],
                     include: [
                         {
                             model: db.Media,
                             as: 'avatarMedia',
                             attributes: ['documentId', 'file_path']
-                        }
+                        },
+                        {
+                            model: db.Nation,
+                            as: 'nation',
+                            attributes: ['documentId', 'name']
+                        },
                     ]
                 },
                 {
@@ -218,7 +228,7 @@ export const createConversation = async (conversationData) => {
         }
 
         const newConversation = await db.Conversation.create(conversationData);
-        return await getConversationById(newConversation.documentId);
+        return newConversation
     } catch (error) {
         throw new Error(`Lỗi khi tạo cuộc trò chuyện mới: ${error.message}`);
     }

@@ -15,6 +15,7 @@ import { apiGetConversation } from "../../../../services/conversation";
 import { apiGetParticipantByUser } from "../../../../services/participant";
 
 const Conversation = ({ profile }) => {
+  const { token } = useSelector((state) => state.root.auth || {});
   const dispatch = useDispatch();
   const [showConversations, setShowConversations] = useState(true); // Trạng thái để mở/đóng Conversation
   const [showGroups, setShowGroups] = useState(true); // Trạng thái để mở/đóng Group Conversation
@@ -23,15 +24,15 @@ const Conversation = ({ profile }) => {
   const [searchQuery, setSearchQuery] = useState(""); // Trạng thái tìm kiếm
 
   const { data: conversationsData } = useQuery({
-    queryKey: ['conversations', profile?.documentId],
-    queryFn: () => apiGetConversation({userId: profile?.documentId}),
-    enabled: !!profile?.documentId
+    queryKey: ['conversations', profile?.documentId, token],
+    queryFn: () => apiGetConversation({userId: profile?.documentId, token}),
+    enabled: !!profile?.documentId && !!token
   });
 
   const { data: participantsData } = useQuery({
-    queryKey: ['participants', profile?.documentId],
-    queryFn: () => apiGetParticipantByUser({userId: profile?.documentId}),
-    enabled: !!profile?.documentId
+    queryKey: ['participants', profile?.documentId, token],
+    queryFn: () => apiGetParticipantByUser({userId: profile?.documentId, token}),
+    enabled: !!profile?.documentId && !!token
   });
 
   const conversations = conversationsData?.data?.data || [];
@@ -45,20 +46,23 @@ const Conversation = ({ profile }) => {
     setSearchQuery(value); // Cập nhật giá trị tìm kiếm khi người dùng nhập
   };
 
+  console.log('conver', conversations)
+  console.log('parti', participants)
+
   // Lọc các cuộc trò chuyện theo query tìm kiếm
   const filteredConversations = conversations.filter((item) => {
     // Kiểm tra nếu conversation_created_by là profile hiện tại
     const username =
-      item?.conversation_created_by?.documentId === profile?.documentId
-        ? item?.user_chated_with?.username
-        : item?.conversation_created_by?.username;
+      item?.creator?.documentId === profile?.documentId
+        ? item?.participant?.username
+        : item?.creator?.username;
 
     // So sánh tên người nhắn với query tìm kiếm (tìm kiếm không phân biệt chữ hoa chữ thường)
     return username?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const filteredParticipants = participants.filter((participant) => {
-    return participant?.conversation_id?.name
+    return participant?.conversation?.name
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
   });
@@ -71,7 +75,7 @@ const Conversation = ({ profile }) => {
             <div className="avatar me-2">
               <img
                 loading="lazy"
-                src={profile?.profile_picture}
+                src={profile?.avatarMedia?.file_path}
                 alt="chatuserimage"
                 className="avatar-60"
               />
@@ -112,12 +116,12 @@ const Conversation = ({ profile }) => {
             <Nav as="ul" variant="pills" className="iq-chat-ui nav flex-column">
               {filteredConversations?.map((item, index) => {
                 const isCreatedByProfile =
-                  item?.conversation_created_by?.documentId ===
+                  item?.creator?.documentId ===
                   profile?.documentId;
 
                 const username = isCreatedByProfile
-                  ? item?.user_chated_with
-                  : item?.conversation_created_by;
+                  ? item?.participant
+                  : item?.creator;
 
                 return (
                   <Nav.Item as="li" key={index}>
@@ -132,7 +136,7 @@ const Conversation = ({ profile }) => {
                         <div className="avatar me-2">
                           <img
                             loading="lazy"
-                            src={username?.profile_picture}
+                            src={username?.avatarMedia?.file_path}
                             alt="chatuserimage"
                             className="avatar-50"
                           />
@@ -168,19 +172,19 @@ const Conversation = ({ profile }) => {
               {filteredParticipants?.map((item, index) => (
                 <li key={index}>
                   <Nav.Link
-                    eventKey={`conversation-${item?.conversation_id?.documentId}`}
+                    eventKey={`conversation-${item?.conversation?.documentId}`}
                     onClick={() =>
                       setShow(
-                        `conversation-${item?.conversation_id?.documentId}`
+                        `conversation-${item?.conversation?.documentId}`
                       )
                     }
-                    href={`#${item?.conversation_id?.documentId}`}
+                    href={`#${item?.conversation?.documentId}`}
                   >
                     <div className="d-flex align-items-center">
                       <div className="avatar me-2">
                         <img
                           loading="lazy"
-                          src={item?.conversation_id?.image_group_chat}
+                          src={item?.conversation?.groupImage?.file_path}
                           alt="chatuserimage"
                           className="avatar-50 "
                         />
@@ -189,7 +193,7 @@ const Conversation = ({ profile }) => {
                         </span>
                       </div>
                       <div className="chat-sidebar-name">
-                        <h6 className="mb-0">{item?.conversation_id?.name}</h6>
+                        <h6 className="mb-0">{item?.conversation?.name}</h6>
                         <span>There are many </span>
                       </div>
                     </div>
@@ -227,11 +231,11 @@ const Conversation = ({ profile }) => {
           </Tab.Pane>
           {filteredConversations?.map((item, index) => {
             const isCreatedByProfile =
-              item?.conversation_created_by?.documentId === profile?.documentId;
+              item?.creator?.documentId === profile?.documentId;
 
             const username = isCreatedByProfile
-              ? item?.user_chated_with
-              : item?.conversation_created_by;
+              ? item?.participant
+              : item?.creator;
 
             return (
               <Tab.Pane
@@ -254,7 +258,7 @@ const Conversation = ({ profile }) => {
                       <div className="avatar chat-user-profile m-0 me-3 ">
                         <img
                           loading="lazy"
-                          src={username?.profile_picture}
+                          src={username?.avatarMedia?.file_path}
                           alt="avatar"
                           className="avatar-50 "
                           onClick={() => setShow1("true")}
@@ -319,9 +323,9 @@ const Conversation = ({ profile }) => {
             return (
               <Tab.Pane
                 key={index}
-                eventKey={`conversation-${item?.conversation_id?.documentId}`} // Đặt eventKey giống với Nav.Link
+                eventKey={`conversation-${item?.conversation?.documentId}`} // Đặt eventKey giống với Nav.Link
                 className={`tab-pane fade ${
-                  show === `conversation-${item?.conversation_id?.documentId}`
+                  show === `conversation-${item?.conversation?.documentId}`
                     ? "show active"
                     : ""
                 }`}
@@ -337,7 +341,7 @@ const Conversation = ({ profile }) => {
                       <div className="avatar chat-user-profile m-0 me-3 ">
                         <img
                           loading="lazy"
-                          src={item?.conversation_id?.image_group_chat}
+                          src={item?.conversation?.groupImage?.file_path}
                           alt="avatar"
                           className="avatar-50 "
                           onClick={() => setShow1("true")}
@@ -349,7 +353,7 @@ const Conversation = ({ profile }) => {
                           </i>
                         </span>
                       </div>
-                      <h5 className="mb-0">{item?.conversation_id?.name}</h5>
+                      <h5 className="mb-0">{item?.conversation?.name}</h5>
                     </div>
                     <div
                       className={`scroller ${show1 === "true" ? "show" : ""}`}
@@ -380,7 +384,7 @@ const Conversation = ({ profile }) => {
                             close
                           </i>
                         </Button>
-                        <ProfileMessager user={item?.conversation_id} />
+                        <ProfileMessager user={item?.conversation} />
                       </div>
                     </div>
                     <HeaderMessager />
@@ -389,12 +393,12 @@ const Conversation = ({ profile }) => {
 
                 {/* Nội dung chat */}
                 <ContentMessager
-                  item={item?.conversation_id?.documentId}
+                  item={item?.conversation?.documentId}
                   profile={profile}
                   //username={item?.conversation_id?.name}
                 />
 
-                <SendMessager conversation={item?.conversation_id?.documentId} />
+                <SendMessager conversation={item?.conversation?.documentId} />
               </Tab.Pane>
             );
           })}

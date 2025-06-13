@@ -6,97 +6,52 @@ import { useSelector } from 'react-redux'
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { getTagColorAndIcon } from '../../../../views/dashboard/others/format';
 
-import { apiGetFindNotification, apiGetNotificationCreated, apiGetUserNoti, apiUpdateUserNoti } from '../../../../services/notification';
-import { apiGetPageDetail } from '../../../../services/page'
-import { apiFindOneGroup } from '../../../../services/groupServices/group'
-import { apiGetEventDetail } from '../../../../services/eventServices/event'
+import { apiGetUserNoti, apiUpdateUserNoti } from '../../../../services/notification';
 import { formatDistanceToNow } from 'date-fns'
 import IsRead from './isRead'
 import NotiModal from './NotiModal';
 
 const Noti = ({ notification }) => {
-    const { profile } = useSelector((state) => state.root.user || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
+
+
     const queryClient = useQueryClient();
-    const { data: Notifi } = useQuery({
-        queryKey: ['notifi', notification?.notification?.documentId],
-        queryFn: () => apiGetFindNotification({ notiId: notification?.notification?.documentId }),
-        enabled: !!notification?.notification?.documentId,
-        staleTime: 600000, // 10 minutes
-        refetchOnWindowFocus: false,
-    });
-    const Noti = Notifi?.data?.data || {};
-    const { color, icon } = getTagColorAndIcon(Noti?.notice_type?.name);
-    //console.log('Noti:', Noti);
-
-    const { data: Notifi_created } = useQuery({
-        queryKey: ['notifi_cre', Noti?.notification_createds?.[0]?.documentId],
-        queryFn: () => apiGetNotificationCreated({ documentId: Noti?.notification_createds?.[0]?.documentId }),
-        enabled: !!Noti?.notification_createds?.[0]?.documentId,
-        staleTime: 600000, // 10 minutes
-        refetchOnWindowFocus: false,
-    });
-
-    const Noti_cre = Notifi_created?.data?.data || {};
-
-    const { data: pageData } = useQuery({
-        queryKey: ['pagedt', Noti_cre?.page?.documentId],
-        queryFn: () => Noti_cre?.page?.documentId ? apiGetPageDetail({ pageId: Noti_cre.page.documentId }) : Promise.resolve({ data: { data: {} } }),
-        enabled: !!Noti_cre?.page?.documentId,
-        staleTime: 600000, // 10 minutes
-        refetchOnWindowFocus: false,
-    });
-
-    const page = pageData?.data?.data || {};
-
-    const { data: groupData } = useQuery({
-        queryKey: ['groupdt', Noti_cre?.group?.documentId],
-        queryFn: () => Noti_cre?.group?.documentId ? apiFindOneGroup({ groupId: Noti_cre.group.documentId }) : Promise.resolve({ data: { data: {} } }),
-        enabled: !!Noti_cre?.group?.documentId,
-        staleTime: 600000, // 10 minutes
-        refetchOnWindowFocus: false,
-    });
-
-    const group = groupData?.data?.data || {};
-
-    const { data: eventData } = useQuery({
-        queryKey: ['eventdt', Noti_cre?.event?.documentId],
-        queryFn: () => Noti_cre?.event?.documentId ? apiGetEventDetail({ eventId: Noti_cre.event.documentId }) : Promise.resolve({ data: { data: {} } }),
-        enabled: !!Noti_cre?.event?.documentId,
-        staleTime: 600000, // 10 minutes
-        refetchOnWindowFocus: false,
-    });
-
-    const event = eventData?.data?.data || {};
+    // const { data: Notifi } = useQuery({
+    //     queryKey: ['notifi', notification?.notification?.documentId],
+    //     queryFn: () => apiGetFindNotification({ notiId: notification?.notification?.documentId }),
+    //     enabled: !!notification?.notification?.documentId,
+    //     staleTime: 600000, // 10 minutes
+    //     refetchOnWindowFocus: false,
+    // });
+    // const Noti = Notifi?.data?.data || {};
+    const { color, icon } = getTagColorAndIcon(notification?.notification?.noticeType?.name);
 
     const [showModal, setShowModal] = useState(false);
     const handleShowModal = async () => {
         setShowModal(true);
-        const respone1 = await apiGetUserNoti({ notiId: Noti?.documentId, userId: profile?.documentId });
+        const respone1 = await apiGetUserNoti({ notiId: notification?.notification_id, userId: user?.documentId, token });
         const dataNotiUser1 = respone1?.data?.data?.[0] || {};
         if (dataNotiUser1?.is_read === false) {
             const payload = {
-                data: {
                     is_read: true
-                }
             }
-            await apiUpdateUserNoti({ documentId: dataNotiUser1?.documentId, payload });
-            queryClient.invalidateQueries('notifi');
+            await apiUpdateUserNoti({ documentId: dataNotiUser1?.documentId, payload, token });
+            queryClient.invalidateQueries('notifications');
         };
     };
 
     const handleCloseModal = () => setShowModal(false);
 
     const handleMarkAsRead = async () => {
-        const respone = await apiGetUserNoti({ notiId: Noti?.documentId, userId: profile?.documentId });
+        const respone = await apiGetUserNoti({ notiId: notification?.notification_id, userId: user?.documentId, token });
         const dataNotiUser = respone?.data?.data?.[0] || {};
         if (dataNotiUser?.is_read === false) {
             const payload = {
-                data: {
                     is_read: true
-                }
             }
-            await apiUpdateUserNoti({ documentId: dataNotiUser?.documentId, payload });
-            queryClient.invalidateQueries('notifi');
+            await apiUpdateUserNoti({ documentId: dataNotiUser?.documentId, payload, token });
+            queryClient.invalidateQueries('notifications');
             // Optionally, refetch or update the notification state here
         }
     };
@@ -105,22 +60,22 @@ const Noti = ({ notification }) => {
     return (
         <>
             <div className="user-img img-fluid">
-                <img src={Noti_cre?.users_id?.profile_picture || page?.profile_picture?.file_path || group?.media?.file_path || event?.banner_id?.file_path} alt="story-img" className="rounded-circle avatar-40" />
+                <img src={notification?.notification?.creators?.[0]?.user?.avatarMedia?.file_path || notification?.notification?.creators?.[0]?.page?.profileImage?.file_path || notification?.notification?.creators?.[0]?.group?.image?.file_path || notification?.notification?.creators?.[0]?.event?.image?.file_path} alt="story-img" className="rounded-circle avatar-40" />
             </div>
             <div className="w-100">
                 <div className="d-flex justify-content-between">
                     <div className="ms-3">
-                        <h6>{Noti?.title || 'New Notification'}</h6>
-                        {Noti && (<p className="mb-0">{Noti?.createdAt ? formatDistanceToNow(new Date(Noti.createdAt), { addSuffix: true }) : ''}</p>)}
+                        <h6>{notification?.notification?.title || 'New Notification'}</h6>
+                        {notification && (<p className="mb-0">{notification ? formatDistanceToNow(new Date(notification?.createdAt), { addSuffix: true }) : ''}</p>)}
                     </div>
                     <div className="d-flex align-items-center">
                         <Tag color={color} className="me-3 d-flex align-items-center gap-2">
                             <i className="material-symbols-outlined md-18">
                                 {icon}
                             </i>
-                            {Noti?.notice_type?.name}
+                            {notification?.notification?.noticeType?.name}
                         </Tag>
-                        <IsRead noti={Noti} />
+                        <IsRead noti={notification} />
                         <div className="card-header-toolbar d-flex align-items-center">
                             <Dropdown>
                                 <Link to="#">
@@ -148,7 +103,7 @@ const Noti = ({ notification }) => {
                     </div>
                 </div>
             </div>
-            <NotiModal show={showModal} handleClose={handleCloseModal} notification={Noti} user={Noti_cre?.users_id} page={page} group={group} event={event} />
+            <NotiModal show={showModal} handleClose={handleCloseModal} notification={notification} user={notification?.notification?.creators?.[0]?.user} page={notification?.notification?.creators?.[0]?.page} group={notification?.notification?.creators?.[0]?.group} event={notification?.notification?.creators?.[0]?.event} />
         </>
     )
 

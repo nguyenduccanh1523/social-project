@@ -14,7 +14,7 @@ export const getAllUserNotifications = async ({
     notificationId = null
 }) => {
     try {
-        
+
         const offset = (page - 1) * pageSize;
         const whereConditions = {};
 
@@ -41,7 +41,7 @@ export const getAllUserNotifications = async ({
                 {
                     model: db.User,
                     as: 'user',
-                    attributes: ['documentId', 'username', 'email', 'avatar_id']
+                    attributes: ['documentId', 'username']
                 },
                 {
                     model: db.Notification,
@@ -56,27 +56,55 @@ export const getAllUserNotifications = async ({
                         {
                             model: db.NotificationCreated,
                             as: 'creators',
-                            attributes: ['documentId', 'user_id', 'page_id', 'group_id', 'event_id', 'createdAt'],
+                            attributes: ['documentId'],
                             include: [
                                 {
                                     model: db.User,
                                     as: 'user',
-                                    attributes: ['documentId', 'username', 'email', 'avatar_id']
+                                    attributes: ['documentId', 'username'],
+                                    include: [
+                                        {
+                                            model: db.Media,
+                                            as: 'avatarMedia',
+                                            attributes: ['documentId', 'file_path']
+                                        }
+                                    ]
                                 },
                                 {
                                     model: db.Page,
                                     as: 'page',
-                                    attributes: ['documentId', 'page_name']
+                                    attributes: ['documentId', 'page_name'],
+                                    iclude: [
+                                        {
+                                            model: db.Media,
+                                            as: 'profileImage',
+                                            attributes: ['documentId', 'file_path']
+                                        }
+                                    ]
                                 },
                                 {
                                     model: db.Group,
                                     as: 'group',
-                                    attributes: ['documentId', 'group_name']
+                                    attributes: ['documentId', 'group_name'],
+                                    include: [
+                                        {
+                                            model: db.Media,
+                                            as: 'image',
+                                            attributes: ['documentId', 'file_path']
+                                        },
+                                    ]
                                 },
                                 {
                                     model: db.Event,
                                     as: 'event',
-                                    attributes: ['documentId', 'name']
+                                    attributes: ['documentId', 'name'],
+                                    include: [
+                                        {
+                                            model: db.Media,
+                                            as: "image",
+                                            attributes: ["documentId", "file_path"],
+                                        },
+                                    ]
                                 }
                             ]
                         }
@@ -187,7 +215,7 @@ export const createUserNotification = async (userNotificationData) => {
 export const updateUserNotification = async (documentId, userNotificationData) => {
     try {
         const userNotification = await db.UserNotification.findByPk(documentId);
-        
+
         if (!userNotification) {
             throw new Error('Không tìm thấy thông báo người dùng');
         }
@@ -203,16 +231,16 @@ export const updateUserNotification = async (documentId, userNotificationData) =
 export const markAsRead = async (documentId) => {
     try {
         const userNotification = await db.UserNotification.findByPk(documentId);
-        
+
         if (!userNotification) {
             throw new Error('Không tìm thấy thông báo người dùng');
         }
 
-        await userNotification.update({ 
+        await userNotification.update({
             is_read: true,
             read_at: new Date()
         });
-        
+
         return await getUserNotificationById(documentId);
     } catch (error) {
         throw new Error(`Lỗi khi đánh dấu đã đọc thông báo: ${error.message}`);
@@ -223,7 +251,7 @@ export const markAsRead = async (documentId) => {
 export const markAllAsRead = async (userId) => {
     try {
         await db.UserNotification.update(
-            { 
+            {
                 is_read: true,
                 read_at: new Date()
             },
@@ -234,7 +262,7 @@ export const markAllAsRead = async (userId) => {
                 }
             }
         );
-        
+
         return { message: 'Đã đánh dấu tất cả thông báo là đã đọc' };
     } catch (error) {
         throw new Error(`Lỗi khi đánh dấu tất cả thông báo đã đọc: ${error.message}`);
@@ -245,7 +273,7 @@ export const markAllAsRead = async (userId) => {
 export const deleteUserNotification = async (documentId) => {
     try {
         const userNotification = await db.UserNotification.findByPk(documentId);
-        
+
         if (!userNotification) {
             throw new Error('Không tìm thấy thông báo người dùng');
         }

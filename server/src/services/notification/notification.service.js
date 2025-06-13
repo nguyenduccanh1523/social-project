@@ -6,13 +6,13 @@ import { Op } from 'sequelize';
 export const createNotification = async (data) => {
   try {
     const { title, content, link, is_global = false, notice_type_id, creator } = data;
-    
+
     // Kiểm tra notice_type_id có tồn tại không
     const noticeTypeExists = await db.NoticeType.findByPk(notice_type_id);
     if (!noticeTypeExists) {
       throw new Error('Loại thông báo không tồn tại');
     }
-    
+
     // Tạo thông báo
     const notification = await db.Notification.create({
       title,
@@ -21,7 +21,7 @@ export const createNotification = async (data) => {
       is_global,
       notice_type_id
     });
-    
+
     // Tạo thông tin người tạo thông báo
     if (creator) {
       const { user_id, page_id, group_id, event_id } = creator;
@@ -33,9 +33,7 @@ export const createNotification = async (data) => {
         event_id: event_id || null
       });
     }
-    
-    // Lấy thông báo với các quan hệ
-    return await getNotificationById(notification.documentId);
+
   } catch (error) {
     throw new Error(`Lỗi khi tạo thông báo: ${error.message}`);
   }
@@ -52,9 +50,9 @@ export const getAllNotifications = async ({
     if (notice_type_id) {
       condition.notice_type_id = notice_type_id;
     }
-    
+
     const offset = (page - 1) * limit;
-    
+
     const { count, rows: notifications } = await db.Notification.findAndCountAll({
       where: condition,
       include: [
@@ -69,22 +67,50 @@ export const getAllNotifications = async ({
             {
               model: db.User,
               as: 'user',
-              attributes: ['documentId', 'firstName', 'lastName', 'avatar']
+              attributes: ['documentId', 'username'],
+              include: [
+                {
+                  model: db.Media,
+                  as: 'avatarMedia',
+                  attributes: ['documentId', 'file_path']
+                }
+              ]
             },
             {
               model: db.Page,
               as: 'page',
-              attributes: ['documentId', 'name', 'avatar']
+              attributes: ['documentId', 'page_name'],
+              iclude: [
+                {
+                  model: db.Media,
+                  as: 'profileImage',
+                  attributes: ['documentId', 'file_path']
+                }
+              ]
             },
             {
               model: db.Group,
               as: 'group',
-              attributes: ['documentId', 'name', 'avatar']
+              attributes: ['documentId', 'group_name'],
+              include: [
+                {
+                  model: db.Media,
+                  as: 'image',
+                  attributes: ['documentId', 'file_path']
+                },
+              ]
             },
             {
               model: db.Event,
               as: 'event',
-              attributes: ['documentId', 'name', 'image']
+              attributes: ['documentId', 'name'],
+              include: [
+                {
+                  model: db.Media,
+                  as: "image",
+                  attributes: ["documentId", "file_path"],
+                },
+              ]
             }
           ]
         }
@@ -93,7 +119,7 @@ export const getAllNotifications = async ({
       limit,
       offset
     });
-    
+
     return {
       data: notifications,
       meta: {
@@ -126,7 +152,7 @@ export const getNotificationById = async (id) => {
             {
               model: db.User,
               as: 'user',
-              attributes: ['documentId', 'firstName', 'lastName', 'avatar']
+              attributes: ['documentId', 'username']
             },
             {
               model: db.Page,
@@ -147,11 +173,11 @@ export const getNotificationById = async (id) => {
         }
       ]
     });
-    
+
     if (!notification) {
       throw new Error('Thông báo không tồn tại');
     }
-    
+
     return notification;
   } catch (error) {
     throw new Error(`Lỗi khi lấy thông tin thông báo: ${error.message}`);
@@ -162,12 +188,12 @@ export const getNotificationById = async (id) => {
 export const updateNotification = async (id, data) => {
   try {
     const { title, content, link, is_global, is_read, notice_type_id } = data;
-    
+
     const notification = await db.Notification.findByPk(id);
     if (!notification) {
       throw new Error('Thông báo không tồn tại');
     }
-    
+
     // Nếu có notice_type_id, kiểm tra tồn tại không
     if (notice_type_id) {
       const noticeTypeExists = await db.NoticeType.findByPk(notice_type_id);
@@ -175,7 +201,7 @@ export const updateNotification = async (id, data) => {
         throw new Error('Loại thông báo không tồn tại');
       }
     }
-    
+
     // Cập nhật thông báo
     await notification.update({
       title: title !== undefined ? title : notification.title,
@@ -185,7 +211,7 @@ export const updateNotification = async (id, data) => {
       is_read: is_read !== undefined ? is_read : notification.is_read,
       notice_type_id: notice_type_id || notification.notice_type_id
     });
-    
+
     return await getNotificationById(id);
   } catch (error) {
     throw new Error(`Lỗi khi cập nhật thông báo: ${error.message}`);
@@ -199,10 +225,10 @@ export const deleteNotification = async (id) => {
     if (!notification) {
       throw new Error('Thông báo không tồn tại');
     }
-    
+
     // Xóa thông báo
     await notification.destroy();
-    
+
     return { message: 'Xóa thông báo thành công' };
   } catch (error) {
     throw new Error(`Lỗi khi xóa thông báo: ${error.message}`);
