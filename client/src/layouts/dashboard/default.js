@@ -1,6 +1,6 @@
 import React from 'react'
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notification } from 'antd';
+import { BellFilled } from '@ant-design/icons';
 
 //header
 import Header from '../../components/partials/HeaderStyle/header'
@@ -28,42 +28,6 @@ import { useEffect } from 'react'
 import socket from '../../socket'
 // import { notification } from "antd";
 import { useState } from 'react'
-
-const CustomNotificationToast = ({ notificationData }) => {
-    // Sử dụng màu tím đồng nhất cho avatar như trong ảnh
-    const avatarBackground = '#8e24aa'; 
-    const iconColor = 'white'; 
-
-    return (
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0' }}>
-            <div style={{
-                width: '50px',
-                height: '50px',
-                borderRadius: '50%',
-                background: avatarBackground,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                color: iconColor,
-                fontSize: '32px',
-                fontWeight: 'bold',
-                marginRight: '15px',
-                flexShrink: 0
-            }}>
-                &#63; {/* HTML entity cho dấu hỏi */}
-            </div>
-            <div>
-                <strong style={{ display: 'block', color: 'white', fontSize: '16px', marginBottom: '3px' }}>
-                    🔔 {notificationData.title || "Thông báo mới"} {/* Thêm biểu tượng chuông */}
-                </strong>
-                <span style={{ color: '#cccccc', fontSize: '14px' }}>
-                    {notificationData.content || "Bạn có thông báo mới!"}
-                </span>
-            </div>
-        </div>
-    );
-};
-
 
 const Default = () => {
     const { user } = useSelector(state => state.root.auth || {});
@@ -102,20 +66,26 @@ const Default = () => {
         if (!isRegistered) return;
 
         const handler = (notificationData) => {
-            // console.log("📨 [SOCKET] Nhận thông báo:", notificationData);
-            toast.info(<CustomNotificationToast notificationData={notificationData} />, {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: true, // Ẩn thanh tiến trình
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                theme: "dark", // Sử dụng theme tối cho giao diện toast tổng thể
-                closeButton: false, // Ẩn nút đóng mặc định
+            notification.info({
+                message: (
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <BellFilled style={{ color: '#FFD700', fontSize: '32px', marginRight: '15px' }} />
+                        <div>
+                            <strong style={{ display: 'block', color: 'white', fontSize: '16px', marginBottom: '3px' }}>
+                                {notificationData.title || "Thông báo mới"}
+                            </strong>
+                            <span style={{ color: '#cccccc', fontSize: '14px' }}>
+                                {notificationData.content || "Bạn có thông báo mới!"}
+                            </span>
+                        </div>
+                    </div>
+                ),
+                placement: 'topRight',
+                duration: 5,
                 style: {
                     borderRadius: '8px',
-                    padding: '12px 15px 12px 5px',
-                    backgroundColor: '#2d3a4b', // Màu nền tối từ hình ảnh
+                    padding: '15px 20px',
+                    backgroundColor: '#2d3a4b',
                     overflow: 'hidden',
                 },
             });
@@ -140,7 +110,6 @@ const Default = () => {
             <RightSidebar />
             <Footer />
             <SettingOffCanvas />
-            <ToastContainer /> {/* ToastContainer đơn giản, hầu hết các tùy chọn được truyền cho các lệnh gọi toast riêng lẻ */}
         </>
     )
 }
