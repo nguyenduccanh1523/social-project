@@ -1,19 +1,7 @@
-import React, { useEffect, useState } from "react";
-import {
-  Row,
-  Col,
-  Container,
-  Dropdown,
-  OverlayTrigger,
-  Tooltip,
-  Modal,
-} from "react-bootstrap";
+import React from "react";
 import { Link } from "react-router-dom";
 import Card from "../../../../components/Card";
-import CustomToggle from "../../../../components/dropdowns";
-//import ShareOffcanvas from '../../components/share-offcanvas'
 
-import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 //image
@@ -21,93 +9,79 @@ import "react-toastify/dist/ReactToastify.css";
 import img42 from "../../../../assets/images/page-img/42.png";
 import img9 from "../../../../assets/images/small/img-1.jpg";
 import img10 from "../../../../assets/images/small/img-2.jpg";
+import { useState } from "react";
+import { apiGetGroup } from "../../../../services/groupServices/group";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
 
 
 const SuggestedGroup = () => {
+    const { token } = useSelector((state) => state.root.auth || {})
+    const [randomPages, setRandomPages] = useState([]);
+
+    // Hàm lấy ngẫu nhiên 3 phần tử từ mảng
+    const getRandomItems = (array) => {
+        return [...array].sort(() => 0.5 - Math.random()).slice(0, 3);
+    };
+
+    useEffect(() => {
+        const fetchPages = async () => {
+            try {
+                const response = await apiGetGroup({token: token});
+                const allPages = response.data?.data || [];
+                // Lấy ngay 3 trang ngẫu nhiên khi fetch xong
+                setRandomPages(getRandomItems(allPages));
+            } catch (error) {
+                console.error("Error fetching pages:", error);
+            }
+        };
+        fetchPages();
+    }, []); // Chỉ
+    //  chạy 1 lần khi component mount
+    //console.log("randomPages", randomPages);
     return (
         <>
 
             <Card>
                 <div className="card-header d-flex justify-content-between">
                     <div className="header-title">
-                        <h4 className="card-title">Suggested Pages</h4>
-                    </div>
-                    <div className="card-header-toolbar d-flex align-items-center">
-                        <Dropdown>
-                            <Dropdown.Toggle as={CustomToggle}>
-                                <i className="ri-more-fill h4"></i>
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu
-                                className="dropdown-menu-right"
-                                aria-labelledby="dropdownMenuButton01"
-                            >
-                                <Dropdown.Item href="#">
-                                    <i className="ri-eye-fill me-2"></i>View
-                                </Dropdown.Item>
-                                <Dropdown.Item href="#">
-                                    <i className="ri-delete-bin-6-fill me-2"></i>Delete
-                                </Dropdown.Item>
-                                <Dropdown.Item href="#">
-                                    <i className="ri-pencil-fill me-2"></i>Edit
-                                </Dropdown.Item>
-                                <Dropdown.Item href="#">
-                                    <i className="ri-printer-fill me-2"></i>Print
-                                </Dropdown.Item>
-                                <Dropdown.Item href="#">
-                                    <i className="ri-file-download-fill me-2"></i>Download
-                                </Dropdown.Item>
-                            </Dropdown.Menu>
-                        </Dropdown>
+                        <h4 className="card-title">Suggested Groups</h4>
                     </div>
                 </div>
                 <Card.Body>
                     <ul className="suggested-page-story m-0 p-0 list-inline">
-                        <li className="mb-3">
-                            <div className="d-flex align-items-center mb-3">
-                                <img
-                                    src={img42}
-                                    alt="story-img"
-                                    className="rounded-circle img-fluid avatar-50"
-                                />
-                                <div className="stories-data ms-3">
-                                    <h5>Iqonic Studio</h5>
-                                    <p className="mb-0">Lorem Ipsum</p>
+                    {randomPages.map((page, index) => (
+                            <li key={page.documentId} className={index !== randomPages.length - 1 ? 'mb-3' : ''}>
+                                <div className="d-flex align-items-center mb-3">
+                                    <img
+                                        src={page.image?.file_path}
+                                        alt="page-img"
+                                        className="rounded-circle img-fluid avatar-50"
+                                    />
+                                    <div className="stories-data ms-3">
+                                        <h5 className="d-flex align-items-center">
+                                            {page?.group_name}
+                                        </h5>
+                                        <p className="mb-0">{page.description || 'No description'}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <img
-                                src={img9}
-                                className="img-fluid rounded"
-                                alt="Responsive"
-                            />
-                            <div className="mt-3">
-                                <Link to="#" className="btn d-block">
-                                    <i className="ri-thumb-up-line me-2"></i> Like Page
-                                </Link>
-                            </div>
-                        </li>
-                        <li>
-                            <div className="d-flex align-items-center mb-3">
                                 <img
-                                    src={img42}
-                                    alt="story-img"
-                                    className="rounded-circle img-fluid avatar-50"
+                                    src={page.image?.file_path}
+                                    className="img-fluid rounded w-100"
+                                    alt="page-img"
+                                    style={{ height: '200px', objectFit: 'cover' }}
                                 />
-                                <div className="stories-data ms-3">
-                                    <h5>Cakes & Bakes </h5>
-                                    <p className="mb-0">Lorem Ipsum</p>
+                                <div className="mt-3">
+                                    <Link
+                                        to={`/group-detail/${page?.documentId}`}
+                                        state={{ documentId: page?.documentId }}
+                                        className="btn btn-primary w-100"
+                                    >
+                                        <i className="ri-arrow-right-line me-2"></i> View Group
+                                    </Link>
                                 </div>
-                            </div>
-                            <img
-                                src={img10}
-                                className="img-fluid rounded"
-                                alt="Responsive"
-                            />
-                            <div className="mt-3">
-                                <Link to="#" className="btn d-block">
-                                    <i className="ri-thumb-up-line me-2"></i> Like Page
-                                </Link>
-                            </div>
-                        </li>
+                            </li>
+                        ))}
                     </ul>
                 </Card.Body>
             </Card>

@@ -41,6 +41,11 @@ export const getAllMessages = async ({
                     model: db.Conversation,
                     as: 'conversation',
                     attributes: ['documentId', 'name', 'is_group_chat']
+                },
+                {
+                    model: db.Media,
+                    as: 'media',
+                    attributes: ['documentId', 'file_path']
                 }
             );
         }
@@ -110,13 +115,13 @@ export const getMessageById = async (documentId) => {
 export const createMessage = async (messageData) => {
     try {
         const newMessage = await db.Message.create(messageData);
-        
+
         // Cập nhật last_message_at cho cuộc trò chuyện
         await db.Conversation.update(
             { last_message_at: new Date() },
             { where: { documentId: messageData.conversation_id } }
         );
-        
+
         return await getMessageById(newMessage.documentId);
     } catch (error) {
         throw new Error(`Lỗi khi tạo tin nhắn mới: ${error.message}`);
@@ -127,7 +132,7 @@ export const createMessage = async (messageData) => {
 export const updateMessage = async (documentId, messageData) => {
     try {
         const message = await db.Message.findByPk(documentId);
-        
+
         if (!message) {
             throw new Error('Không tìm thấy tin nhắn');
         }
@@ -143,7 +148,7 @@ export const updateMessage = async (documentId, messageData) => {
 export const deleteMessage = async (documentId) => {
     try {
         const message = await db.Message.findByPk(documentId);
-        
+
         if (!message) {
             throw new Error('Không tìm thấy tin nhắn');
         }
@@ -179,9 +184,9 @@ export const markMessagesAsRead = async (conversationId, userId) => {
             );
         }
 
-        return { 
-            message: 'Đánh dấu tin nhắn đã đọc thành công', 
-            count: unreadMessages.length 
+        return {
+            message: 'Đánh dấu tin nhắn đã đọc thành công',
+            count: unreadMessages.length
         };
     } catch (error) {
         throw new Error(`Lỗi khi đánh dấu tin nhắn đã đọc: ${error.message}`);

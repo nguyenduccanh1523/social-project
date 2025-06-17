@@ -10,17 +10,38 @@ export const getAllConversations = async ({
     sortOrder = 'DESC',
     populate = false,
     userId = null,
-    isGroupChat = null
+    isGroupChat = null,
+    participantId = null,
+    sortByLatestMessage = false
 }) => {
     try {
         const offset = (page - 1) * pageSize;
         const whereConditions = {};
 
-        // Lọc theo userId (tìm những cuộc trò chuyện có liên quan đến user)
-        if (userId) {
+        if (userId && participantId) {
+            whereConditions[Op.or] = [
+                {
+                    [Op.and]: [
+                        { conversation_created_by: userId },
+                        { user_chated_with: participantId }
+                    ]
+                },
+                {
+                    [Op.and]: [
+                        { conversation_created_by: participantId },
+                        { user_chated_with: userId }
+                    ]
+                }
+            ];
+        } else if (userId) {
             whereConditions[Op.or] = [
                 { conversation_created_by: userId },
                 { user_chated_with: userId }
+            ];
+        } else if (participantId) {
+            whereConditions[Op.or] = [
+                { conversation_created_by: participantId },
+                { user_chated_with: participantId }
             ];
         }
 
@@ -32,7 +53,7 @@ export const getAllConversations = async ({
         // Chuẩn bị các mối quan hệ cần include
         const includes = [];
 
-        if (populate) {
+        if (populate || sortByLatestMessage) {
             includes.push(
                 {
                     model: db.ConversationParticipant,
@@ -95,18 +116,40 @@ export const getAllConversations = async ({
                 {
                     model: db.Message,
                     as: 'messages',
-                    attributes: ['documentId', 'content', 'createdAt'],
+                    attributes: ['documentId', 'content', 'createdAt', 'is_read', 'sender_id', 'media_id'],
                     limit: 1,
-                    order: [['createdAt', 'DESC']]
+                    order: [['createdAt', 'DESC']],
+                    required: sortByLatestMessage
                 }
             );
         }
+
+        let orderClause = [[sortField, sortOrder]];
+
+        let attributes = undefined;
+
+        if (sortByLatestMessage) {
+            attributes = {
+                include: [
+                    [
+                        Sequelize.literal(`(
+          SELECT MAX(createdAt)
+          FROM Messages
+          WHERE Messages.conversation_id = Conversation.documentId
+        )`),
+                        'latestMessageAt'
+                    ]
+                ]
+            };
+        }
+
 
         // Thực hiện truy vấn
         const { count, rows } = await db.Conversation.findAndCountAll({
             where: whereConditions,
             include: includes,
-            order: [[sortField, sortOrder]],
+            ...(attributes ? { attributes } : {}),
+            order: orderClause,
             offset,
             limit: pageSize,
             distinct: true

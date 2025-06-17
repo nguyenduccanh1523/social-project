@@ -105,16 +105,6 @@ export const updateMessage = async (req, res) => {
     try {
         const { id } = req.params;
         const messageData = req.body;
-        
-        // Kiểm tra quyền (chỉ người gửi mới được sửa tin nhắn)
-        const message = await messageService.getMessageById(id);
-        if (message.sender_id !== req.user.id) {
-            return res.status(403).json({
-                err: -1,
-                message: 'Bạn không có quyền sửa tin nhắn này'
-            });
-        }
-        
         const updatedMessage = await messageService.updateMessage(id, messageData);
         
         return res.status(200).json({
@@ -159,7 +149,7 @@ export const deleteMessage = async (req, res) => {
 
 export const markMessagesAsRead = async (req, res) => {
     try {
-        const { conversationId } = req.body;
+        const { conversationId, userId } = req.body;
         
         if (!conversationId) {
             return res.status(400).json({
@@ -168,7 +158,7 @@ export const markMessagesAsRead = async (req, res) => {
             });
         }
         
-        const result = await messageService.markMessagesAsRead(conversationId, req.user.id);
+        const result = await messageService.markMessagesAsRead(conversationId, userId);
         
         return res.status(200).json({
             err: 0,
@@ -185,7 +175,9 @@ export const markMessagesAsRead = async (req, res) => {
 
 export const countUnreadMessages = async (req, res) => {
     try {
-        const result = await messageService.countUnreadMessages(req.user.id);
+        const userId = req.query.userId || null;
+
+        const result = await messageService.countUnreadMessages(userId);
         
         return res.status(200).json({
             err: 0,

@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { apiGetConversation } from "../../../../services/conversation";
 import { apiGetParticipantByUser } from "../../../../services/participant";
+import { apiMarkAsRead } from '../../../../services/message';
 
 const Conversation = ({ profile }) => {
   const { token } = useSelector((state) => state.root.auth || {});
@@ -21,17 +22,18 @@ const Conversation = ({ profile }) => {
   const [showGroups, setShowGroups] = useState(true); // Trạng thái để mở/đóng Group Conversation
   const [show, setShow] = useState("");
   const [show1, setShow1] = useState("");
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState(""); // Trạng thái tìm kiếm
 
   const { data: conversationsData } = useQuery({
     queryKey: ['conversations', profile?.documentId, token],
-    queryFn: () => apiGetConversation({userId: profile?.documentId, token}),
+    queryFn: () => apiGetConversation({ userId: profile?.documentId, token }),
     enabled: !!profile?.documentId && !!token
   });
 
   const { data: participantsData } = useQuery({
     queryKey: ['participants', profile?.documentId, token],
-    queryFn: () => apiGetParticipantByUser({userId: profile?.documentId, token}),
+    queryFn: () => apiGetParticipantByUser({ userId: profile?.documentId, token }),
     enabled: !!profile?.documentId && !!token
   });
 
@@ -46,8 +48,6 @@ const Conversation = ({ profile }) => {
     setSearchQuery(value); // Cập nhật giá trị tìm kiếm khi người dùng nhập
   };
 
-  console.log('conver', conversations)
-  console.log('parti', participants)
 
   // Lọc các cuộc trò chuyện theo query tìm kiếm
   const filteredConversations = conversations.filter((item) => {
@@ -66,6 +66,8 @@ const Conversation = ({ profile }) => {
       ?.toLowerCase()
       .includes(searchQuery.toLowerCase());
   });
+
+
 
   return (
     <>
@@ -127,12 +129,20 @@ const Conversation = ({ profile }) => {
                   <Nav.Item as="li" key={index}>
                     <Nav.Link
                       eventKey={`conversation-${item?.documentId}`}
-                      onClick={() =>
-                        setShow(`conversation-${item?.documentId}`)
-                      }
+                      onClick={async () => {
+                        await apiMarkAsRead({
+                          payload: {
+                            conversationId: item?.documentId,
+                            userId: profile?.documentId
+                          },
+                          token: token
+                        });
+                        queryClient.invalidateQueries(["conversations", item]);
+                        setShow(`conversation-${item?.documentId}`);
+                      }}
                       href={`#${item?.documentId}`}
                     >
-                      <div className="d-flex align-items-center">
+                      <div className="d-flex align-items-center" style={{ position: "relative" }}>
                         <div className="avatar me-2">
                           <img
                             loading="lazy"
@@ -148,8 +158,33 @@ const Conversation = ({ profile }) => {
                         </div>
                         <div className="chat-sidebar-name">
                           <h6 className="mb-0">{username?.username}</h6>
-                          <span>Lorem Ipsum is</span>
+                          <span>
+                            <span>
+                              {!item?.messages?.[0]?.content
+                                ? '📷 Media'
+                                : item.messages[0].content.split(' ').length > 5
+                                  ? item.messages[0].content.split(' ').slice(0, 5).join(' ') + '...'
+                                  : item.messages[0].content}
+                            </span>
+                          </span>
                         </div>
+                        {/* Badge đỏ nếu có tin nhắn chưa đọc */}
+                        {item?.messages?.[0] &&
+                          !item.messages[0].is_read &&
+                          item.messages[0].sender_id !== profile?.documentId && (
+                            <span
+                              style={{
+                                position: "absolute",
+                                right: 0,
+                                top: 0,
+                                width: 12,
+                                height: 12,
+                                background: "red",
+                                borderRadius: "50%",
+                                display: "inline-block",
+                              }}
+                            />
+                        )}
                       </div>
                     </Nav.Link>
                   </Nav.Item>
@@ -241,11 +276,10 @@ const Conversation = ({ profile }) => {
               <Tab.Pane
                 key={index}
                 eventKey={`conversation-${item?.documentId}`} // Đặt eventKey giống với Nav.Link
-                className={`tab-pane fade ${
-                  show === `conversation-${item?.documentId}`
-                    ? "show active"
-                    : ""
-                }`}
+                className={`tab-pane fade ${show === `conversation-${item?.documentId}`
+                  ? "show active"
+                  : ""
+                  }`}
                 id={`chatbox-${item?.documentId}`} // Định danh duy nhất cho tab
                 role="tabpanel"
               >
@@ -324,11 +358,10 @@ const Conversation = ({ profile }) => {
               <Tab.Pane
                 key={index}
                 eventKey={`conversation-${item?.conversation?.documentId}`} // Đặt eventKey giống với Nav.Link
-                className={`tab-pane fade ${
-                  show === `conversation-${item?.conversation?.documentId}`
-                    ? "show active"
-                    : ""
-                }`}
+                className={`tab-pane fade ${show === `conversation-${item?.conversation?.documentId}`
+                  ? "show active"
+                  : ""
+                  }`}
                 id={`chatbox-${item?.documentId}`} // Định danh duy nhất cho tab
                 role="tabpanel"
               >
@@ -395,7 +428,7 @@ const Conversation = ({ profile }) => {
                 <ContentMessager
                   item={item?.conversation?.documentId}
                   profile={profile}
-                  //username={item?.conversation_id?.name}
+                  // username={item?.conversation}
                 />
 
                 <SendMessager conversation={item?.conversation?.documentId} />

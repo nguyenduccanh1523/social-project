@@ -13,9 +13,12 @@ import { useSelector } from "react-redux";
 import EmojiPicker from 'emoji-picker-react';
 import { createMedia, uploadToMediaLibrary } from "../../../../services/media";
 import { apiCreateMessager } from "../../../../services/message";
+import socket from "../../../../socket";
+import { useEffect } from "react";
 
 const SendMessager = ({ conversation }) => {
-  const { profile } = useSelector((state) => state.root.user || {});
+  const { user } = useSelector((state) => state.root.auth || {});
+  const { token } = useSelector((state) => state.root.auth || {});
   const [message, setMessage] = useState("");
   const [showPicker, setShowPicker] = useState(false);
   const [fileList, setFileList] = useState([]);
@@ -36,7 +39,13 @@ const SendMessager = ({ conversation }) => {
   });
 
   const converData = conver?.data?.data || {};
-  //console.log('conver:', converData);
+
+  useEffect(() => {
+    if (user?.documentId) {
+      socket.emit("register", user.documentId);
+    }
+  }, [user?.documentId]);
+  
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -50,23 +59,62 @@ const SendMessager = ({ conversation }) => {
       files: fileList, // Add image files to the data
       otherFiles: otherFiles.map(file => ({ name: file.name, url: file.url || file.thumbUrl })), // Add other files to the data
     };
-    console.log("Sending message:", data);
-    console.log("Message content:", message);
-    console.log("Image files:", selectedImages);
-    console.log("Other files:", otherFiles);
+    // console.log("Sending message:", data);
+    // console.log("Message content:", message);
+    // console.log("Image files:", selectedImages);
+    // console.log("Other files:", otherFiles);
 
     if (message.trim()) {
       const payload = {
-        data: {
-          sender_id: profile?.documentId,
-          conversation_id: conversation,
-          content: message,
-        }
+        sender_id: user?.documentId,
+        conversation_id: conversation,
+        content: message,
       };
       await apiCreateMessager(payload);
+      // Gửi tin nhắn qua socket
+      socket.emit("send_message", {
+        toUserId: converData?.participant?.documentId === user?.documentId ? converData?.creator?.documentId : converData?.participant?.documentId, // người nhận
+        message: {
+          ...payload,
+          sender: user,
+          createdAt: new Date().toISOString(),
+        }
+      });
     }
     if (selectedImages?.length) {
       for (const image of selectedImages) {
+
+        const uploadToCloudinary = async (file, folder = "default") => {
+          const cloudName = process.env.REACT_APP_CLOUDINARY_NAME;
+          const uploadPreset = process.env.REACT_APP_REACT_UPLOAD;
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("upload_preset", uploadPreset);
+          formData.append("folder", folder);
+          try {
+            const response = await fetch(
+              `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+            const data = await response.json();
+            if (data.secure_url) {
+              return {
+                url: data.secure_url,
+                public_id: data.public_id,
+                mime: data.resource_type + "/" + data.format,
+                size: data.bytes,
+              };
+            } else {
+              throw new Error(data.error?.message || "Upload failed");
+            }
+          } catch (error) {
+            console.error("Error uploading file to Cloudinary:", error);
+          }
+        };
+
         const binaryImage = await fetch(image.url)
           .then(res => res.blob())
           .then(blob => {
@@ -75,24 +123,30 @@ const SendMessager = ({ conversation }) => {
             return new File([blob], fileName, { type: fileType });
           });
         try {
-          const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
-          console.log('Image uploaded:', uploadedFile.data[0]);
+          const uploadedFile = await uploadToCloudinary(binaryImage, "default");
           const payload = {
-            data: {
-              file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-              file_type: uploadedFile.data[0].mime,
-              file_size: uploadedFile.data[0].size.toString(),
-            }
+            file_path: uploadedFile.url,
+            file_type: uploadedFile.mime,
+            file_size: uploadedFile.size.toString(),
+            type_id: "pkw7l5p5gd4e70uy5bvgpnpv",
           };
-          const response = await createMedia(payload);
+          const response = await createMedia(payload, token);
           const payloadMessage = {
-            data: {
-              sender_id: profile?.documentId,
-              conversation_id: conversation,
-              media_id: response.data.data.documentId,
-            }
+            sender_id: user?.documentId,
+            conversation_id: conversation,
+            media_id: response.data.data.documentId,
           };
           await apiCreateMessager(payloadMessage);
+          // Gửi tin nhắn qua socket
+          socket.emit("send_message", {
+            toUserId: converData?.participant?.documentId === user?.documentId ? converData?.creator?.documentId : converData?.participant?.documentId, // người nhận
+            message: {
+              ...payload,
+              media: response.data.data, 
+              sender: user,
+              createdAt: new Date().toISOString(),
+            }
+          });
         } catch (error) {
           console.error('Error adding image:', error.response || error);
         }
@@ -230,7 +284,15 @@ const SendMessager = ({ conversation }) => {
             className="me-3 flex-grow-1 ms-2"
             placeholder="Type your message"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              socket.emit("typing", {
+                conversationId: conversation,
+                fromUserId: user?.documentId,
+                toUserId: converData?.participant?.documentId === user?.documentId ? converData?.creator?.documentId : converData?.participant?.documentId,
+              });
+              console.log("Đang gửi typing socket tới:", converData?.participant?.documentId);
+            }}
           />
           <Button type="submit" variant="primary d-flex align-items-center" disabled={!message.trim() && fileList.length === 0 && otherFiles.length === 0}>
             <SendOutlined />
@@ -243,7 +305,7 @@ const SendMessager = ({ conversation }) => {
           <EmojiPicker onEmojiClick={onEmojiClick} style={{ height: '400px' }} />
         </div>
       )}
-      <Modal visible={previewVisible} footer={null} onCancel={() => setPreviewVisible(false)}>
+      <Modal open={previewVisible} footer={null} onCancel={() => setPreviewVisible(false)}>
         <img alt="example" style={{ width: '100%' }} src={previewImage} />
       </Modal>
     </>

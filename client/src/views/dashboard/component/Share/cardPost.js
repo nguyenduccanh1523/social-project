@@ -207,7 +207,34 @@ const CardPost = ({ post, pageInfo }) => {
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu className="dropdown-menu m-0 p-0">
                                             <Mark post={post} profile={user} />
-                                            {post?.user?.documentId === user?.documentId || pageInfo?.creator?.documentId === user?.documentId && (
+                                            {post?.user?.documentId === user?.documentId && (
+                                                <>
+                                                    < Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
+                                                        <div className="d-flex align-items-top">
+                                                            <i className="material-symbols-outlined">edit</i>
+                                                            <div className="data ms-2">
+                                                                <h6>Edit Post</h6>
+                                                                <p className="mb-0">
+                                                                    Update your post and saved items
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleDeletePost}>
+                                                        <div className="d-flex align-items-top">
+                                                            <i className="material-symbols-outlined">
+                                                                delete
+                                                            </i>
+                                                            <div className="data ms-2">
+                                                                <h6>Delete</h6>
+                                                                <p className="mb-0">
+                                                                    Remove thids Post on Timeline
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </Dropdown.Item>
+                                                </>)}
+                                                {pageInfo?.creator?.documentId === user?.documentId && (
                                                 <>
                                                     < Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
                                                         <div className="d-flex align-items-top">
@@ -507,7 +534,6 @@ const CardPost = ({ post, pageInfo }) => {
                                 <FaShare /> <h6>Share</h6>
                             </button>
                         </div>
-
                     </div>
 
                     <hr />

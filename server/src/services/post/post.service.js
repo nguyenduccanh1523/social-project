@@ -99,7 +99,14 @@ export const getAllPosts = async ({
                 {
                     model: db.Page,
                     as: 'page',
-                    attributes: ['documentId', 'page_name']
+                    attributes: ['documentId', 'page_name', 'is_verified'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'profileImage',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
                 },
                 {
                     model: db.Share,
@@ -383,7 +390,7 @@ export const createPost = async (postData) => {
         //     }
         // }
 
-        
+
         const newPost = await db.Post.create(postData);
 
 
@@ -403,7 +410,7 @@ export const createPost = async (postData) => {
         // Lấy bài viết đã tạo kèm theo thông tin liên quan
         const createdPost = await getPostById(newPost.documentId);
 
-        
+
         return createdPost;
     } catch (error) {
         // Rollback nếu có lỗi

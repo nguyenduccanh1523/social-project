@@ -238,7 +238,7 @@ const EditPostModal = ({ show, handleClose, post, page, validSources }) => {
                             <div className="user-img">
                                 <img
                                     loading="lazy"
-                                    src={post?.user?.avatarMedia?.file_path || page?.data?.profile_picture?.file_path}
+                                    src={post?.user?.avatarMedia?.file_path || page?.profileImage?.file_path}
                                     alt="userimg"
                                     className="avatar-60 rounded-circle img-fluid"
                                 />

@@ -32,6 +32,7 @@ import { apiGetUserById } from "../../../services/user";
 import CreatePost from "../component/Share/createPost";
 import CardPostHome from "../component/Share/cardPostHome";
 import Loader from "../icons/uiverse/Loading";
+import SuggestedEvent from "../component/Home/SuggestedEvent";
 
 const Index = () => {
   const dispatch = useDispatch();
@@ -74,11 +75,11 @@ const Index = () => {
         const response = await getAllPosts({ page: 1 });
         const posts = response.data?.data || [];
         const pagination = response.data?.meta?.pagination;
-        
+
         // Kiểm tra và lấy thông tin page cho các post
         const updatedPosts = await Promise.all(
           posts.map(async (post) => {
-            
+
             if (post?.page?.documentId) {
               const pageInfo = await fetchPageInfo(post?.page?.documentId);
               if (pageInfo) {
@@ -131,7 +132,7 @@ const Index = () => {
       // Kiểm tra và lấy thông tin page cho các post mới
       const updatedPosts = await Promise.all(
         newPosts.map(async (post) => {
-          
+
           if (post?.page?.documentId) {
             const pageInfo = await fetchPageInfo(post?.page?.documentId);
             //console.log("Page info:", pageInfo);
@@ -212,7 +213,7 @@ const Index = () => {
 
   const fetchPageInfo = async (pageId) => {
     try {
-      const response = await apiGetPageDetail({pageId: pageId});
+      const response = await apiGetPageDetail({ pageId: pageId });
       return response.data; // Trả về dữ liệu
     } catch (error) {
       console.error("Error fetching page info:", error);
@@ -334,7 +335,7 @@ const Index = () => {
                       />
                     ))
                   )}
-                  
+
                   {loadingMore && (
                     <div className="col-sm-12 text-center">
                       <Loader />
@@ -359,9 +360,13 @@ const Index = () => {
                 <Card.Body>
                   <ul className="media-story list-inline m-0 p-0">
                     <li className="d-flex mb-3 align-items-center">
-                      <i className="ri-add-line"></i>
+                      <img
+                        src={user?.avatarMedia?.file_path}
+                        alt="story-img"
+                        className="rounded-circle img-fluid"
+                      />
                       <div className="stories-data ms-3">
-                        <h5>Creat Your Story</h5>
+                        <h5>Create Your Story</h5>
                         <p className="mb-0">time to story</p>
                       </div>
                     </li>
@@ -404,72 +409,7 @@ const Index = () => {
                   </Link>
                 </Card.Body>
               </Card>
-              <Card>
-                <div className="card-header d-flex justify-content-between">
-                  <div className="header-title">
-                    <h4 className="card-title">Events</h4>
-                  </div>
-                  <div className="card-header-toolbar d-flex align-items-center">
-                    <Dropdown>
-                      <Dropdown.Toggle
-                        as={CustomToggle}
-                        id="dropdownMenuButton"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                        role="button"
-                      >
-                        <i className="ri-more-fill h4"></i>
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu
-                        className=" dropdown-menu-right"
-                        aria-labelledby="dropdownMenuButton"
-                      >
-                        <Dropdown.Item href="#">
-                          <i className="ri-eye-fill me-2"></i>View
-                        </Dropdown.Item>
-                        <Dropdown.Item href="#">
-                          <i className="ri-delete-bin-6-fill me-2"></i>Delete
-                        </Dropdown.Item>
-                        <Dropdown.Item href="#">
-                          <i className="ri-pencil-fill me-2"></i>Edit
-                        </Dropdown.Item>
-                        <Dropdown.Item href="#">
-                          <i className="ri-printer-fill me-2"></i>Print
-                        </Dropdown.Item>
-                        <Dropdown.Item href="#">
-                          <i className="ri-file-download-fill me-2"></i>Download
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </div>
-                </div>
-                <Card.Body>
-                  <ul className="media-story list-inline m-0 p-0">
-                    <li className="d-flex mb-4 align-items-center ">
-                      <img
-                        src={s4}
-                        alt="story1"
-                        className="rounded-circle img-fluid"
-                      />
-                      <div className="stories-data ms-3">
-                        <h5>Web Workshop</h5>
-                        <p className="mb-0">1 hour ago</p>
-                      </div>
-                    </li>
-                    <li className="d-flex align-items-center">
-                      <img
-                        src={s5}
-                        alt="story2"
-                        className="rounded-circle img-fluid"
-                      />
-                      <div className="stories-data ms-3">
-                        <h5>Fun Events and Festivals</h5>
-                        <p className="mb-0">1 hour ago</p>
-                      </div>
-                    </li>
-                  </ul>
-                </Card.Body>
-              </Card>
+              <SuggestedEvent />
               <Card>
                 <div className="card-header d-flex justify-content-between">
                   <div className="header-title">

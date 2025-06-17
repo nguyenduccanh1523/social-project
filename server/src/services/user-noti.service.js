@@ -205,7 +205,7 @@ export const getUserNotificationById = async (documentId) => {
 export const createUserNotification = async (userNotificationData) => {
     try {
         const newUserNotification = await db.UserNotification.create(userNotificationData);
-        return await getUserNotificationById(newUserNotification.documentId);
+        return newUserNotification
     } catch (error) {
         throw new Error(`Lỗi khi tạo thông báo người dùng mới: ${error.message}`);
     }

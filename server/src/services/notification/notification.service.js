@@ -32,8 +32,9 @@ export const createNotification = async (data) => {
         group_id: group_id || null,
         event_id: event_id || null
       });
+      
     }
-
+    return notification
   } catch (error) {
     throw new Error(`Lỗi khi tạo thông báo: ${error.message}`);
   }

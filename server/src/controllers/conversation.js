@@ -25,7 +25,9 @@ export const getAllConversations = async (req, res) => {
 
         // Lấy các tham số lọc
         const userId = req.query.userId || null
+        const participantId = req.query.participantId
         const isGroupChat = req.query.groupId === 'true' ? true : (req.query.groupId === 'false' ? false : null)
+        const sortByLatestMessage = req.query.sortByLatestMessage === 'true' ? true : false
 
         // Gọi service để lấy danh sách cuộc trò chuyện
         const conversationsData = await conversationService.getAllConversations({
@@ -35,7 +37,9 @@ export const getAllConversations = async (req, res) => {
             sortOrder,
             populate,
             userId,
-            isGroupChat
+            participantId,
+            isGroupChat,
+            sortByLatestMessage
         })
 
         // Trả về kết quả

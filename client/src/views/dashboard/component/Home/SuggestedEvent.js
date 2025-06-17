@@ -1,10 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import Card from "../../../../components/Card";
-import { apiGetPage } from "../../../../services/page";
-import user05 from "../../../../assets/images/user/05.jpg";
 
-const SuggestedPage = () => {
+import "react-toastify/dist/ReactToastify.css";
+
+//image
+
+import img42 from "../../../../assets/images/page-img/42.png";
+import img9 from "../../../../assets/images/small/img-1.jpg";
+import img10 from "../../../../assets/images/small/img-2.jpg";
+import s4 from "../../../../assets/images/page-img/s4.jpg";
+import s5 from "../../../../assets/images/page-img/s5.jpg";
+import { useState } from "react";
+import { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { apiGetEvent } from "../../../../services/eventServices/event";
+
+const SuggestedEvent = () => {
+
+    const { token } = useSelector((state) => state.root.auth || {})
     const [randomPages, setRandomPages] = useState([]);
 
     // Hàm lấy ngẫu nhiên 3 phần tử từ mảng
@@ -15,7 +29,7 @@ const SuggestedPage = () => {
     useEffect(() => {
         const fetchPages = async () => {
             try {
-                const response = await apiGetPage();
+                const response = await apiGetEvent({token: token});
                 const allPages = response.data?.data || [];
                 // Lấy ngay 3 trang ngẫu nhiên khi fetch xong
                 setRandomPages(getRandomItems(allPages));
@@ -32,54 +46,39 @@ const SuggestedPage = () => {
             <Card>
                 <div className="card-header d-flex justify-content-between">
                     <div className="header-title">
-                        <h4 className="card-title">Suggested Pages</h4>
+                        <h4 className="card-title">Events</h4>
                     </div>
                 </div>
                 <Card.Body>
                     <ul className="suggested-page-story m-0 p-0 list-inline">
-                        {randomPages.map((page, index) => (
+                        
+                    {randomPages.map((page, index) => (
                             <li key={page.documentId} className={index !== randomPages.length - 1 ? 'mb-3' : ''}>
                                 <div className="d-flex align-items-center mb-3">
                                     <img
-                                        src={page.profileImage?.file_path || user05}
+                                        src={page.image?.file_path}
                                         alt="page-img"
                                         className="rounded-circle img-fluid avatar-50"
                                     />
                                     <div className="stories-data ms-3">
                                         <h5 className="d-flex align-items-center">
-                                            {page?.page_name}
-                                            {page?.is_verified && (
-                                                <i
-                                                    className="material-symbols-outlined verified-badge ms-2"
-                                                    style={{
-                                                        fontSize: "20px",
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                    }}
-                                                >
-                                                    verified
-                                                </i>
-                                            )}
+                                            {page?.name}
                                         </h5>
-                                        <p className="mb-0">{page.intro || 'No description'}</p>
+                                        <p className="mb-0">{page.description || 'No description'}</p>
                                     </div>
                                 </div>
                                 <img
-                                    src={page.profileImage?.file_path || user05}
+                                    src={page.image?.file_path}
                                     className="img-fluid rounded w-100"
                                     alt="page-img"
                                     style={{ height: '200px', objectFit: 'cover' }}
                                 />
                                 <div className="mt-3">
                                     <Link
-                                        to={`/page/${page.page_name}`}
-                                        state={{
-                                            pageId: page.documentId,
-                                            pageDetail: page
-                                        }}
+                                        to={`/event-detail/${page?.documentId}`} state={{ eventDetail: page }}
                                         className="btn btn-primary w-100"
                                     >
-                                        <i className="ri-arrow-right-line me-2"></i> View Page
+                                        <i className="ri-arrow-right-line me-2"></i> View Event
                                     </Link>
                                 </div>
                             </li>
@@ -91,5 +90,5 @@ const SuggestedPage = () => {
     );
 };
 
-export default SuggestedPage;
+export default SuggestedEvent;
 

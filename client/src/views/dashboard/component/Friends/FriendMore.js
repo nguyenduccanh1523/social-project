@@ -15,7 +15,7 @@ import Loader from "../../icons/uiverse/Loading";
 
 const FriendMore = () => {
   const { token, user } = useSelector((state) => state.root.auth || {});
-  
+
   const { data: userMoreData, isLoading: userMoreLoading } = useQuery({
     queryKey: ['userMore', user?.documentId, token],
     queryFn: () => apiGetFriendMore({ documentId: user?.documentId, token }),
@@ -82,7 +82,15 @@ const FriendMore = () => {
                   />
                 </div>
                 <div className="flex-grow-1 ms-3">
-                  <h6>{user?.fullname || 'Người dùng'}</h6>
+                  <Link
+                    to={`/friend-profile/${user?.documentId}`}
+                    state={{
+                      friendId: user?.documentId
+                    }}
+                    className="text-decoration-none"
+                  >
+                    <h6>{user?.fullname}</h6>
+                  </Link>
                   <p className="mb-0">{user?.user_id?.friendCount || 0} friends</p>
                 </div>
                 <div className="d-flex align-items-center mt-2 mt-md-0">

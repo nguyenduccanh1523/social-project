@@ -158,7 +158,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                             <div className="me-3">
                                 <div className="user-img">
                                     <img
-                                        src={post?.user?.avatarMedia?.file_path || page?.profile_picture?.file_path}
+                                        src={post?.user?.avatarMedia?.file_path || post?.page?.profileImage?.file_path}
                                         alt="userimg"
                                         className="avatar-60 rounded-circle"
                                     />
@@ -188,7 +188,7 @@ const ModalCardPost = ({ show, handleClose, post, page }) => {
                                                 style={{ textDecoration: "none" }}>
                                                 <h5 style={{fontWeight: 'bold'}}>{post?.user_id
                                                     ? post?.user?.fullname
-                                                    : page?.page_name || 'Unknown Page'
+                                                    : post?.page?.page_name || 'Unknown Page'
                                                 }</h5>
                                             </Link>
                                         </h5>

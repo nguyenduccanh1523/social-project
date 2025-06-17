@@ -31,7 +31,7 @@ const PostItem = ({ post }) => {
   const dispatch = useDispatch();
   const { medias } = useSelector((state) => state.root.media || {});
   const { tags } = useSelector((state) => state.root.tag || {});
-  const createdAt = new Date(post?.user_id?.createdAt);
+  const createdAt = new Date(post?.user?.createdAt);
 
   const [imageController, setImageController] = useState({
     toggler: false, // Kiểm soát hiển thị gallery
@@ -54,7 +54,7 @@ const PostItem = ({ post }) => {
   const postMedia = medias[post?.documentId] || [];
   const postTag = tags[post?.documentId] || [];
 
-  const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
+  // const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
   const validSources = Array.isArray(postMedia?.data)
     ? postMedia.data
@@ -90,7 +90,7 @@ const PostItem = ({ post }) => {
                       <h5 className="mb-0 d-inline-block">
                         {post?.user_id?.username}
                       </h5>
-                      <p className="mb-0 text-primary">{timeAgo}</p>
+                      {/* <p className="mb-0 text-primary">{timeAgo}</p> */}
                     </div>
                     <div className="card-post-toolbar">
                       <Dropdown>

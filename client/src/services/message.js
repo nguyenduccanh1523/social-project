@@ -1,10 +1,13 @@
 import axiosConfig from "../axiosConfig";
 
-export const apiGetMessage = async ({ conversationId, pageParam = 1 }) => {
+export const apiGetMessage = async ({ conversationId, pageParam = 1, token }) => {
   try {
     const response = await axiosConfig({
       method: "get",
-      url: `/messages?filters[$and][0][conversation_id][documentId][$eq]=${conversationId}&sort=createdAt%3ADESC&pagination[page]=${pageParam}&pagination[pageSize]=10&populate=*`,
+      url: `/messagers?pagination[pageSize]=10&pagination[page]=${pageParam}&populate=*&sort=createdAt:DESC&conversationId=${conversationId}`,
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     return {
@@ -24,7 +27,7 @@ export const apiCreateMessager = (payload) =>
     try {
       const response = await axiosConfig({
         method: "post",
-        url: "/messages",
+        url: "/messagers",
         data: payload,
         headers: {
           "Content-Type": "application/json",
@@ -35,3 +38,57 @@ export const apiCreateMessager = (payload) =>
       reject(error);
     }
   });
+
+  export const apiUpdateMessager = ({ documentId, payload, token }) =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const response = await axiosConfig({
+          method: "put",
+          url: `/messagers/${documentId}`,
+          data: payload,
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        resolve(response);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  
+  export const apiDeleteMessager = ({ documentId, token }) =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const response = await axiosConfig({
+          method: "delete",
+          url: `/messagers/${documentId}`,
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        resolve(response);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    export const apiMarkAsRead = ({  payload, token }) =>
+      new Promise(async (resolve, reject) => {
+        try {
+          const response = await axiosConfig({
+            method: "post",
+            url: `/messagers/mark-as-read`,
+            data: payload,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          resolve(response);
+        } catch (error) {
+          reject(error);
+        }
+      });
+
+

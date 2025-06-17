@@ -19,7 +19,7 @@ export default (sequelize, DataTypes) => {
       Friend.belongsTo(models.User, {
         foreignKey: 'friend_id',
         targetKey: 'documentId',
-        as: 'friend'
+        as: 'friendUser'
       });
 
       // Một friend record thuộc về một StatusAction (trạng thái của yêu cầu kết bạn)

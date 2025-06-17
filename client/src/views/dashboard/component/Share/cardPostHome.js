@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip, Modal } from "react-bootstrap";
 import { formatDistanceToNow } from "date-fns";
 import { Image, Tag, notification } from "antd";
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useDispatch, useSelector } from "react-redux";
 import { fetchPostMedia, fetchPostTag } from "../../../../actions/actions";
 import { apiGetPostFriend } from "../../../../services/post";
@@ -28,12 +28,17 @@ import icon4 from "../../../../assets/images/icon/04.png";
 import icon6 from "../../../../assets/images/icon/06.png";
 import icon1 from "../../../../assets/images/icon/01.png"; // Example icon for like
 import icon2 from "../../../../assets/images/icon/02.png"; // Example icon for love
+import Mark from "./ComponentCardPost/mark";
+import { ListComment, ListLike } from "./listLikeComment";
+import ActionLike from "./actionLike";
+import EditPostModal from "./ComponentCardPost/editPost";
+
 const CardPostHome = ({ post, pageInfo }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { profile } = useSelector((state) => state.root.user || {});
-    const { medias } = useSelector((state) => state.root.media || {});
-    const { tags } = useSelector((state) => state.root.tag || {});
+    const { user } = useSelector((state) => state.root.auth || {});
+    const { token } = useSelector((state) => state.root.auth || {});
+
     const createdAt = new Date(post?.createdAt);
 
     const [imageController, setImageController] = useState({
@@ -46,7 +51,13 @@ const CardPostHome = ({ post, pageInfo }) => {
     const handleOpenCommentModal = () => setShowCommentModal(true);
     const handleCloseCommentModal = () => setShowCommentModal(false);
 
-    //console.log("post", post);
+    const [showEditModal, setShowEditModal] = useState(false);
+
+    const handleOpenEditModal = () => setShowEditModal(true);
+    const handleCloseEditModal = () => setShowEditModal(false);
+    const queryClient = useQueryClient();
+
+
     // Hàm xử lý `onClick` khi click vào ảnh
     const handleImageClick = (index) => {
         setImageController({
@@ -55,29 +66,62 @@ const CardPostHome = ({ post, pageInfo }) => {
         });
     };
 
+
+    const { data: parentComments = { data: { data: [] } } } = useQuery({
+        queryKey: ["parentComments", post.documentId],
+        queryFn: () => apiGetPostComment({ postId: post.documentId, token }),
+        enabled: !!post.documentId,
+    });
+    ;
+
+    const [reactionCount, setReactionCount] = useState(post?.reactions?.length || 0);
+
+    // Luôn đồng bộ reactionCount với post.reactions
     useEffect(() => {
-        dispatch(fetchPostMedia(post?.documentId)); // Truyền đúng giá trị groupId
-        dispatch(fetchPostTag(post?.documentId)); // Truyền đúng giá trị groupId
-    }, [post, dispatch]);
+        setReactionCount(post?.reactions?.length || 0);
+    }, [post?.reactions]);
 
+    const handleReactionSelect = (reaction, change) => {
+        if (change === 1) {
+            setReactionCount(reactionCount + 1);
+        } else if (change === -1) {
+            setReactionCount(reactionCount - 1);
+        }
+    };
 
+    const handleDeletePost = async () => {
+        AntdModal.confirm({
+            title: 'Are you sure you want to delete this post?',
+            onOk: async () => {
+                try {
+                    await apiDeletePost({ documentId: post?.documentId, token });
+                    notification.success({
+                        message: "Delete Post",
+                        description: "Post deleted successfully",
+                    });
+                    queryClient.invalidateQueries('post');
 
-    const postMedia = medias[post?.documentId] || [];
-    const postTag = tags[post?.documentId] || [];
+                } catch (error) {
+                    console.error('Error deleting friend:', error);
+                }
+            },
+        });
+    }
 
     const timeAgo = formatDistanceToNow(createdAt, { addSuffix: true });
 
-    const validSources = Array.isArray(postMedia?.data)
-        ? postMedia.data
-            .map((item) => item?.media?.file_path)
+    const validSources = Array.isArray(post?.medias)
+        ? post.medias
+            .map((item) => item?.file_path)
             .filter((path) => typeof path === "string" && path.trim() !== "")
         : [];
 
-    const validTags = Array.isArray(postTag?.data)
-        ? postTag.data.map((item) => item?.tag_id?.name)
+    const validTags = Array.isArray(post?.tags)
+        ? post?.tags.map((item) => item?.name)
         : [];
 
     const colors = colorsTag;
+
 
 
     const { data: friendsData } = useQuery({
@@ -106,8 +150,8 @@ const CardPostHome = ({ post, pageInfo }) => {
                                         <img
                                             src={
                                                 post?.user_id
-                                                    ? post?.user_id?.profile_picture
-                                                    : pageInfo?.data?.profile_picture?.file_path
+                                                    ? post?.user?.avatarMedia?.file_path
+                                                    : post?.page?.profileImage?.file_path
                                             }
                                             alt="userimg"
                                             className="avatar-60 rounded-circle"
@@ -119,29 +163,29 @@ const CardPostHome = ({ post, pageInfo }) => {
                                         <div>
                                             <h5 className="d-flex align-items-center">
                                                 <Link to={
-                                                    post?.user_id?.documentId === profile?.documentId
+                                                    post?.user?.documentId === user?.documentId
                                                         ? `/user-profile`
                                                         : post?.user_id
-                                                            ? `/friend-profile/${post?.user_id?.documentId}`
-                                                            : `/page/${pageInfo?.data?.page_name}`
+                                                            ? `/friend-profile/${post?.user?.documentId}`
+                                                            : `/page/${post?.page?.docuemntId}`
                                                 }
                                                     state={
-                                                        post?.user_id?.documentId === profile?.documentId
+                                                        post?.user?.documentId === user?.documentId
                                                             ? {}
-                                                            : post?.user_id
-                                                                ? { friendId: post?.user_id }
+                                                            : post?.user
+                                                                ? { friendId: post?.user }
                                                                 : {
-                                                                    pageId: pageInfo?.data?.documentId,
-                                                                    pageDetail: pageInfo?.data
+                                                                    pageId: post?.page?.documentId,
+                                                                    pageDetail: post?.page
                                                                 }
                                                     }
                                                     style={{ textDecoration: "none", color: "black" }}>
-                                                    <h6>{post?.user_id
-                                                        ? post?.user_id?.username
-                                                        : pageInfo?.data?.page_name || 'Unknown Page'
+                                                    <h6>{post?.user
+                                                        ? post?.user?.username
+                                                        : post?.page?.page_name || 'Unknown Page'
                                                     }</h6>
                                                 </Link>
-                                                {pageInfo?.data?.is_verified && (
+                                                {post?.page?.is_verified && (
                                                     <i
                                                         className="material-symbols-outlined verified-badge ms-2"
                                                         style={{
@@ -160,10 +204,10 @@ const CardPostHome = ({ post, pageInfo }) => {
                                                         <p className="mb-0 text-primary">{timeAgo}</p>
                                                     </span>
                                                 </OverlayTrigger>
-                                                <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.type_id?.name === 'public' ? 'Public' : 'Private'}</Tooltip>}>
+                                                <OverlayTrigger placement="bottom" overlay={<Tooltip id="tooltip-disabled">{post?.postType?.name === 'public' ? 'Public' : 'Private'}</Tooltip>}>
                                                     <span className="d-inline-block">
                                                         <p disabled style={{ pointerEvents: 'none' }}>
-                                                            {post?.type_id?.name === 'public' ? <span className="material-symbols-outlined">
+                                                            {post?.postType?.name === 'public' ? <span className="material-symbols-outlined">
                                                                 public
                                                             </span> : <span className="material-symbols-outlined">
                                                                 lock
@@ -182,41 +226,61 @@ const CardPostHome = ({ post, pageInfo }) => {
                                                     </span>
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu className="dropdown-menu m-0 p-0">
-                                                    <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                        <div className="d-flex align-items-top">
-                                                            <i className="material-symbols-outlined">save</i>
-                                                            <div className="data ms-2">
-                                                                <h6>Save Post</h6>
-                                                                <p className="mb-0">
-                                                                    Add this to your saved items
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                        <div className="d-flex align-items-top">
-                                                            <i className="material-symbols-outlined">edit</i>
-                                                            <div className="data ms-2">
-                                                                <h6>Edit Post</h6>
-                                                                <p className="mb-0">
-                                                                    Update your post and saved items
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item className="dropdown-item p-3" to="#">
-                                                        <div className="d-flex align-items-top">
-                                                            <i className="material-symbols-outlined">
-                                                                delete
-                                                            </i>
-                                                            <div className="data ms-2">
-                                                                <h6>Delete</h6>
-                                                                <p className="mb-0">
-                                                                    Remove thids Post on Timeline
-                                                                </p>
-                                                            </div>
-                                                        </div>
-                                                    </Dropdown.Item>
+                                                    <Mark post={post} profile={user} />
+                                                    {post?.user?.documentId === user?.documentId && (
+                                                        <>
+                                                            < Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
+                                                                <div className="d-flex align-items-top">
+                                                                    <i className="material-symbols-outlined">edit</i>
+                                                                    <div className="data ms-2">
+                                                                        <h6>Edit Post</h6>
+                                                                        <p className="mb-0">
+                                                                            Update your post and saved items
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleDeletePost}>
+                                                                <div className="d-flex align-items-top">
+                                                                    <i className="material-symbols-outlined">
+                                                                        delete
+                                                                    </i>
+                                                                    <div className="data ms-2">
+                                                                        <h6>Delete</h6>
+                                                                        <p className="mb-0">
+                                                                            Remove thids Post on Timeline
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </Dropdown.Item>
+                                                        </>)}
+                                                    {pageInfo?.creator?.documentId === user?.documentId && (
+                                                        <>
+                                                            < Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleOpenEditModal}>
+                                                                <div className="d-flex align-items-top">
+                                                                    <i className="material-symbols-outlined">edit</i>
+                                                                    <div className="data ms-2">
+                                                                        <h6>Edit Post</h6>
+                                                                        <p className="mb-0">
+                                                                            Update your post and saved items
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </Dropdown.Item>
+                                                            <Dropdown.Item className="dropdown-item p-3" to="#" onClick={handleDeletePost}>
+                                                                <div className="d-flex align-items-top">
+                                                                    <i className="material-symbols-outlined">
+                                                                        delete
+                                                                    </i>
+                                                                    <div className="data ms-2">
+                                                                        <h6>Delete</h6>
+                                                                        <p className="mb-0">
+                                                                            Remove thids Post on Timeline
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            </Dropdown.Item>
+                                                        </>)}
                                                     <Dropdown.Item className="dropdown-item p-3" to="#">
                                                         <div className="d-flex align-items-top">
                                                             <i className="material-symbols-outlined">
@@ -238,20 +302,20 @@ const CardPostHome = ({ post, pageInfo }) => {
                             </div>
                         </div >
                         <div className="mt-3">
-                            {friendNames.length > 0 && (
+                            {post?.friends?.length > 0 && (
                                 <div className="d-flex flex-wrap">
-                                    {friends.map((friend, index) => (
+                                    {post?.friends?.map((friend, index) => (
                                         <Tag
                                             key={index}
                                             color="blue"
                                             className="me-1 mb-1"
                                             style={{ cursor: 'pointer' }}
                                         >
-                                            <Link to={`/friend-profile/${friend?.users_permissions_user?.documentId}`}
-                                                state={{ friendId: friend?.users_permissions_user }}
+                                            <Link to={`/friend-profile/${friend?.user?.documentId}`}
+                                                state={{ friendId: friend?.user?.documentId }}
                                                 style={{ color: 'inherit', textDecoration: 'none' }}
                                             >
-                                                @{friend?.users_permissions_user?.username}
+                                                @{friend?.user?.username}
                                             </Link>
                                         </Tag>
                                     ))}
@@ -268,12 +332,12 @@ const CardPostHome = ({ post, pageInfo }) => {
                         </div>
 
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "2px" }}>
-                            {validTags.map((tag, index) => (
+                            {post?.tags?.map((tag, index) => (
                                 <Tag
-                                    key={tag}
+                                    key={index}
                                     color={colors[index % colors.length]} // Áp dụng màu theo danh sách
                                 >
-                                    {tag}
+                                    {tag?.name}
                                 </Tag>
                             ))}
                         </div>
@@ -454,87 +518,23 @@ const CardPostHome = ({ post, pageInfo }) => {
                                                 <Dropdown.Toggle as={CustomToggle}>
                                                     <img src={icon1} className="img-fluid" alt="" />
                                                 </Dropdown.Toggle>
-                                                <Dropdown.Menu className=" py-2">
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Like</Tooltip>}
-                                                        className="ms-2 me-2"
-                                                    >
-                                                        <img
-                                                            src={icon1}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Love</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon2}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>HaHa</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon4}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Sade</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon6}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                </Dropdown.Menu>
                                             </Dropdown>
                                         </div>
                                         <div className="total-like-block ms-2 me-3">
                                             <Dropdown>
                                                 <Dropdown.Toggle as={CustomToggle} id="post-option">
-                                                    140
+                                                    {reactionCount}
                                                 </Dropdown.Toggle>
-                                                <Dropdown.Menu>
-                                                    <Dropdown.Item href="#">Max Emum</Dropdown.Item>
-                                                    <Dropdown.Item href="#">Bill Yerds</Dropdown.Item>
-                                                    <Dropdown.Item href="#">
-                                                        Hap E. Birthday
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item href="#">Tara Misu</Dropdown.Item>
-                                                    <Dropdown.Item href="#">Midge Itz</Dropdown.Item>
-                                                    <Dropdown.Item href="#">Sal Vidge</Dropdown.Item>
-                                                    <Dropdown.Item href="#">Other</Dropdown.Item>
-                                                </Dropdown.Menu>
+                                                <ListLike listLike={post?.reactions} />
                                             </Dropdown>
                                         </div>
                                     </div>
                                     <div className="total-comment-block">
                                         <Dropdown>
                                             <Dropdown.Toggle as={CustomToggle} id="post-option">
-                                                20 <FaRegComment />
+                                                {post?.comments?.length} <FaRegComment />
                                             </Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item href="#">Max Emum</Dropdown.Item>
-                                                <Dropdown.Item href="#">Bill Yerds</Dropdown.Item>
-                                                <Dropdown.Item href="#">Hap E. Birthday</Dropdown.Item>
-                                                <Dropdown.Item href="#">Tara Misu</Dropdown.Item>
-                                                <Dropdown.Item href="#">Midge Itz</Dropdown.Item>
-                                                <Dropdown.Item href="#">Sal Vidge</Dropdown.Item>
-                                                <Dropdown.Item href="#">Other</Dropdown.Item>
-                                            </Dropdown.Menu>
+                                            <ListComment listComment={post} />
                                         </Dropdown>
                                     </div>
                                 </div>
@@ -544,63 +544,7 @@ const CardPostHome = ({ post, pageInfo }) => {
 
                             <div className="d-flex justify-content-between align-items-center flex-wrap action">
                                 <div className="like-block position-relative d-flex align-items-center">
-                                    <div className="d-flex align-items-center ">
-                                        <div className="like-data">
-                                            <Dropdown>
-                                                <Dropdown.Toggle as={CustomToggle}>
-                                                    <button className="btn btn-white d-flex align-items-center post-button">
-                                                        <span className="material-symbols-outlined">thumb_up</span> <h6>Like</h6>
-                                                    </button>
-                                                </Dropdown.Toggle>
-                                                <Dropdown.Menu className=" py-2">
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Like</Tooltip>}
-                                                        className="ms-2 me-2"
-                                                    >
-                                                        <img
-                                                            src={icon1}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Love</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon2}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>HaHa</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon4}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                    <OverlayTrigger
-                                                        placement="top"
-                                                        overlay={<Tooltip>Sade</Tooltip>}
-                                                        className="me-2"
-                                                    >
-                                                        <img
-                                                            src={icon6}
-                                                            className="img-fluid me-2"
-                                                            alt=""
-                                                        />
-                                                    </OverlayTrigger>
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                        </div>
-                                    </div>
+                                    <ActionLike post={post} onSelect={handleReactionSelect} />
                                     <div className="total-comment-block">
                                         <button className="btn btn-white d-flex align-items-center post-button" onClick={handleOpenCommentModal}>
                                             <FaRegComment /> <h6>Comment</h6>
@@ -610,77 +554,76 @@ const CardPostHome = ({ post, pageInfo }) => {
                                         <FaShare /> <h6>Share</h6>
                                     </button>
                                 </div>
-
                             </div>
+
                             <hr />
                             <ul className="post-comments list-inline p-0 m-0">
-                                <li className="mb-2">
-                                    <div className="d-flex">
-                                        <div className="user-img">
-                                            <img
-                                                src={user2}
-                                                alt="user1"
-                                                className="avatar-35 rounded-circle img-fluid"
-                                            />
-                                        </div>
-                                        <div className="comment-data-block ms-3">
-                                            <h6>Monty Carlo</h6>
-                                            <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                                            <div className="d-flex flex-wrap align-items-center comment-activity">
-                                                <Link to="#">like</Link>
-                                                <Link to="#">reply</Link>
-                                                <Link to="#">translate</Link>
-                                                <span> 5 min </span>
+                                {parentComments.data.data.length === 0 ? (
+                                    <li className="mb-2 text-center">
+                                        <p>No comments available.</p>
+                                    </li>
+                                ) : (
+                                    parentComments.data.data.slice(0, 2).map((comment) => (
+                                        <li className="mb-2" key={comment.documentId}>
+                                            <div className="d-flex">
+                                                <div className="user-img">
+                                                    <img
+                                                        src={comment.user?.avatarMedia?.file_path}
+                                                        alt="user1"
+                                                        className="avatar-35 rounded-circle img-fluid"
+                                                    />
+                                                </div>
+                                                <div className="comment-data-block ms-3">
+                                                    <h5 style={{ fontWeight: 'bold' }}>{comment.user.username}</h5>
+                                                    <div className="d-flex flex-wrap align-items-center">
+                                                        <p className="mb-0">
+                                                            {comment.content.split("\n").map((line, index) => (
+                                                                <React.Fragment key={index}>
+                                                                    {line}
+                                                                    <br />
+                                                                </React.Fragment>
+                                                            ))}
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="d-flex flex-wrap align-items-center comment-activity">
+
+                                                        <Link to="#" onClick={handleOpenCommentModal}>
+                                                            Reply
+                                                        </Link>
+                                                        <span>
+                                                            {formatDistanceToNow(new Date(comment.createdAt), { addSuffix: true })}
+                                                        </span>
+                                                    </div>
+
+
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </li>
-                                <li>
-                                    <div className="d-flex">
-                                        <div className="user-img">
-                                            <img
-                                                src={user3}
-                                                alt="user1"
-                                                className="avatar-35 rounded-circle img-fluid"
-                                            />
-                                        </div>
-                                        <div className="comment-data-block ms-3">
-                                            <h6>Paul Molive</h6>
-                                            <p className="mb-0">Lorem ipsum dolor sit amet</p>
-                                            <div className="d-flex flex-wrap align-items-center comment-activity">
-                                                <Link to="#">like</Link>
-                                                <Link to="#">reply</Link>
-                                                <Link to="#">translate</Link>
-                                                <span> 5 min </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </li>
+                                        </li>
+                                    ))
+                                )}
                             </ul>
-                            <form className="comment-text d-flex align-items-center mt-3">
+                            <form className="comment-text d-flex align-items-center mt-3" onClick={handleOpenCommentModal}>
                                 <input
                                     type="text"
                                     className="form-control rounded"
                                     placeholder="Enter Your Comment"
                                 />
-                                <div className="comment-attagement d-flex">
-                                    <Link to="#">
-                                        <i className="ri-link me-3"></i>
-                                    </Link>
-                                    <Link to="#">
-                                        <i className="ri-user-smile-line me-3"></i>
-                                    </Link>
-                                    <Link to="#">
-                                        <i className="ri-camera-line me-3"></i>
-                                    </Link>
-                                </div>
                             </form>
                         </div>
                     </Card.Body >
                 </Card >
             </Col>
             <ModalCardPost show={showCommentModal} handleClose={handleCloseCommentModal} post={post} page={pageInfo} />
-
+            <EditPostModal
+                show={showEditModal}
+                handleClose={handleCloseEditModal}
+                post={post}
+                page={pageInfo}
+                friends={post?.friends}
+                validTags={validTags}
+                validSources={validSources}
+            />
         </>
     );
 };

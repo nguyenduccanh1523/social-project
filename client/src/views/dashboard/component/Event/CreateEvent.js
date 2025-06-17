@@ -10,7 +10,7 @@ import { useSelector } from 'react-redux';
 
 
 const CreateEvent = ({ open, onClose }) => {
-    const { profile } = useSelector((state) => state.root.user || {});
+    const { token, user } = useSelector((state) => state.root.auth || {});
     const [form] = Form.useForm();
     const [startTime, setStartTime] = useState(null);
     const [endTime, setEndTime] = useState(null);
@@ -72,6 +72,37 @@ const CreateEvent = ({ open, onClose }) => {
 
         try {
             if (imageData.type === 'uploaded') {
+
+                const uploadToCloudinary = async (file, folder = "default") => {
+                    const cloudName = process.env.REACT_APP_CLOUDINARY_NAME;
+                    const uploadPreset = process.env.REACT_APP_REACT_UPLOAD;
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("upload_preset", uploadPreset);
+                    formData.append("folder", folder);
+                    try {
+                      const response = await fetch(
+                        `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+                        {
+                          method: "POST",
+                          body: formData,
+                        }
+                      );
+                      const data = await response.json();
+                      if (data.secure_url) {
+                        return {
+                          url: data.secure_url,
+                          public_id: data.public_id,
+                          mime: data.resource_type + "/" + data.format,
+                          size: data.bytes,
+                        };
+                      } else {
+                        throw new Error(data.error?.message || "Upload failed");
+                      }
+                    } catch (error) {
+                      console.error("Error uploading file to Cloudinary:", error);
+                    }
+                  };
                 // Handle the case where the image is uploaded
                 const binaryImage = await fetch(imageData.url)
                     .then(res => res.blob())
@@ -81,25 +112,22 @@ const CreateEvent = ({ open, onClose }) => {
                         return new File([blob], fileName, { type: fileType });
                     });
 
-                const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
-                const payload = {
-                    data: {
-                        file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-                        file_type: uploadedFile.data[0].mime,
-                        file_size: uploadedFile.data[0].size.toString(),
-                    },
-                };
-                const response = await createMedia(payload);
+                    const uploadedFile = await uploadToCloudinary(binaryImage, "default");
+                    const payload = {
+                      file_path: uploadedFile.url,
+                      file_type: uploadedFile.mime,
+                      file_size: uploadedFile.size.toString(),
+                      type_id: "pkw7l5p5gd4e70uy5bvgpnpv",
+                    };
+                    const response = await createMedia(payload, token);
                 const payloadEvent = {
-                    data: {
                         name: values.name,
                         description: values.description,
                         location: values.location,
-                        host_id: profile.documentId,
+                        host_id: user.documentId,
                         start_time: startTime.toISOString(), // Convert to ISO 8601 format
                         end_time: endTime.toISOString(), // Convert to ISO 8601 format
                         banner_id: response.data.data.documentId, // Use the documentId of the uploaded image
-                    }
                 }
                 await apiCreateEvent(payloadEvent); // Assuming you have a function to create the event
                 notification.success({
@@ -111,15 +139,13 @@ const CreateEvent = ({ open, onClose }) => {
                 // You can add additional logic here if needed
             } else if (imageData.type === 'media') {
                 const payload = {
-                    data: {
                         name: values.name,
                         description: values.description,
                         location: values.location,
-                        host_id: profile.documentId,
+                        host_id: user.documentId,
                         start_time: startTime.toISOString(), // Convert to ISO 8601 format
                         end_time: endTime.toISOString(), // Convert to ISO 8601 format
                         banner_id: imageData.documentId // Use the documentId of the uploaded image
-                    }
                 }
                 await apiCreateEvent(payload); // Assuming you have a function to create the event
                 notification.success({

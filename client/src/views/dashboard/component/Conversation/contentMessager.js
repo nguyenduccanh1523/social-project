@@ -6,20 +6,32 @@ import React, {
   useState,
 } from "react";
 import { Link } from "react-router-dom";
-import { Image } from "antd";
-import { apiGetMessage } from "../../../../services/message";
+import { Image, Dropdown, Menu } from "antd";
+import { apiGetMessage, apiUpdateMessager, apiDeleteMessager } from "../../../../services/message";
 import loader from "../../../../assets/images/page-img/page-load-loader.gif";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import {
   convertToVietnamDate,
   convertToVietnamHour,
 } from "../../others/format";
+import { EllipsisOutlined } from "@ant-design/icons";
+import { useSelector } from "react-redux";
+import socket from "../../../../socket";
+import LoadMessage from "../../icons/uiverse/LoadMessager";
 
 const ContentMessager = ({ item, profile, username }) => {
   const chatBodyRef = useRef(null);
+  const { token } = useSelector((state) => state.root.auth || {});
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const queryClient = useQueryClient();
   const isInitialLoad = useRef(true);
+  const [editingId, setEditingId] = useState(null);
+  const [editContent, setEditContent] = useState("");
+  const [deletingId, setDeletingId] = useState(null);
+  const [hoveredId, setHoveredId] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
+
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } =
     useInfiniteQuery({
@@ -31,9 +43,16 @@ const ContentMessager = ({ item, profile, username }) => {
     });
 
   const messages =
-    data?.pages?.flatMap((page) =>
-      Array.isArray(page?.data?.data) ? page.data.data : []
-    ) || [];
+    data?.pages
+      ?.flatMap((page) =>
+        Array.isArray(page?.data?.data) ? page.data.data : []
+      )
+      // Loại bỏ tin nhắn trùng lặp dựa trên documentId
+      .filter(
+        (msg, idx, arr) =>
+          msg?.documentId &&
+          arr.findIndex((m) => m.documentId === msg.documentId) === idx
+      ) || [];
 
   // Scroll về đáy khi load lần đầu
   useLayoutEffect(() => {
@@ -73,15 +92,66 @@ const ContentMessager = ({ item, profile, username }) => {
     }
   };
 
+
+
+
   useEffect(() => {
-    // Mỗi khi chuyển sang cuộc trò chuyện khác -> scroll xuống cuối
-    if (chatBodyRef.current) {
-      setTimeout(() => {
-        chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
-      }, 100); // delay nhẹ để React render xong DOM
+    if (!profile?.documentId) return;
+    socket.emit("register", profile.documentId);
+
+    socket.on("receive_message", (message) => {
+      if (message.conversation_id === item) {
+        queryClient.invalidateQueries(["messages", item]);
+      }
+    });
+
+
+    socket.on("user_typing", ({ conversationId, fromUserId }) => {
+      if (conversationId === item && fromUserId !== profile.documentId) {
+        setIsTyping(true);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+          setIsTyping(false);
+        }, 1500);
+      }
+    });
+
+    return () => {
+      socket.off("receive_message");
+      socket.off("user_typing");
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [item, profile?.documentId]);
+
+
+  const handleEdit = async (e, messageId) => {
+    e.preventDefault();
+    try {
+      await apiUpdateMessager({
+        documentId: messageId,
+        payload: { content: editContent },
+        token: token
+      });
+      setEditingId(null);
+      setEditContent("");
+      queryClient.invalidateQueries(["messages", item]);
+    } catch (err) {
+      console.error("Error updating message:", err);
     }
-    isInitialLoad.current = true; // Reset lại flag initial load
-  }, [item]);
+  };
+
+  const handleDelete = async (messageId) => {
+    try {
+      await apiDeleteMessager({
+        documentId: messageId,
+        token: token
+      });
+      setDeletingId(null);
+      queryClient.invalidateQueries(["messages", item]);
+    } catch (err) {
+      console.error("Error deleting message:", err);
+    }
+  };
 
   return (
     <>
@@ -112,14 +182,17 @@ const ContentMessager = ({ item, profile, username }) => {
         )}
 
         {/* Hiển thị tin nhắn (đảo ngược để tin mới ở dưới) */}
-        {[...messages].reverse().map((message, index) => {
+        {[...messages].reverse().map((message) => {
           const isSentByUser =
-            message?.sender_id?.documentId === profile?.documentId;
+            message?.sender?.documentId === profile?.documentId;
           const messageDate = message?.createdAt;
           const formattedDate = convertToVietnamDate(messageDate);
           const formattedTime = convertToVietnamHour(messageDate);
           return (
-            <div key={message?.documentId || index}>
+            <div key={message?.documentId} style={{ position: 'relative' }}
+              onMouseEnter={() => setHoveredId(message.documentId)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
               <div
                 className={
                   isSentByUser ? "chat d-flex other-user" : "chat chat-left"
@@ -131,8 +204,8 @@ const ContentMessager = ({ item, profile, username }) => {
                       loading="lazy"
                       src={
                         isSentByUser
-                          ? profile?.profile_picture
-                          : message?.sender_id?.profile_picture
+                          ? profile?.avatarMedia?.file_path
+                          : message?.sender?.avatarMedia?.file_path
                       }
                       alt="avatar"
                       className="avatar-35"
@@ -144,52 +217,96 @@ const ContentMessager = ({ item, profile, username }) => {
                   className="chat-detail"
                   style={{
                     justifyContent: isSentByUser ? "flex-end" : "flex-start",
+                    position: 'relative'
                   }}
                 >
-                  {message?.content ? (
-                    <div className="chat-message">
-                      <span
-                        className="chat-time"
-                        style={{
-                          justifyItems: isSentByUser ? "" : "center",
-                        }}
-                      >
-                        {formattedDate}
-                      </span>
-                      <p>{message.content}</p>
+                  {editingId === message.documentId ? (
+                    <form onSubmit={(e) => handleEdit(e, message.documentId)} style={{ display: "flex", gap: 8 }}>
+                      <input
+                        value={editContent}
+                        onChange={(e) => setEditContent(e.target.value)}
+                        style={{ flex: 1 }}
+                      />
+                      <button type="submit">Save</button>
+                      <button type="button" onClick={() => setEditingId(null)}>Cancel</button>
+                    </form>
+                  ) : message?.content ? (
+                    <div className="chat-message" style={{ position: 'relative', paddingRight: isSentByUser ? 32 : 0 }}>
+                      <span className="chat-time" style={{ justifyItems: isSentByUser ? "" : "center" }}>{formattedDate}</span>
+                      <p style={{ marginRight: '10px' }}>{message.content}</p>
+                      {isSentByUser && hoveredId === message.documentId && (
+                        <Dropdown
+                          menu={{
+                            items: [
+                              { key: 'edit', label: <span onClick={() => { setEditingId(message.documentId); setEditContent(message.content); }}>Edit</span> },
+                              { key: 'delete', label: <span onClick={() => setDeletingId(message.documentId)}>Delete</span> }
+                            ]
+                          }}
+                          trigger={["click"]}
+                          placement="topRight"
+                        >
+                          <span style={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}>
+                            <EllipsisOutlined style={{ fontSize: 22, color: '#555', background: '#fff', borderRadius: '50%', padding: 4, cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }} />
+                          </span>
+                        </Dropdown>
+                      )}
                     </div>
                   ) : (
-                    <div
-                      style={{
-                        padding: isSentByUser
-                          ? "0 20px 20px 0"
-                          : "0 0 20px 20px",
-                        justifyContent: isSentByUser
-                          ? "flex-end"
-                          : "flex-start",
-                        width: "50%",
-                      }}
-                    >
+                    <div style={{ padding: isSentByUser ? "0 20px 20px 0" : "0 0 20px 20px", justifyContent: isSentByUser ? "flex-end" : "flex-start", width: "50%", position: 'relative', paddingRight: isSentByUser ? 32 : 0 }}>
                       <Image.PreviewGroup>
                         <Image
-                          src={message?.media_id?.file_path}
+                          src={message?.media?.file_path}
                           alt="media"
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            objectFit: "cover",
-                            borderRadius: "8px",
-                            cursor: "pointer",
-                          }}
+                          style={{ width: "100%", height: "auto", objectFit: "cover", borderRadius: "8px", cursor: "pointer" }}
                         />
                       </Image.PreviewGroup>
+                      {isSentByUser && hoveredId === message.documentId && (
+                        <Dropdown
+                          menu={{
+                            items: [
+                              { key: 'delete', label: <span onClick={() => setDeletingId(message.documentId)}>Xóa</span> }
+                            ]
+                          }}
+                          trigger={["click"]}
+                          placement="topRight"
+                        >
+                          <span style={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}>
+                            <EllipsisOutlined style={{ fontSize: 22, color: '#555', background: '#fff', borderRadius: '50%', padding: 4, cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }} />
+                          </span>
+                        </Dropdown>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
+              {/* Form xác nhận xóa */}
+              {deletingId === message.documentId && (
+                <div style={{ position: 'absolute', top: 30, right: 0, background: '#fff', border: '1px solid #ddd', padding: 16, zIndex: 10 }}>
+                  <div>Are you sure you want to delete this message?</div>
+                  <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+                    <button onClick={() => handleDelete(message.documentId)}>Delete</button>
+                    <button onClick={() => setDeletingId(null)}>Cancel</button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
+        {isTyping && (
+          <div className="chat d-flex chat-left align-items-center p-2" >
+            <div className="chat-user" style={{ marginRight: '22px' }}>
+              <img
+                src={username?.avatarMedia?.file_path || "/default-avatar.png"}
+                alt="avatar"
+                className="avatar-35"
+              />
+            </div>
+            <div className="chat-detail" >
+              <LoadMessage />
+            </div>
+          </div>
+        )}
+
       </div>
       {showScrollToBottom && (
         <button

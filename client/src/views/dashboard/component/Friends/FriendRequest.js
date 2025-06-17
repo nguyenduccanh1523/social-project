@@ -123,6 +123,9 @@ const FriendRequest = () => {
                         <div className="flex-grow-1 ms-3">
                           <Link
                             to={`/friend-profile/${user?.user?.documentId}`}
+                            state={{
+                              friendId: user?.user?.documentId
+                            }}
                             className="text-decoration-none"
                           >
                             <h6>{user?.user?.fullname}</h6>

@@ -28,6 +28,7 @@ import { apiCreateGroup } from "../../../../services/groupServices/group";
 const CreateGroup = ({ open, onClose }) => {
     const dispatch = useDispatch();
     const { profile } = useSelector((state) => state.root.user || {});
+    const { token, user } = useSelector((state) => state.root.auth || {});
     const [form] = Form.useForm();
     const [uploading, setUploading] = useState(false);
     const [fileList, setFileList] = useState([]);
@@ -99,6 +100,37 @@ const CreateGroup = ({ open, onClose }) => {
         try {
             let pageResponse;
             if (imageData.type === "uploaded") {
+
+                const uploadToCloudinary = async (file, folder = "default") => {
+                    const cloudName = process.env.REACT_APP_CLOUDINARY_NAME;
+                    const uploadPreset = process.env.REACT_APP_REACT_UPLOAD;
+                    const formData = new FormData();
+                    formData.append("file", file);
+                    formData.append("upload_preset", uploadPreset);
+                    formData.append("folder", folder);
+                    try {
+                        const response = await fetch(
+                            `https://api.cloudinary.com/v1_1/${cloudName}/upload`,
+                            {
+                                method: "POST",
+                                body: formData,
+                            }
+                        );
+                        const data = await response.json();
+                        if (data.secure_url) {
+                            return {
+                                url: data.secure_url,
+                                public_id: data.public_id,
+                                mime: data.resource_type + "/" + data.format,
+                                size: data.bytes,
+                            };
+                        } else {
+                            throw new Error(data.error?.message || "Upload failed");
+                        }
+                    } catch (error) {
+                        console.error("Error uploading file to Cloudinary:", error);
+                    }
+                };
                 //console.log("Uploading image to media library...");
                 const binaryImage = await fetch(imageData.url)
                     .then((res) => res.blob())
@@ -108,35 +140,30 @@ const CreateGroup = ({ open, onClose }) => {
                         return new File([blob], fileName, { type: fileType });
                     });
 
-                const uploadedFile = await uploadToMediaLibrary({ file: binaryImage });
+                const uploadedFile = await uploadToCloudinary(binaryImage, "default");
                 const payload = {
-                    data: {
-                        file_path: `http://localhost:1337${uploadedFile.data[0].url}`,
-                        file_type: uploadedFile.data[0].mime,
-                        file_size: uploadedFile.data[0].size.toString(),
-                    },
+                    file_path: uploadedFile.url,
+                    file_type: uploadedFile.mime,
+                    file_size: uploadedFile.size.toString(),
+                    type_id: "pkw7l5p5gd4e70uy5bvgpnpv",
                 };
-                const response = await createMedia(payload);
+                const response = await createMedia(payload, token);
                 const payloadEvent = {
-                    data: {
-                        group_name: values.name,
-                        description: values.description,
-                        type: isPrivate ? 'pkw7l5p5gd4e70uy5bvgpnpv' : 'elx6zlfz9ywp6esoyfi6a1yl',
-                        admin_id: profile.documentId,
-                        media: response.data.data.documentId,
-                    },
+                    group_name: values.name,
+                    description: values.description,
+                    type: isPrivate ? 'pkw7l5p5gd4e70uy5bvgpnpv' : 'elx6zlfz9ywp6esoyfi6a1yl',
+                    admin_id: user.documentId,
+                    media: response.data.data.documentId,
                 };
                 pageResponse = await apiCreateGroup(payloadEvent);
             } else if (imageData.type === "media") {
                 //console.log("Using selected media...");
                 const payload = {
-                    data: {
-                        group_name: values.name,
-                        description: values.description,
-                        type: isPrivate ? 'pkw7l5p5gd4e70uy5bvgpnpv' : 'elx6zlfz9ywp6esoyfi6a1yl',
-                        admin_id: profile.documentId,
-                        media: imageData.documentId,
-                    },
+                    group_name: values.name,
+                    description: values.description,
+                    type: isPrivate ? 'pkw7l5p5gd4e70uy5bvgpnpv' : 'elx6zlfz9ywp6esoyfi6a1yl',
+                    admin_id: user.documentId,
+                    media: imageData.documentId,
                 };
                 pageResponse = await apiCreateGroup(payload);
             }

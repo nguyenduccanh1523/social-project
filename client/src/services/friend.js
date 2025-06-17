@@ -31,6 +31,23 @@ export const apiGetUserById = ({ userId, token }) => new Promise(async (resolve,
   }
 });
 
+export const apiCreateFriendStatus = (payload, token) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "post",
+        url: `/friends`, // Sử dụng `friendId` chính xác trong URL
+        data: payload,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
 export const apiUpdateFriendStatus = ({ friendId, status_action_id, token }) =>
   new Promise(async (resolve, reject) => {
     try {
@@ -38,7 +55,7 @@ export const apiUpdateFriendStatus = ({ friendId, status_action_id, token }) =>
         method: "put",
         url: `/friends/${friendId}?populate=*`, // Sử dụng `friendId` chính xác trong URL
         data: {
-            status_action_id,
+          status_action_id,
         },
         headers: {
           Authorization: `Bearer ${token}`
@@ -50,7 +67,7 @@ export const apiUpdateFriendStatus = ({ friendId, status_action_id, token }) =>
     }
   });
 
-export const apiGetFriendsByDate = ({documentId, token}) =>
+export const apiGetFriendsByDate = ({ documentId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -73,6 +90,22 @@ export const apiGetFriendRequest = ({ documentId, token }) =>
       const response = await axiosConfig({
         method: "get",
         url: `/friends?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${documentId}&statusId=w1t6ex59sh5auezhau5e2ovu`,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const apiGetCheckFriendRequest = ({ documentId, userId, token }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/friends?pagination[pageSize]=100&pagination[page]=1&populate=*&sort=createdAt:DESC&userId=${userId}&friendId=${documentId}&statusId=w1t6ex59sh5auezhau5e2ovu`,
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -133,15 +166,7 @@ export const apiCreatePostFriend = (payload) =>
 export const apiGetPostFriend = ({ postId, token }) =>
   new Promise(async (resolve, reject) => {
     try {
-      // Kiểm tra groupId trước khi dùng trong URL
-      if (typeof postId !== "string") {
-        //console.error("Invalid groupId:", groupId);
-        return reject(new Error("groupId should be a string"));
-      }
 
-      //console.log("Fetching group members for groupId:", groupId);
-
-      // Gọi API với URL đã được truyền đúng groupId
       const response = await axiosConfig({
         method: "get",
         url: `/post-friends?pagination[pageSize]=20&pagination[page]=1&populate=*&sort=createdAt:DESC&postId=${postId}`,

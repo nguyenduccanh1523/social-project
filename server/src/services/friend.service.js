@@ -17,7 +17,7 @@ export const getAllFriend = async ({
     friendId = null
 }) => {
     try {
-        
+
         const offset = (page - 1) * pageSize;
         const whereConditions = {};
 
@@ -30,6 +30,34 @@ export const getAllFriend = async ({
             whereConditions[Op.or] = [
                 { name: { [Op.like]: `%${filters.keyword}%` } },
                 { description: { [Op.like]: `%${filters.keyword}%` } }
+            ];
+        }
+
+
+        if (userId && friendId) {
+            whereConditions[Op.or] = [
+                {
+                    [Op.and]: [
+                        { user_id: userId },
+                        { friend_id: friendId }
+                    ]
+                },
+                {
+                    [Op.and]: [
+                        { user_id: friendId },
+                        { friend_id: userId }
+                    ]
+                }
+            ];
+        } else if (userId) {
+            whereConditions[Op.or] = [
+                { user_id: userId },
+                { friend_id: userId }
+            ];
+        } else if (friendId) {
+            whereConditions[Op.or] = [
+                { user_id: friendId },
+                { friend_id: friendId }
             ];
         }
 
@@ -57,7 +85,7 @@ export const getAllFriend = async ({
             const date = new Date(filterDate);
             const startOfDay = new Date(date.setHours(0, 0, 0, 0));
             const endOfDay = new Date(date.setHours(23, 59, 59, 999));
-            
+
             whereConditions.updatedAt = {
                 [Op.between]: [startOfDay, endOfDay]
             };
@@ -67,7 +95,7 @@ export const getAllFriend = async ({
         if (lastSevenDays) {
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-            
+
             whereConditions.updatedAt = {
                 [Op.gte]: sevenDaysAgo
             };
@@ -84,7 +112,7 @@ export const getAllFriend = async ({
                     attributes: ['documentId', 'name', 'description']
                 }
             );
-            
+
             // Thay vì include cả hai user cùng lúc, sử dụng các query riêng biệt
             const { count, rows } = await db.Friend.findAndCountAll({
                 where: whereConditions,
@@ -94,11 +122,11 @@ export const getAllFriend = async ({
                 limit: pageSize,
                 distinct: true
             });
-            
+
             // Lấy user_id và friend_id từ kết quả
             const userIds = rows.map(friend => friend.user_id);
             const friendIds = rows.map(friend => friend.friend_id);
-            
+
             // Truy vấn thông tin của cả user và friend
             const users = await db.User.findAll({
                 where: {
@@ -106,18 +134,18 @@ export const getAllFriend = async ({
                 },
                 attributes: ['documentId', 'fullname', 'email', 'phone', 'avatar_id', 'cover_photo_id', 'status_id']
             });
-            
+
             // Tạo map cho việc tra cứu nhanh thông tin user
             const userMap = {};
             users.forEach(user => {
                 userMap[user.documentId] = user;
             });
-            
+
             // Lấy avatar_id từ tất cả users
             const avatarIds = users
                 .map(user => user.avatar_id)
                 .filter(id => id !== null);
-            
+
             // Truy vấn thông tin media cho avatar
             const avatarMedia = await db.Media.findAll({
                 where: {
@@ -125,7 +153,7 @@ export const getAllFriend = async ({
                 },
                 attributes: ['documentId', 'file_path']
             });
-            
+
             // Tạo map cho việc tra cứu nhanh thông tin media
             const mediaMap = {};
             avatarMedia.forEach(media => {
@@ -136,7 +164,7 @@ export const getAllFriend = async ({
             const statusIds = users
                 .map(user => user.status_id)
                 .filter(id => id !== null);
-            
+
             // Truy vấn thông tin status cho avatar
             const status = await db.StatusActivity.findAll({
                 where: {
@@ -144,13 +172,13 @@ export const getAllFriend = async ({
                 },
                 attributes: ['documentId', 'name']
             });
-            
+
             // Tạo map cho việc tra cứu nhanh thông tin status
             const statusMap = {};
             status.forEach(status => {
                 statusMap[status.documentId] = status;
             });
-            
+
             // Lấy số lượng bạn bè cho mỗi user
             const friendCountPromises = [...userIds, ...friendIds].map(async (id) => {
                 const count = await db.Friend.count({
@@ -164,19 +192,19 @@ export const getAllFriend = async ({
                 });
                 return { id, count };
             });
-            
+
             const friendCounts = await Promise.all(friendCountPromises);
             const friendCountMap = {};
             friendCounts.forEach(({ id, count }) => {
                 friendCountMap[id] = count;
             });
-            
+
             // Thêm thông tin user và friend vào mỗi kết quả
             const enrichedData = rows.map(friend => {
                 const plainFriend = friend.get({ plain: true });
                 const user = userMap[friend.user_id];
                 const friendUser = userMap[friend.friend_id];
-                
+
                 if (user) {
                     const userData = user.toJSON();
                     // Thêm thông tin avatar media nếu có
@@ -189,13 +217,13 @@ export const getAllFriend = async ({
                     }
 
 
-                    
+
                     plainFriend.user = {
                         ...userData,
                         friendCount: friendCountMap[friend.user_id] || 0
                     };
                 }
-                
+
                 if (friendUser) {
                     const friendData = friendUser.toJSON();
                     // Thêm thông tin avatar media nếu có
@@ -206,13 +234,13 @@ export const getAllFriend = async ({
                     if (friendData.status_id && statusMap[friendData.status_id]) {
                         friendData.status = statusMap[friendData.status_id];
                     }
-                    
+
                     plainFriend.friend = {
                         ...friendData,
                         friendCount: friendCountMap[friend.friend_id] || 0
                     };
                 }
-                
+
                 return plainFriend;
             });
 
@@ -235,7 +263,7 @@ export const getAllFriend = async ({
                 limit: pageSize,
                 distinct: true
             });
-            
+
             return {
                 data: rows,
                 meta: {
@@ -295,7 +323,7 @@ export const getFriendById = async (documentId) => {
 export const createFriend = async (friendData) => {
     try {
         const newFriend = await db.Friend.create(friendData);
-        return await getFriendById(newFriend.documentId);
+        return newFriend
     } catch (error) {
         throw new Error(`Lỗi khi tạo bạn bè mới: ${error.message}`);
     }
@@ -305,7 +333,7 @@ export const createFriend = async (friendData) => {
 export const updateFriend = async (documentId, friendData) => {
     try {
         const friend = await db.Friend.findByPk(documentId);
-        
+
         if (!friend) {
             throw new Error('Không tìm thấy bạn bè');
         }
@@ -321,7 +349,7 @@ export const updateFriend = async (documentId, friendData) => {
 export const deleteFriend = async (documentId) => {
     try {
         const friend = await db.Friend.findByPk(documentId);
-        
+
         if (!friend) {
             throw new Error('Không tìm thấy bạn bè');
         }
@@ -346,13 +374,13 @@ export const getFriendsUpdatedBefore7Days = async ({
         // Tính toán ngày cách hiện tại 7 ngày
         const before7Days = new Date();
         before7Days.setDate(before7Days.getDate() - 7);
-        
+
         const whereConditions = {
             updatedAt: {
                 [Op.lt]: before7Days
             }
         };
-        
+
         // Lọc theo userId nếu được cung cấp
         if (userId) {
             whereConditions[Op.or] = [
@@ -360,9 +388,9 @@ export const getFriendsUpdatedBefore7Days = async ({
                 { friend_id: userId }
             ];
         }
-        
+
         const offset = (page - 1) * pageSize;
-        
+
         // Chuẩn bị các mối quan hệ cần include
         const includes = [];
 
@@ -375,7 +403,7 @@ export const getFriendsUpdatedBefore7Days = async ({
                 }
             );
         }
-        
+
         // Thực hiện truy vấn
         const { count, rows } = await db.Friend.findAndCountAll({
             where: whereConditions,
@@ -385,12 +413,12 @@ export const getFriendsUpdatedBefore7Days = async ({
             limit: pageSize,
             distinct: true
         });
-        
+
         if (populate) {
             // Lấy user_id và friend_id từ kết quả
             const userIds = rows.map(friend => friend.user_id);
             const friendIds = rows.map(friend => friend.friend_id);
-            
+
             // Truy vấn thông tin của cả user và friend
             const users = await db.User.findAll({
                 where: {
@@ -398,13 +426,13 @@ export const getFriendsUpdatedBefore7Days = async ({
                 },
                 attributes: ['documentId', 'fullname', 'email', 'phone', 'avatar_id', 'cover_photo_id']
             });
-            
+
             // Tạo map cho việc tra cứu nhanh thông tin user
             const userMap = {};
             users.forEach(user => {
                 userMap[user.documentId] = user;
             });
-            
+
             // Thêm thông tin user và friend vào mỗi kết quả
             const enrichedData = rows.map(friend => {
                 const plainFriend = friend.get({ plain: true });
@@ -412,7 +440,7 @@ export const getFriendsUpdatedBefore7Days = async ({
                 plainFriend.friend = userMap[friend.friend_id];
                 return plainFriend;
             });
-            
+
             return {
                 data: enrichedData,
                 meta: {
@@ -425,7 +453,7 @@ export const getFriendsUpdatedBefore7Days = async ({
                 }
             };
         }
-        
+
         return {
             data: rows,
             meta: {
@@ -566,7 +594,7 @@ export const getNonFriendUsers = async ({
 
         // Tạo mảng chứa tất cả ID là bạn bè với userId
         const friendIds = new Set();
-        
+
         friendships.forEach(friendship => {
             if (friendship.user_id === userId) {
                 friendIds.add(friendship.friend_id);
@@ -574,7 +602,7 @@ export const getNonFriendUsers = async ({
                 friendIds.add(friendship.user_id);
             }
         });
-        
+
         // Thêm chính userId vào danh sách loại trừ
         friendIds.add(userId);
 
@@ -606,7 +634,7 @@ export const getNonFriendUsers = async ({
         const avatarIds = rows
             .map(user => user.avatar_id)
             .filter(id => id !== null);
-        
+
         // Truy vấn thông tin media cho avatar
         const avatarMedia = await db.Media.findAll({
             where: {
@@ -614,7 +642,7 @@ export const getNonFriendUsers = async ({
             },
             attributes: ['documentId', 'file_path']
         });
-        
+
         // Tạo map cho việc tra cứu nhanh thông tin media
         const mediaMap = {};
         avatarMedia.forEach(media => {
@@ -634,7 +662,7 @@ export const getNonFriendUsers = async ({
             });
             return { id: user.documentId, count: friendCount };
         });
-        
+
         const friendCounts = await Promise.all(friendCountPromises);
         const friendCountMap = {};
         friendCounts.forEach(({ id, count }) => {
@@ -644,15 +672,15 @@ export const getNonFriendUsers = async ({
         // Thêm thông tin avatar và số lượng bạn bè vào kết quả
         const enrichedData = rows.map(user => {
             const userData = user.get({ plain: true });
-            
+
             // Thêm thông tin avatar media nếu có
             if (userData.avatar_id && mediaMap[userData.avatar_id]) {
                 userData.avatarMedia = mediaMap[userData.avatar_id];
             }
-            
+
             // Thêm số lượng bạn bè
             userData.friendCount = friendCountMap[userData.documentId] || 0;
-            
+
             return userData;
         });
 

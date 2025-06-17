@@ -132,22 +132,120 @@ export const getUserById = async (documentId) => {
             throw new Error('Không tìm thấy user');
         }
 
-        // Lấy số lượng bạn bè của người dùng
-        const friendCount = await db.Friend.count({
+        // Lấy danh sách bạn bè của người dùng
+        const friends = await db.Friend.findAll({
             where: {
                 [Op.or]: [
                     { user_id: documentId },
                     { friend_id: documentId }
                 ],
                 status_action_id: 'vr8ygnd5y17xs4vcq6du3q7c' // Status đã kết bạn
-            }
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: 'user',
+                    attributes: ['documentId', 'fullname', 'username'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
+                },
+                {
+                    model: db.User,
+                    as: 'friendUser',
+                    attributes: ['documentId', 'fullname', 'username'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Lấy danh sách bạn bè đã gửi lời mời
+        const sentFriendRequests = await db.Friend.findAll({
+            where: {
+                user_id: documentId,
+                status_action_id: 'w1t6ex59sh5auezhau5e2ovu' // Status đã gửi lời mời
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: 'friendUser',
+                    attributes: ['documentId', 'fullname', 'username'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
+                }
+            ]
+        });
+
+        // Lấy danh sách bạn bè đã nhận lời mời
+        const receivedFriendRequests = await db.Friend.findAll({
+            where: {
+                friend_id: documentId,
+                status_action_id: 'w1t6ex59sh5auezhau5e2ovu' // Status đã nhận lời mời
+            },
+            include: [
+                {
+                    model: db.User,
+                    as: 'user',
+                    attributes: ['documentId', 'fullname', 'username'],
+                    include: [
+                        {
+                            model: db.Media,
+                            as: 'avatarMedia',
+                            attributes: ['documentId', 'file_path']
+                        }
+                    ]
+                }
+            ]
         });
 
         // Chuyển đổi user thành object thuần túy để thêm thông tin
-        const userWithFriendCount = user.get({ plain: true });
-        userWithFriendCount.friendCount = friendCount;
+        const userWithFriends = user.get({ plain: true });
+        
+        // Xử lý danh sách bạn bè
+        userWithFriends.friends = friends.map(friend => {
+            const friendData = friend.user_id === documentId ? friend.friendUser : friend.user;
+            return {
+                documentId: friendData.documentId,
+                fullname: friendData.fullname,
+                username: friendData.username,
+                avatar: friendData.avatarMedia?.file_path
+            };
+        });
 
-        return userWithFriendCount;
+        // Xử lý danh sách lời mời kết bạn đã gửi
+        userWithFriends.sentFriendRequests = sentFriendRequests.map(request => ({
+            documentId: request.friendUser.documentId,
+            fullname: request.friendUser.fullname,
+            username: request.friendUser.username,
+            avatar: request.friendUser.avatarMedia?.file_path
+        }));
+
+        // Xử lý danh sách lời mời kết bạn đã nhận
+        userWithFriends.receivedFriendRequests = receivedFriendRequests.map(request => ({
+            documentId: request.user.documentId,
+            fullname: request.user.fullname,
+            username: request.user.username,
+            avatar: request.user.avatarMedia?.file_path
+        }));
+
+        userWithFriends.friendCount = friends.length;
+
+        return userWithFriends;
     } catch (error) {
         throw new Error(`Lỗi khi lấy thông tin user: ${error.message}`);
     }

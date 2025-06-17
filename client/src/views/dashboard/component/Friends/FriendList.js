@@ -17,19 +17,7 @@ import img6 from '../../../../assets/images/page-img/profile-bg6.jpg'
 import img7 from '../../../../assets/images/page-img/profile-bg7.jpg'
 import img8 from '../../../../assets/images/page-img/profile-bg8.jpg'
 import img9 from '../../../../assets/images/page-img/profile-bg9.jpg'
-import user05 from '../../../../assets/images/user/05.jpg'
-import user06 from '../../../../assets/images/user/06.jpg'
-import user07 from '../../../../assets/images/user/07.jpg'
-import user08 from '../../../../assets/images/user/08.jpg'
-import user09 from '../../../../assets/images/user/09.jpg'
-import user10 from '../../../../assets/images/user/10.jpg'
-import user13 from '../../../../assets/images/user/13.jpg'
-import user14 from '../../../../assets/images/user/14.jpg'
-import user15 from '../../../../assets/images/user/15.jpg'
-import user16 from '../../../../assets/images/user/16.jpg'
-import user17 from '../../../../assets/images/user/17.jpg'
-import user18 from '../../../../assets/images/user/18.jpg'
-import user19 from '../../../../assets/images/user/19.jpg'
+
 import { useSelector } from 'react-redux'
 import { apiGetFriendAccepted } from '../../../../services/friend'
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,10 +25,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 const { Search } = Input;
 
 const FriendList = () => {
-    const { profile } = useSelector((state) => state.root.user || {});
     const { token, user } = useSelector((state) => state.root.auth || {});
 
-    const documentId = profile?.documentId;
     const [searchText, setSearchText] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const pageSize = 88;
@@ -95,7 +81,7 @@ const FriendList = () => {
         setCurrentPage(1); // Reset về trang 1 khi search
     };
 
-    const images = [img1, img2, img3, img4, img5, img6, img7, img9, user05, user06, user07, user08, user09, user10, user13, user14, user15, user16, user17, user18, user19];
+    const images = [img1, img2, img3, img4, img5, img6, img7, img9];
     return (
         <>
             <ProfileHeader title="Friend Lists" img={img3} />
