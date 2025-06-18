@@ -197,6 +197,11 @@ export const loginUser = async (credentials) => {
           model: db.StatusActivity,
           as: 'status',
           attributes: ['documentId', 'name']
+        },
+        {
+          model: db.Role,
+          as: 'role',
+          attributes: ['documentId', 'roleName']
         }
       ]
     });
@@ -246,6 +251,7 @@ export const loginUser = async (credentials) => {
           documentId: user.documentId,
           username: user.username,
           email: user.email,
+          role: user.role,
           provider: 'local',
           confirmed: user.email_verified,
           blocked: user.is_blocked,

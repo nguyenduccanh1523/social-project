@@ -20,3 +20,20 @@ export const apiSearch = (query, token, type = null) =>
             reject(error);
         }
     });
+
+
+export const apiStatisticsYearly = ({ token }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/statistics/yearly`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });

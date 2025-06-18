@@ -120,4 +120,44 @@ export const deleteUser = async (req, res) => {
             message: error.message
         });
     }
+};
+
+export const getUserStatistics = async (req, res) => {
+    try {
+        const statistics = await userService.getUserStatistics();
+        
+        return res.status(200).json({
+            err: 0,
+            message: 'Lấy thống kê user thành công',
+            data: statistics
+        });
+    } catch (error) {
+        return res.status(500).json({
+            err: -1,
+            message: error.message
+        });
+    }
+};
+
+export const getNationStatistics = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 10;
+
+        const statistics = await userService.getNationStatistics({
+            page,
+            pageSize
+        });
+        
+        return res.status(200).json({
+            err: 0,
+            message: 'Lấy thống kê user theo quốc gia thành công',
+            data: statistics
+        });
+    } catch (error) {
+        return res.status(500).json({
+            err: -1,
+            message: error.message
+        });
+    }
 }; 

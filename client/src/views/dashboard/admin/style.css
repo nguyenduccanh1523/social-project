@@ -1,0 +1,58 @@
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-content {
+  flex: 1;
+  background-color: #f8f9fa;
+}
+
+.header {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.sidebar-wrapper {
+  background: #fff;
+  min-height: calc(100vh - 56px);
+  padding: 1rem;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+}
+
+.content-wrapper {
+  padding: 1.5rem;
+}
+
+.content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.sidebar .nav-link {
+  color: #333;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin-bottom: 0.25rem;
+  transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+  background: #f8f9fa;
+}
+
+.sidebar .nav-link.active {
+  background: #007bff;
+  color: #fff;
+}
+
+.sidebar .nav-link .material-symbols-outlined {
+  vertical-align: middle;
+  margin-right: 0.5rem;
+} 

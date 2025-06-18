@@ -19,4 +19,6 @@ router.put('/:id', verifyToken, commentController.updateComment)
 // Xóa comment (yêu cầu đăng nhập)
 router.delete('/:id', verifyToken, commentController.deleteComment)
 
+router.get('/stats/monthly', verifyToken, commentController.getMonthlyCommentStats)
+
 export default router

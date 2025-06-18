@@ -19,4 +19,7 @@ router.put('/:id', verifyToken, postController.updatePost)
 // Xóa bài viết (yêu cầu đăng nhập)
 router.delete('/:id', verifyToken, postController.deletePost)
 
+// Thống kê số lượng bài post trong tháng và tỷ lệ tăng/giảm
+router.get('/stats/monthly', verifyToken, postController.getMonthlyPostStats)
+
 export default router 

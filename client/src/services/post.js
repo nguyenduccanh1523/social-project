@@ -88,14 +88,14 @@ export const getAllPosts = ({ page }) =>
       const response = await axiosConfig({
         method: "get",
         url: `/posts?pagination[pageSize]=10&pagination[page]=${page}&populate=*&sort=createdAt:DESC`,
-      }); 
+      });
       resolve(response)
     } catch (error) {
       reject(error);
     }
   });
 
-  export const apiGetPostDetail = ({ documentId }) =>
+export const apiGetPostDetail = ({ documentId }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -106,10 +106,10 @@ export const getAllPosts = ({ page }) =>
     } catch (error) {
       reject(error);
     }
-  }); 
+  });
 
 
-  export const apiGetPostFriend = ({ documentId }) =>
+export const apiGetPostFriend = ({ documentId }) =>
   new Promise(async (resolve, reject) => {
     try {
       const response = await axiosConfig({
@@ -120,7 +120,7 @@ export const getAllPosts = ({ page }) =>
     } catch (error) {
       reject(error);
     }
-  }); 
+  });
 
 
 
@@ -174,7 +174,22 @@ export const apiDeletePost = ({ documentId, token }) =>
     }
   });
 
-  
+export const apiPostMonthly = ({ token }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/posts/stats/monthly`,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
 
 
 

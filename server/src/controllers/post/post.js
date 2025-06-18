@@ -165,4 +165,20 @@ export const deletePost = async (req, res) => {
             message: error.message
         });
     }
+};
+
+export const getMonthlyPostStats = async (req, res) => {
+    try {
+        const stats = await postService.getMonthlyPostStats();
+        return res.status(200).json({
+            err: 0,
+            message: 'Thống kê số lượng bài post theo tháng thành công',
+            data: stats
+        });
+    } catch (error) {
+        return res.status(500).json({
+            err: -1,
+            message: error.message
+        });
+    }
 }; 

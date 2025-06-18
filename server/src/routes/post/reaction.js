@@ -22,4 +22,6 @@ router.delete('/:id', verifyToken, reactionController.deleteReaction)
 // Xóa reaction theo postId và userId (yêu cầu đăng nhập)
 router.delete('/post-user', verifyToken, reactionController.deleteReactionByPostAndUser)
 
+router.get('/stats/monthly', verifyToken, reactionController.getMonthlyReactionStats)
+
 export default router

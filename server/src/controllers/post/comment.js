@@ -125,3 +125,19 @@ export const deleteComment = async (req, res) => {
         });
     }
 }; 
+
+export const getMonthlyCommentStats = async (req, res) => {
+    try {
+        const stats = await commentService.getMonthlyCommentStats();
+        return res.status(200).json({
+            err: 0,
+            message: 'Thống kê số lượng bài post theo tháng thành công',
+            data: stats
+        });
+    } catch (error) {
+        return res.status(500).json({
+            err: -1,
+            message: error.message
+        });
+    }
+}; 

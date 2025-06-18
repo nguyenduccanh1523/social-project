@@ -166,3 +166,35 @@ export const apiDeletePostComment = ({ documentId }) =>
       reject(error);
     }
   });
+
+export const apiCommentMonthly = ({ token }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/comments/stats/monthly`,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });
+
+export const apiReactionMonthly = ({ token }) =>
+  new Promise(async (resolve, reject) => {
+    try {
+      const response = await axiosConfig({
+        method: "get",
+        url: `/reactions/stats/monthly`,
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      resolve(response);
+    } catch (error) {
+      reject(error);
+    }
+  });

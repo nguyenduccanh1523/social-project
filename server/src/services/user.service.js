@@ -291,4 +291,125 @@ export const deleteUser = async (documentId) => {
     } catch (error) {
         throw new Error(`Lỗi khi xóa user: ${error.message}`);
     }
+};
+
+// Thống kê số tài khoản theo tháng và tỷ lệ giới tính
+export const getUserStatistics = async () => {
+    try {
+        const currentYear = new Date().getFullYear();
+        
+        // Lấy thống kê theo tháng
+        const monthlyStats = await db.User.findAll({
+            attributes: [
+                [Sequelize.fn('MONTH', Sequelize.col('createdAt')), 'month'],
+                [Sequelize.fn('COUNT', Sequelize.col('documentId')), 'count']
+            ],
+            where: Sequelize.where(
+                Sequelize.fn('YEAR', Sequelize.col('createdAt')),
+                currentYear
+            ),
+            group: [Sequelize.fn('MONTH', Sequelize.col('createdAt'))],
+            order: [[Sequelize.fn('MONTH', Sequelize.col('createdAt')), 'ASC']]
+        });
+
+        // Lấy thống kê theo giới tính
+        const genderStats = await db.User.findAll({
+            attributes: [
+                'gender',
+                [Sequelize.fn('COUNT', Sequelize.col('documentId')), 'count']
+            ],
+            group: ['gender']
+        });
+
+        // Tính tổng số user
+        const totalUsers = await db.User.count();
+
+        // Tính phần trăm theo giới tính
+        const genderPercentages = genderStats.map(stat => ({
+            gender: stat.gender,
+            count: parseInt(stat.getDataValue('count')),
+            percentage: ((parseInt(stat.getDataValue('count')) / totalUsers) * 100).toFixed(2)
+        }));
+
+        // Format dữ liệu thống kê theo tháng
+        const formattedMonthlyStats = monthlyStats.map(stat => ({
+            month: parseInt(stat.getDataValue('month')),
+            count: parseInt(stat.getDataValue('count'))
+        }));
+
+        return {
+            monthlyStats: formattedMonthlyStats,
+            genderStats: genderPercentages,
+            totalUsers
+        };
+    } catch (error) {
+        throw new Error(`Lỗi khi thống kê user: ${error.message}`);
+    }
+};
+
+// Thống kê số lượng user theo quốc gia
+export const getNationStatistics = async ({ page = 1, pageSize = 10 }) => {
+    try {
+        const offset = (page - 1) * pageSize;
+
+        // Lấy thống kê số lượng user theo quốc gia
+        const { count, rows } = await db.User.findAndCountAll({
+            attributes: [
+                'nation_id',
+                [Sequelize.fn('COUNT', Sequelize.col('User.documentId')), 'userCount']
+            ],
+            include: [
+                {
+                    model: db.Nation,
+                    as: 'nation',
+                    attributes: [
+                        ['documentId', 'nationId'],
+                        'name',
+                        'niceName',
+                        'iso',
+                        'phoneCode'
+                    ]
+                }
+            ],
+            group: [
+                'User.nation_id',
+                'nation.documentId',
+                'nation.name',
+                'nation.niceName',
+                'nation.iso',
+                'nation.phoneCode'
+            ],
+            order: [[Sequelize.literal('userCount'), 'DESC']],
+            offset,
+            limit: pageSize,
+            raw: true,
+            nest: true
+        });
+
+        // Format dữ liệu trả về
+        const formattedData = rows.map(row => ({
+            nation: {
+                documentId: row.nation.nationId,
+                name: row.nation.name,
+                niceName: row.nation.niceName,
+                iso: row.nation.iso,
+                phoneCode: row.nation.phoneCode
+            },
+            userCount: parseInt(row.userCount)
+        }));
+
+        return {
+            data: formattedData,
+            meta: {
+                pagination: {
+                    page: parseInt(page),
+                    pageSize: parseInt(pageSize),
+                    pageCount: Math.ceil(count.length / pageSize),
+                    total: count.length
+                }
+            }
+        };
+    } catch (error) {
+        throw new Error(`Lỗi khi thống kê user theo quốc gia: ${error.message}`);
+    }
 }; 

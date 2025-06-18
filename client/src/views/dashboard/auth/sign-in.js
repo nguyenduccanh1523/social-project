@@ -57,13 +57,11 @@ const SignIn = () => {
       const token = localStorage.getItem("token");
       const isNewLogin = sessionStorage.getItem("isNewLogin");
       if (token && isNewLogin === "true") {
-        navigate("/");
-        // Swal.fire({
-        //   title: "Success!",
-        //   text: "You have successfully logged in!",
-        //   icon: "success",
-        //   confirmButtonText: "OK",
-        // });
+        if (user.role.roleName === 'admin') {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/");
+        }
         sessionStorage.removeItem("isNewLogin");
         dispatch(actions.clearMessage());
       }
@@ -231,11 +229,11 @@ const SignIn = () => {
                         }}
                       >
                         {showPassword ? (
-                          <span class="material-symbols-outlined">
+                          <span className="material-symbols-outlined">
                             visibility_off
                           </span>
                         ) : (
-                          <span class="material-symbols-outlined">
+                          <span className="material-symbols-outlined">
                             visibility
                           </span>
                         )}

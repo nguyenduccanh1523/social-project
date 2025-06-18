@@ -31,8 +31,6 @@ import img5 from "../../../assets/images/icon/10.png";
 import img6 from "../../../assets/images/icon/11.png";
 import img7 from "../../../assets/images/icon/12.png";
 import img8 from "../../../assets/images/icon/13.png";
-import img9 from "../../../assets/images/page-img/07.jpg";
-import img10 from "../../../assets/images/page-img/06.jpg";
 import g1 from "../../../assets/images/page-img/g1.jpg";
 import g2 from "../../../assets/images/page-img/g2.jpg";
 import g3 from "../../../assets/images/page-img/g3.jpg";

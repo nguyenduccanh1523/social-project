@@ -39,6 +39,7 @@ import postFriend from "./post/post-friend.js";
 import postMedia from "./post/post-media.js";
 import participantRouter from "./conversation-participant.js";
 import searchRouter from "./search.js";
+import statisticRouter from "./statistics.routes.js"
 
 const initRoutes = (app) => {
   app.use("/api/v1/auth", authRouter);
@@ -82,6 +83,7 @@ const initRoutes = (app) => {
   app.use("/api/v1/post-friends", postFriend);
   app.use("/api/v1/participants", participantRouter);
   app.use("/api/v1/search", searchRouter);
+  app.use("/api/v1/statistics", statisticRouter);
 
   return app.use("/", (req, res) => {
     res.send("server on...");

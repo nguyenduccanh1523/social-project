@@ -207,3 +207,57 @@ export const deleteReactionByPostAndUser = async (postId, userId) => {
         throw new Error(`Lỗi khi xóa reaction: ${error.message}`);
     }
 }; 
+
+export const getMonthlyReactionStats = async () => {
+    try {
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+
+        let prevMonth = currentMonth - 1;
+        let prevYear = currentYear;
+        if (prevMonth === 0) {
+            prevMonth = 12;
+            prevYear = currentYear - 1;
+        }
+
+        const currentCount = await db.Reaction.count({
+            where: {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('createdAt')), currentMonth),
+                    Sequelize.where(Sequelize.fn('YEAR', Sequelize.col('createdAt')), currentYear)
+                ]
+            }
+        });
+
+        const prevCount = await db.Reaction.count({
+            where: {
+                [Op.and]: [
+                    Sequelize.where(Sequelize.fn('MONTH', Sequelize.col('createdAt')), prevMonth),
+                    Sequelize.where(Sequelize.fn('YEAR', Sequelize.col('createdAt')), prevYear)
+                ]
+            }
+        });
+
+        let percentChange = 0;
+        if (prevCount === 0 && currentCount > 0) {
+            percentChange = 100;
+        } else if (prevCount === 0 && currentCount === 0) {
+            percentChange = 0;
+        } else {
+            percentChange = ((currentCount - prevCount) / prevCount) * 100;
+        }
+
+        return {
+            currentMonth,
+            currentYear,
+            currentCount,
+            prevMonth,
+            prevYear,
+            prevCount,
+            percentChange
+        };
+    } catch (error) {
+        throw new Error('Lỗi khi thống kê số lượng bài post: ' + error.message);
+    }
+}; 

@@ -1,0 +1,31 @@
+.admin-header {
+  height: 60px;
+  min-height: 60px;
+  z-index: 1001;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff !important;
+}
+
+.admin-header .navbar-brand {
+  font-weight: bold;
+  color: #007bff !important;
+  font-size: 1.25rem;
+}
+
+.admin-header .btn {
+  font-size: 0.95rem;
+  padding: 0.35rem 1.1rem;
+}
+
+.admin-header .fw-semibold {
+  font-size: 1rem;
+}
+
+@media (max-width: 991px) {
+  .admin-header .navbar-brand {
+    font-size: 1rem;
+  }
+  .admin-header .fw-semibold {
+    font-size: 0.95rem;
+  }
+} 

@@ -73,3 +73,35 @@ export const apiGetUserById = ({ userId, token }) => new Promise(async (resolve,
         reject(error);
     }
 });
+
+export const apiUserStatistics = ({ token }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/users/statistics`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });
+    
+export const apiUserStatisticsNation = ({ token }) =>
+    new Promise(async (resolve, reject) => {
+        try {
+            const response = await axiosConfig({
+                method: "get",
+                url: `/users/nation-statistics?pagination[pageSize]=10&pagination[page]=1`,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            resolve(response);
+        } catch (error) {
+            reject(error);
+        }
+    });

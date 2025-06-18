@@ -277,11 +277,11 @@ const SignUp = () => {
                         }}
                       >
                         {showPassword ? (
-                          <span class="material-symbols-outlined">
+                          <span className="material-symbols-outlined">
                             visibility_off
                           </span>
                         ) : (
-                          <span class="material-symbols-outlined">
+                          <span className="material-symbols-outlined">
                             visibility
                           </span>
                         )}
@@ -315,11 +315,11 @@ const SignUp = () => {
                         }}
                       >
                         {showConfirmPassword ? (
-                          <span class="material-symbols-outlined">
+                          <span className="material-symbols-outlined">
                             visibility_off
                           </span>
                         ) : (
-                          <span class="material-symbols-outlined">
+                          <span className="material-symbols-outlined">
                             visibility
                           </span>
                         )}

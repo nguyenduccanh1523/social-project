@@ -19,20 +19,8 @@ import Recoverpw from "../views/dashboard/auth/confirm-mail";
 
 
 export const SimpleRouter = [
-  
-//   {
-//     path: "auth/confirm-mail",
-//     element: <ConfirmMail />,
-//   },
-//   {
-//     path: "auth/lock-screen",
-//     element: <LockScreen />,
-//   },
-//   {
-//     path: "auth/recoverpw",
-//     element: <Recoverpw />,
-//   },
-  
+
+
   {
     path: "/sign-in",
     element: <SignIn />,
