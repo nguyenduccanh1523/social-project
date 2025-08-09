@@ -15,6 +15,7 @@ import ImgCrop from "antd-img-crop"; // Ensure you have antd-img-crop installed
 import {
   apiPublicMedia,
   createMedia,
+  // eslint-disable-next-line no-unused-vars
   uploadToMediaLibrary,
 } from "../../../../services/media";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ const CreatePage = ({ open, onClose }) => {
   const { user } = useSelector((state) => state.root.auth || {});
   const { token } = useSelector((state) => state.root.auth || {});
   const [form] = Form.useForm();
+  // eslint-disable-next-line no-unused-vars
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);

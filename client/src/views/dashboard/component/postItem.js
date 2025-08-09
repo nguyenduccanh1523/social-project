@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Dropdown, OverlayTrigger, Tooltip } from "react-bootstrap";
-import { formatDistanceToNow } from "date-fns";
 import { Image, Tag } from "antd";
 
 // Images import (you can import them or pass them as props)
@@ -31,7 +30,7 @@ const PostItem = ({ post }) => {
   const dispatch = useDispatch();
   const { medias } = useSelector((state) => state.root.media || {});
   const { tags } = useSelector((state) => state.root.tag || {});
-  const createdAt = new Date(post?.user?.createdAt);
+  
 
   const [imageController, setImageController] = useState({
     toggler: false, // Kiểm soát hiển thị gallery

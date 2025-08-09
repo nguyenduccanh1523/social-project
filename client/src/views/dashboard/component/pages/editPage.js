@@ -5,7 +5,6 @@ import {
   Space,
   Upload,
   Input,
-  message,
   TimePicker,
   notification,
   Select,
@@ -23,7 +22,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchNation } from "../../../../actions/actions/nation";
 import { fetchTag } from "../../../../actions/actions/tag";
 import { apiEditPostTag, apiGetTagPage } from "../../../../services/tag";
-import { set } from "date-fns";
 
 const EditPage = ({ pageData, open, onClose }) => {
   const dispatch = useDispatch();
@@ -32,6 +30,7 @@ const EditPage = ({ pageData, open, onClose }) => {
   const { tags } = useSelector((state) => state.root.tag || {});
   const [fileList, setFileList] = useState([]);
   const [selectedImages, setSelectedImages] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [uploading, setUploading] = useState(false);
   const [namePage, setNamePage] = useState("");
   const [emailPage, setEmailPage] = useState("");
@@ -70,6 +69,7 @@ const EditPage = ({ pageData, open, onClose }) => {
     setOpenHour(pageData?.openHours?.[0]?.open_time || "");
     setCloseHour(pageData?.openHours?.[0]?.close_time || "");
     setVerified(pageData?.is_verified === false ? false : true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageData]);
 
   //console.log("pageInfo", pageData);

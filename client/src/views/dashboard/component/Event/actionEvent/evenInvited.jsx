@@ -9,7 +9,7 @@ import {
   apiGetEventInvationFriend,
 } from "../../../../../services/eventServices/event";
 import { useSelector } from "react-redux";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery} from "@tanstack/react-query";
 
 const EventInvited = ({ oldData, profile, show, handleClose }) => {
   const { token } = useSelector((state) => state.root.auth || {});
@@ -17,6 +17,7 @@ const EventInvited = ({ oldData, profile, show, handleClose }) => {
   const [searchText, setSearchText] = useState("");
   const [participationStatus, setParticipationStatus] = useState({});
 
+  // eslint-disable-next-line no-unused-vars
   const { data: userAcceptData, isLoading: userAcceptLoading } = useQuery({
     queryKey: ["userAccept", profile?.documentId, token],
     queryFn: () =>
@@ -30,6 +31,7 @@ const EventInvited = ({ oldData, profile, show, handleClose }) => {
     },
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const friendList = userAcceptData?.data?.data || [];
 
   useEffect(() => {

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Modal } from "react-bootstrap";
 import { Link } from "react-router-dom";
-import { apiGetPageHour } from "../../../../services/page";
 
 const BioDetailModal = ({ show, onHide, pageData }) => {
 

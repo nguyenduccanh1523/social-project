@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
-import { Row, Col, Container, Dropdown, Button } from 'react-bootstrap'
+import { Dropdown } from 'react-bootstrap'
 import { Tag } from 'antd'
 import { Link } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { getTagColorAndIcon } from '../../../../views/dashboard/others/format';
 
 import { apiGetUserNoti, apiUpdateUserNoti } from '../../../../services/notification';

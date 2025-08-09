@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Container, Row, Col, Modal, Button, Dropdown } from "react-bootstrap";
+import { Container, Row, Col, Button, Dropdown } from "react-bootstrap";
 import Card from "../../../../components/Card";
 import CustomToggle from "../../../../components/dropdowns";
 import ReactFsLightbox from "fslightbox-react";
-import { apiGetPageDetail, apiGetPageHour, apiGetCheckFollowPage, apiCreatePageMember, apiDeletePageMember, apiGetPageMember, apiGetPostPage } from "../../../../services/page";
+import { apiGetPageDetail, apiGetCheckFollowPage, apiCreatePageMember, apiDeletePageMember } from "../../../../services/page";
 import BioDetailModal from "./bio-detail-modal";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { message } from "antd";
@@ -41,7 +41,6 @@ const PageDetail = () => {
   const location = useLocation();
   const {
     pageId,
-    pageInfo,
   } = location.state || {};
   const { data: pageDetails, isLoading: isPageDetailLoading } = useQuery({
     queryKey: ["pageDetais", pageId],
@@ -53,6 +52,7 @@ const PageDetail = () => {
   });
 
   const [pageData, setPageData] = useState(pageDetails || null);
+  // eslint-disable-next-line no-unused-vars
   const [loading, setLoading] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [show, setShow] = useState(false);
