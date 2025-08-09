@@ -64,6 +64,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'userSocial',
+    tableName: 'usersocials',
+    freezeTableName: true
   });
   return userSocial;
 };

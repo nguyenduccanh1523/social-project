@@ -4,11 +4,11 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Thử kết nối với mật khẩu trống
-const sequelize = new Sequelize(process.env.DB_NAME_LOCAL, process.env.DB_USER, process.env.DB_PASSWORD_LOCAL, {
-    host: process.env.DB_HOST_LOCAL,
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
     port: 3306,
     dialect: 'mysql',
-    logging: false
+    logging: false, // Tắt logging nếu không cần thiết
 });
 
 const connectDatabase = async () => {

@@ -332,20 +332,20 @@ const UserProfile = () => {
                               <img
                                 loading="lazy"
                                 src={
-                                  social.social.platform === "facebook"
+                                  social.platform === "facebook"
                                     ? img3 // Đường dẫn ảnh Facebook
-                                    : social.social.platform === "instagram"
+                                    : social.platform === "instagram"
                                     ? img5 // Đường dẫn ảnh Instagram
-                                    : social.social.platform === "youtube"
+                                    : social.platform === "youtube"
                                     ? img7 // Đường dẫn ảnh YouTube
-                                    : social.social.platform === "twitter"
+                                    : social.platform === "twitter"
                                     ? img4 // Đường dẫn ảnh Twitter
-                                    : social.social.platform === "linkedin"
+                                    : social.platform === "linkedin"
                                     ? img8 // Đường dẫn ảnh LinkedIn
                                     : img6 // Đường dẫn ảnh mặc định
                                 }
                                 className="img-fluid rounded"
-                                alt={social.social_id.platform}
+                                alt={social.platform}
                               />
                             </Link>
                           </li>
@@ -794,25 +794,25 @@ const UserProfile = () => {
                                         <img
                                           loading="lazy"
                                           src={
-                                            social.social.platform ===
+                                            social.platform ===
                                             "facebook"
                                               ? img3 // Thay bằng đường dẫn ảnh Facebook
-                                              : social.social.platform ===
+                                              : social.platform ===
                                                 "instagram"
                                               ? img5 // Thay bằng đường dẫn ảnh Twitter
-                                              : social.social.platform ===
+                                              : social.platform ===
                                                 "youtube"
                                               ? img7
-                                              : social.social.platform ===
+                                              : social.platform ===
                                                 "twitter"
                                               ? img4
-                                              : social.social.platform ===
+                                              : social.platform ===
                                                 "linkedin"
                                               ? img8
                                               : img6
                                           }
                                           className="img-fluid rounded"
-                                          alt={social.social.platform}
+                                          alt={social.platform}
                                         />
                                       </Link>
                                     </div>

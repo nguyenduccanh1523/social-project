@@ -52,6 +52,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'ViewStory',
+    tableName: 'viewstories',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

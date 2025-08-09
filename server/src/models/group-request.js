@@ -79,6 +79,8 @@ export default  (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "group_request",
+      tableName: "group_requests",
+      freezeTableName: true, // Không tự động chuyển đổi tên bảng
       timestamps: true,
       paranoid: true,
     }

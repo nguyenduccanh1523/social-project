@@ -64,6 +64,7 @@ export default (sequelize, DataTypes) => {
       sequelize,
       modelName: "PostMedia",
       tableName: "post_medias", // Chỉ định tên bảng trong database
+      freezeTableName: true,
       timestamps: true,
       paranoid: true,
     }

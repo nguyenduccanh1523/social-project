@@ -476,6 +476,8 @@ export default (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "User",
+      tableName: "users",
+      freezeTableName: true,
       timestamps: true,
       paranoid: true, // Sử dụng soft delete với trường deletedAt
     }

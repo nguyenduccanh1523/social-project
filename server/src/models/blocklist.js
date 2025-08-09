@@ -53,6 +53,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Blocklist',
+    tableName: 'blocklists',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

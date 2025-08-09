@@ -108,6 +108,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'DocumentShare',
+    tableName: 'documentshares',
+    freezeTableName: true,
     paranoid: true // Sử dụng soft delete với trường deletedAt
   });
   return DocumentShare;

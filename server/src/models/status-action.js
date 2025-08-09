@@ -54,6 +54,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'StatusAction',
+    tableName: 'statusactions',
+    freezeTableName: true,
     paranoid: true // Để bật soft delete với trường deletedAt
   });
   return StatusAction;

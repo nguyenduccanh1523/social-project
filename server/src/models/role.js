@@ -27,6 +27,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Role',
+    tableName: 'roles',
+    freezeTableName: true
   });
   return Role;
 };

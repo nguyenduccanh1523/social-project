@@ -63,6 +63,8 @@ export default (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Share",
+      tableName: "shares",
+      freezeTableName: true,
       timestamps: true,
       paranoid: true,
     }

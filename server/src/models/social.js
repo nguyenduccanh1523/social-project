@@ -25,6 +25,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Social',
+    tableName: 'socials',
+    freezeTableName: true
   });
   return Social;
 };

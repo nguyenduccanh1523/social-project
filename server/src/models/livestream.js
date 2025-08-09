@@ -60,6 +60,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Livestream',
+    tableName: 'livestreams',
+    freezeTableName: true,
     paranoid: true // Sử dụng soft delete với trường deletedAt
   });
   return Livestream;

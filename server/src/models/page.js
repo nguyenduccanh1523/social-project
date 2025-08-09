@@ -134,6 +134,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Page',
+    tableName: 'pages',
+    freezeTableName: true,
     paranoid: true // Sử dụng soft delete với trường deletedAt
   });
   return Page;

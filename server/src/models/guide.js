@@ -41,6 +41,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Guide',
+    tableName: 'guides',
+    freezeTableName: true,
     paranoid: true // Sử dụng soft delete với trường deletedAt
   });
   return Guide;

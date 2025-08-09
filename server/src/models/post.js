@@ -171,7 +171,8 @@ export default (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Post",
-      tableName: "Posts",
+      tableName: "posts",
+      freezeTableName: true,
       timestamps: true,
       createdAt: "createdAt",
       updatedAt: "updatedAt",

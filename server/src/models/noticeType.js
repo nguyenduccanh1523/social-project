@@ -40,6 +40,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'NoticeType',
+    tableName: 'noticetypes',
+    freezeTableName: true,
     paranoid: true // Sử dụng soft delete với trường deletedAt
   });
   return NoticeType;

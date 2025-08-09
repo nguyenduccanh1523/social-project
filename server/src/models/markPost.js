@@ -63,6 +63,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'MarkPost',
+    tableName: 'markposts',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

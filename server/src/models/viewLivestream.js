@@ -52,6 +52,7 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'ViewLivestream',
+    tableName: 'viewlivestreams',
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

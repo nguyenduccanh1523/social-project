@@ -48,6 +48,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PostFriend',
+    tableName: 'postfriends',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

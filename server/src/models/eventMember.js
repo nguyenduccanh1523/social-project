@@ -57,6 +57,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'EventMember',
+    tableName: 'eventmembers',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

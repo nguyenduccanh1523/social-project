@@ -58,7 +58,8 @@ export default (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Tag",
-      tableName: "Tags", // Thêm tên bảng rõ ràng
+      tableName: "tags", // Thêm tên bảng rõ ràng
+      freezeTableName: true,
       timestamps: true, // Sử dụng timestamps
       paranoid: true,
     }

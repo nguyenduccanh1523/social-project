@@ -114,6 +114,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Group',
+    tableName: 'groups',
+    freezeTableName: true,
     paranoid: true
   });
   return Group;

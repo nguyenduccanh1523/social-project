@@ -53,6 +53,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'group_members',
+    tableName: 'group_members',
+    freezeTableName: true,
   });
 
   return group_members;

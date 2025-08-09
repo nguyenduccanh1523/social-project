@@ -93,6 +93,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'NotificationCreated',
+    tableName: 'notificationcreateds',
+    freezeTableName: true,
     paranoid: true // Sử dụng soft delete với trường deletedAt
   });
   return NotificationCreated;

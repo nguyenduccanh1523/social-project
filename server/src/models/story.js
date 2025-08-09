@@ -116,6 +116,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Story',
+    tableName: 'stories',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     hooks: {
       beforeCreate: (story) => {

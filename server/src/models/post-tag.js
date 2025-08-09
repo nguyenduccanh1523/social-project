@@ -78,7 +78,7 @@ export default  (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PostTag',
-    tableName: 'PostTags',
+    tableName: 'posttags',
     timestamps: true,
     paranoid: true,
     indexes: [

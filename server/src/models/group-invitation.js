@@ -94,6 +94,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'group_invitation',
+    tableName: 'group_invitations',
+    freezeTableName: true,
   });
 
   return group_invitation;

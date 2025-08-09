@@ -56,6 +56,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'UserNotification',
+    tableName: 'usernotifications',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

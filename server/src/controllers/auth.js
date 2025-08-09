@@ -14,6 +14,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_APP_PASSWORD, // Use App Password instead of regular password
   },
+  tls: {
+    rejectUnauthorized: false, // Allow self-signed certificates
+  }
 });
 
 // Check email connection

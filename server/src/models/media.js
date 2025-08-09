@@ -130,7 +130,8 @@ export default (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Media",
-      tableName: "Medias",
+      tableName: "medias",
+      freezeTableName: true,
       timestamps: true,
       paranoid: true,
     }

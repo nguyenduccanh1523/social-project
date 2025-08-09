@@ -69,6 +69,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Reaction',
+    tableName: 'reactions',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {

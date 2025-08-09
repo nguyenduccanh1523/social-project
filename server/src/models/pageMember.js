@@ -62,6 +62,8 @@ export default (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'PageMember',
+    tableName: 'pagemembers',
+    freezeTableName: true,
     paranoid: true, // Sử dụng soft delete với trường deletedAt
     indexes: [
       {
