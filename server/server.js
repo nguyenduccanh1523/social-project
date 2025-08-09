@@ -12,7 +12,7 @@ const server = http.createServer(app); // 👈 Tạo server từ http
 
 const io = new Server(server, {
     cors: {
-        origin: 'http://localhost:4000',
+        origin: 'https://timely-naiad-4247ab.netlify.app',
         methods: ['GET', 'POST'],
         credentials: true,
     }
@@ -49,14 +49,14 @@ io.on("connection_error", (err) => {
 
 
 app.use(cors({
-    origin: 'http://localhost:4000',
+    origin: 'https://timely-naiad-4247ab.netlify.app',
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }))
 
 app.options('*', cors({
-    origin: 'http://localhost:4000',
+    origin: 'https://timely-naiad-4247ab.netlify.app',
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
